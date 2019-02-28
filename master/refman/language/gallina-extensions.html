@@ -253,6 +253,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#solving-existential-variables-using-tactics">Solving existential variables using tactics</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#primitive-integers">Primitive Integers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="coq-library.html">The <span class="smallcaps">Coq</span> library</a><ul>
@@ -360,7 +361,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-display">Controlling display</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-the-reduction-strategies-and-the-conversion-algorithm">Controlling the reduction strategies and the conversion algorithm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-the-locality-of-commands">Controlling the locality of commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../proof-engine/vernacular-commands.html#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../proof-engine/vernacular-commands.html#internal-registration-commands">Internal registration commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#inlining-hints-for-the-fast-reduction-machines">Inlining hints for the fast reduction machines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#registering-primitive-operations">Registering primitive operations</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../proof-engine/proof-handling.html">Proof handling</a><ul>
@@ -3701,6 +3707,60 @@ foo is defined</span></dd>
 using highly automated tactics without resorting to writing the proof-term
 by means of the interactive proof engine.</p>
 </div>
+</div>
+<div class="section" id="primitive-integers">
+<span id="id13"></span><h2>Primitive Integers<a class="headerlink" href="#primitive-integers" title="Permalink to this headline">¶</a></h2>
+<p>The language of terms features 63-bit machine integers as values. The type of
+such a value is <em>axiomatized</em>; it is declared through the following sentence
+(excerpt from the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">Int63</span></span></code> module):</p>
+<div class="coqdoc literal-block docutils container">
+<span><span class="coqdoc-var">Primitive</span><span> </span><span class="coqdoc-var">int</span><span> := #</span><span class="coqdoc-var">int63_type</span><span>.</span></span></div>
+<p>This type is equipped with a few operators, that must be similarly declared.
+For instance, equality of two primitive integers can be decided using the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">Int63</span></span><span class="operator"><span class="pre">.</span></span><span class="name"><span class="pre">eqb</span></span></code> function,
+declared and specified as follows:</p>
+<div class="coqdoc literal-block docutils container">
+<span><span class="coqdoc-var">Primitive</span><span> </span><span class="coqdoc-var">eqb</span><span> := #</span><span class="coqdoc-var">int63_eq</span><span>.</span><span>
+</span><span class="coqdoc-keyword">Notation</span><span> &quot;m '==' n&quot; := (</span><span class="coqdoc-var">eqb</span><span> </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">n</span><span>) (</span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 70, </span><span class="coqdoc-keyword">no</span><span> </span><span class="coqdoc-keyword">associativity</span><span>) : </span><span class="coqdoc-var">int63_scope</span><span>.</span><span>
+</span><span>
+</span><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">eqb_correct</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span>, (</span><span class="coqdoc-var">i</span><span> == </span><span class="coqdoc-var">j</span><span>)%</span><span class="coqdoc-var">int63</span><span> = </span><span class="coqdoc-var">true</span><span> -&gt; </span><span class="coqdoc-var">i</span><span> = </span><span class="coqdoc-var">j</span><span>.</span></span></div>
+<p>The complete set of such operators can be obtained looking at the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">Int63</span></span></code> module.</p>
+<p>These primitive declarations are regular axioms. As such, they must be trusted and are listed by the
+<code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Print</span></span> <span class="name"><span class="pre">Assumptions</span></span></code> command, as in the following example.</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">From</span><span> </span><span class="coqdoc-var">Coq</span><span> </span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">Int63</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">[Loading ML file newring_plugin.cmxs ... done]
+[Loading ML file omega_plugin.cmxs ... done]
+[Loading ML file micromega_plugin.cmxs ... done]
+[Loading ML file int63_syntax_plugin.cmxs ... done]</span></dd>
+<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">one_minus_one_is_zero</span><span> : (1 - 1 = 0)%</span><span class="coqdoc-var">int63</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first">1 subgoal
+  
+  ============================
+  (1</span><span class="ansi-fg-white"> -</span><span> 1)%int63</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-keyword">Proof</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-tactic">apply</span><span> </span><span class="coqdoc-var">eqb_correct</span><span>; </span><span class="coqdoc-keyword">vm_compute</span><span>; </span><span class="coqdoc-tactic">reflexivity</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">No more subgoals.</span></dd>
+<dt><span class="coqdoc-keyword">Qed</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">one_minus_one_is_zero is defined</span></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-keyword">Assumptions</span><span> </span><span class="coqdoc-var">one_minus_one_is_zero</span><span>.</span></dt>
+<dd><span class="first">Axioms:
+sub : int</span><span class="ansi-fg-white"> -&gt;</span><span> int</span><span class="ansi-fg-white"> -&gt;</span><span> int
+eqb_correct : </span><span class="ansi-bold">forall</span><span> i j : int, (i</span><span class="ansi-fg-white"> ==</span><span> j)%int63</span><span class="ansi-fg-white"> =</span><span> true</span><span class="ansi-fg-white"> -&gt;</span><span> i</span><span class="ansi-fg-white"> =</span><span> j
+eqb : int</span><span class="ansi-fg-white"> -&gt;</span><span> int</span><span class="ansi-fg-white"> -&gt;</span><span class="last"> bool</span></dd>
+</dl>
+</div>
+<p>The reduction machines (<a class="reference internal" href="../proof-engine/tactics.html#coq:tacv.vm-compute" title="vm_compute"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">vm_compute</span></code></a>, <a class="reference internal" href="../proof-engine/tactics.html#coq:tacv.native-compute" title="native_compute"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">native_compute</span></code></a>) implement
+dedicated, efficient, rules to reduce the applications of these primitive
+operations.</p>
+<p>These primitives, when extracted to OCaml (see <a class="reference internal" href="../addendum/extraction.html#extraction"><span class="std std-ref">Extraction of programs in OCaml and Haskell</span></a>), are mapped to
+types and functions of a <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">Uint63</span></span></code> module. Said module is not produced by
+extraction. Instead, it has to be provided by the user (if they want to compile
+or execute the extracted code). For instance, an implementation of this module
+can be taken from the kernel of Coq.</p>
 </div>
 </div>
 
