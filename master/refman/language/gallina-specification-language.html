@@ -312,6 +312,7 @@
 <li class="toctree-l3"><a class="reference internal" href="cic.html#delta-reduction">δ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cic.html#zeta-reduction">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cic.html#expansion">η-expansion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cic.html#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cic.html#convertibility">Convertibility</a></li>
 </ul>
 </li>
@@ -334,7 +335,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cic.html#fixpoint-definitions">Fixpoint definitions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="cic.html#id27">Typing rule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cic.html#id28">Typing rule</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cic.html#reduction-rule">Reduction rule</a></li>
 </ul>
 </li>
@@ -989,6 +990,12 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../addendum/sprop.html">SProp (proof irrelevant propositions)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../addendum/sprop.html#basic-constructs">Basic constructs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addendum/sprop.html#encodings-for-strict-propositions">Encodings for strict propositions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addendum/sprop.html#issues-with-non-cumulativity">Issues with non-cumulativity</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Reference</span></p>
 <ul>
@@ -1119,6 +1126,7 @@
 \newcommand{\Pair}{\textsf{pair}}
 \newcommand{\plus}{\mathsf{plus}}
 \newcommand{\Prod}{\textsf{prod}}
+\newcommand{\SProp}{\textsf{SProp}}
 \newcommand{\Prop}{\textsf{Prop}}
 \newcommand{\return}{\kw{return}}
 \newcommand{\Set}{\textsf{Set}}
@@ -1226,8 +1234,8 @@ double quote character. In grammars, the entry for quoted strings is
 <dd><p class="first">The following identifiers are reserved keywords, and cannot be
 employed otherwise:</p>
 <div class="last highlight-text notranslate"><div class="highlight"><pre><span></span>_ as at cofix else end exists exists2 fix for
-forall fun if IF in let match mod Prop return
-Set then Type using where with
+forall fun if IF in let match mod return
+SProp Prop Set Type then using where with
 </pre></div>
 </div>
 </dd>
@@ -1290,7 +1298,7 @@ is described in Chapter <a class="reference internal" href="../user-extensions/s
                   ' <a class="reference internal" href="#grammar-token-pattern"><code class="xref docutils literal notranslate"><span class="pre">pattern</span></code></a>
 <strong id="grammar-token-name">name        </strong> ::=  <a class="reference internal" href="#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> | _
 <strong id="grammar-token-qualid">qualid      </strong> ::=  <a class="reference internal" href="#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> | <a class="reference internal" href="#grammar-token-qualid"><code class="xref docutils literal notranslate"><span class="pre">qualid</span></code></a> <a class="reference internal" href="#grammar-token-access_ident"><code class="xref docutils literal notranslate"><span class="pre">access_ident</span></code></a>
-<strong id="grammar-token-sort">sort        </strong> ::=  Prop | Set | Type
+<strong id="grammar-token-sort">sort        </strong> ::=  SProp | Prop | Set | Type
 <strong id="grammar-token-fix_bodies">fix_bodies  </strong> ::=  <a class="reference internal" href="#grammar-token-fix_body"><code class="xref docutils literal notranslate"><span class="pre">fix_body</span></code></a>
                   <a class="reference internal" href="#grammar-token-fix_body"><code class="xref docutils literal notranslate"><span class="pre">fix_body</span></code></a> with <a class="reference internal" href="#grammar-token-fix_body"><code class="xref docutils literal notranslate"><span class="pre">fix_body</span></code></a> with … with <a class="reference internal" href="#grammar-token-fix_body"><code class="xref docutils literal notranslate"><span class="pre">fix_body</span></code></a> for <a class="reference internal" href="#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a>
 <strong id="grammar-token-cofix_bodies">cofix_bodies</strong> ::=  <a class="reference internal" href="#grammar-token-cofix_body"><code class="xref docutils literal notranslate"><span class="pre">cofix_body</span></code></a>
@@ -1344,8 +1352,10 @@ would make precedence unnatural.</p>
 </div>
 <div class="section" id="sorts">
 <span id="index-0"></span><h3>Sorts<a class="headerlink" href="#sorts" title="Permalink to this headline">¶</a></h3>
-<p>There are three sorts <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code>.</p>
+<p>There are four sorts <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">SProp</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code>  and <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code>.</p>
 <ul class="simple">
+<li><code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">SProp</span></span></code>&nbsp;is the universe of <em>definitionally irrelevant
+propositions</em> (also called <em>strict propositions</em>).</li>
 <li><code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code>&nbsp;is the universe of <em>logical propositions</em>. The logical propositions
 themselves are typing the proofs. We denote propositions by <span class="inline-grammar-production"><span class="target" id="grammar-token-form"></span><code class="docutils literal notranslate"><span class="pre">form</span></code></span>.
 This constitutes a semantic subclass of the syntactic class <a class="reference internal" href="#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a>.</li>
@@ -1353,7 +1363,7 @@ This constitutes a semantic subclass of the syntactic class <a class="reference 
 specifications themselves are typing the programs. We denote
 specifications by <span class="inline-grammar-production"><span class="target" id="grammar-token-specif"></span><code class="docutils literal notranslate"><span class="pre">specif</span></code></span>. This constitutes a semantic subclass of
 the syntactic class <a class="reference internal" href="#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a>.</li>
-<li><code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code> is the type of <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code></li>
+<li><code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code> is the type of sorts.</li>
 </ul>
 <p>More on sorts can be found in Section&nbsp;<a class="reference internal" href="cic.html#sorts"><span class="std std-ref">Sorts</span></a>.</p>
 </div>
@@ -1866,9 +1876,9 @@ and <a class="reference internal" href="#grammar-token-sort"><code class="xref s
 are the names of its constructors and <a class="reference internal" href="#grammar-token-type"><code class="xref std std-token docutils literal notranslate"><span class="pre">type</span></code></a> their respective types.
 Depending on the universe where the inductive type <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a> lives
 (e.g. its type <a class="reference internal" href="#grammar-token-sort"><code class="xref std std-token docutils literal notranslate"><span class="pre">sort</span></code></a>), Coq provides a number of destructors.
-Destructors are named <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_ind</span></code>, <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_rec</span></code>
-or <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_rect</span></code> which respectively correspond to elimination
-principles on <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code>.
+Destructors are named <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_sind</span></code>,:token:<code class="docutils literal notranslate"><span class="pre">ident</span></code><code class="docutils literal notranslate"><span class="pre">_ind</span></code>,
+<a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_rec</span></code> or <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_rect</span></code> which respectively
+correspond to elimination principles on <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">SProp</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Prop</span></span></code>, <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code>.
 The type of the destructors expresses structural induction/recursion
 principles over objects of type <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.
 The constant <a class="reference internal" href="#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a><code class="docutils literal notranslate"><span class="pre">_ind</span></code> is always provided,
