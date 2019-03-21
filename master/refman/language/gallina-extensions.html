@@ -162,7 +162,7 @@
 <li class="toctree-l3"><a class="reference internal" href="gallina-specification-language.html#inductive-definitions">Inductive definitions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#simple-inductive-types">Simple inductive types</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#simple-annotated-inductive-types">Simple annotated inductive types</a></li>
-<li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#parametrized-inductive-types">Parametrized inductive types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#parameterized-inductive-types">Parameterized inductive types</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#variants">Variants</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#mutually-defined-inductive-types">Mutually defined inductive types</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gallina-specification-language.html#co-inductive-types">Co-inductive types</a></li>
@@ -826,7 +826,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../addendum/type-classes.html">Type Classes</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../addendum/type-classes.html">Typeclasses</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../addendum/type-classes.html#class-and-instance-declarations">Class and Instance declarations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../addendum/type-classes.html#binding-classes">Binding classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../addendum/type-classes.html#parameterized-instances">Parameterized Instances</a></li>
@@ -1987,41 +1987,44 @@ belonging to a Lemma <code class="docutils literal notranslate"><span class="pre
 </div>
 <div class="section" id="section-mechanism">
 <span id="id4"></span><h2>Section mechanism<a class="headerlink" href="#section-mechanism" title="Permalink to this headline">¶</a></h2>
-<p>The sectioning mechanism can be used to to organize a proof in
-structured sections. Then local declarations become available (see
-Section <a class="reference internal" href="gallina-specification-language.html#gallina-definitions"><span class="std std-ref">Definitions</span></a>).</p>
-<dl class="cmd">
-<dt id="coq:cmd.section">
-<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Section</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span></code><a class="headerlink" href="#coq:cmd.section" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command is used to open a section named <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.
-Section names do not need to be unique.</p>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.end">
-<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>End</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span></code><a class="headerlink" href="#coq:cmd.end" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command closes the section named <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>. After closing of the
-section, the local declarations (variables and local definitions) get
-<em>discharged</em>, meaning that they stop being visible and that all global
-objects defined in the section are generalized with respect to the
-variables and local definitions they each depended on in the section.</p>
+<p>Sections create local contexts which can be shared across multiple definitions.</p>
 <div class="admonition note">
 <p class="first admonition-title">Example</p>
+<p>Sections are opened by the <a class="reference internal" href="#coq:cmd.section" title="Section"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Section</span></code></a> command, and closed by <a class="reference internal" href="#coq:cmd.end" title="End"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">End</span></code></a>.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Section</span><span> </span><span class="coqdoc-var">s1</span><span>.</span></dt>
 <dd class="coqtop-hidden"></dd>
+</dl>
+</div>
+<p>Inside a section, local parameters can be introduced using <a class="reference internal" href="#coq:cmd.variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a>,
+<a class="reference internal" href="#coq:cmdv.hypothesis" title="Hypothesis"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Hypothesis</span></code></a>, or <a class="reference internal" href="#coq:cmd.context" title="Context"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Context</span></code></a> (there are also plural variants for
+the first two).</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Variables</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> : </span><span class="coqdoc-var">nat</span><span>.</span></dt>
 <dd><span class="first last">x is declared
 y is declared</span></dd>
+</dl>
+</div>
+<p>The command <a class="reference internal" href="#coq:cmd.let" title="Let"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Let</span></code></a> introduces section-wide <a class="reference internal" href="gallina-specification-language.html#let-in"><span class="std std-ref">Let-in definitions</span></a>. These definitions
+won't persist when the section is closed, and all persistent definitions which
+depend on <code class="docutils literal notranslate"><span class="pre">y'</span></code> will be prefixed with <code class="docutils literal notranslate"><span class="pre">let</span> <span class="pre">y'</span> <span class="pre">:=</span> <span class="pre">y</span> <span class="pre">in</span></code>.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Let</span><span> </span><span class="coqdoc-var">y'</span><span> := </span><span class="coqdoc-var">y</span><span>.</span></dt>
-<dd><span class="first last">y' is defined</span></dd>
+<dd class="coqtop-hidden"><span class="first last">y' is defined</span></dd>
 <dt><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">x'</span><span> := </span><span class="coqdoc-var">S</span><span> </span><span class="coqdoc-var">x</span><span>.</span></dt>
-<dd><span class="first last">x' is defined</span></dd>
+<dd class="coqtop-hidden"><span class="first last">x' is defined</span></dd>
 <dt><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">x''</span><span> := </span><span class="coqdoc-var">x'</span><span> + </span><span class="coqdoc-var">y'</span><span>.</span></dt>
-<dd><span class="first last">x'' is defined</span></dd>
+<dd class="coqtop-hidden"><span class="first last">x'' is defined</span></dd>
+</dl>
+<span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">x'</span><span>.</span></dt>
 <dd><span class="first last">x' = S x
+     : nat</span></dd>
+<dt><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">x''</span><span>.</span></dt>
+<dd><span class="first">x'' = x'</span><span class="ansi-fg-white"> +</span><span class="last"> y'
      : nat</span></dd>
 <dt><span class="coqdoc-keyword">End</span><span> </span><span class="coqdoc-var">s1</span><span>.</span></dt>
 <dd class="coqtop-hidden"></dd>
@@ -2040,6 +2043,21 @@ Argument scopes are [nat_scope nat_scope]</span></dd>
 <p class="last">Notice the difference between the value of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">x'</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">x''</span></span></code> inside section
 <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">s1</span></span></code> and outside.</p>
 </div>
+<dl class="cmd">
+<dt id="coq:cmd.section">
+<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Section</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span></code><a class="headerlink" href="#coq:cmd.section" title="Permalink to this definition">¶</a></dt>
+<dd><p>This command is used to open a section named <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.
+Section names do not need to be unique.</p>
+</dd></dl>
+
+<dl class="cmd">
+<dt id="coq:cmd.end">
+<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>End</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span></code><a class="headerlink" href="#coq:cmd.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>This command closes the section named <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>. After closing of the
+section, the local declarations (variables and local definitions, see <a class="reference internal" href="#coq:cmd.variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a>) get
+<em>discharged</em>, meaning that they stop being visible and that all global
+objects defined in the section are generalized with respect to the
+variables and local definitions they each depended on in the section.</p>
 <dl class="exn">
 <dt id="coq:exn.this-is-not-the-last-opened-section">
 <em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><span>This</span> <span>is</span> <span>not</span> <span>the</span> <span>last</span> <span>opened</span> <span>section.</span></span></code><a class="headerlink" href="#coq:exn.this-is-not-the-last-opened-section" title="Permalink to this definition">¶</a></dt>
@@ -2051,6 +2069,88 @@ Argument scopes are [nat_scope nat_scope]</span></dd>
 <p class="first admonition-title">Note</p>
 <p class="last">Most commands, like <a class="reference internal" href="../proof-engine/tactics.html#coq:cmd.hint" title="Hint"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Hint</span></code></a>, <a class="reference internal" href="../user-extensions/syntax-extensions.html#coq:cmd.notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a>, option management, … which
 appear inside a section are canceled when the section is closed.</p>
+</div>
+<dl class="cmd">
+<dt id="coq:cmd.variable">
+<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Variable</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a></span></code><a class="headerlink" href="#coq:cmd.variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>This command links <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><code class="xref std std-token docutils literal notranslate"><span class="pre">type</span></code></a> to the name <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a> in the context of
+the current section. When the current section is closed, name <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>
+will be unknown and every object using this variable will be explicitly
+parameterized (the variable is <em>discharged</em>).</p>
+<dl class="exn">
+<dt id="coq:exn.ident-already-exists-variable">
+<em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <span>already</span> <span>exists.</span></span></code><a class="headerlink" href="#coq:exn.ident-already-exists-variable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="cmdv">
+<dt>
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Variable</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a></span></code></dt>
+<dd><p>Links <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><code class="xref std std-token docutils literal notranslate"><span class="pre">type</span></code></a> to each <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.</p>
+</dd></dl>
+
+<dl class="cmdv">
+<dt>
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Variable </span><span class="repeat-wrapper"><span class="repeat"><span>( </span><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a> <span>)</span></span><span class="notation-sup">+</span></span></span></code></dt>
+<dd><p>Declare one or more variables with various types.</p>
+</dd></dl>
+
+<dl class="cmdv">
+<dt id="coq:cmdv.variables">
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Variables </span><span class="repeat-wrapper"><span class="repeat"><span>( </span><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a><span>)</span></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmdv.variables" title="Permalink to this definition">¶</a></dt>
+<dt id="coq:cmdv.hypothesis">
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Hypothesis </span><span class="repeat-wrapper"><span class="repeat"><span>( </span><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a><span>)</span></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmdv.hypothesis" title="Permalink to this definition">¶</a></dt>
+<dt id="coq:cmdv.hypotheses">
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Hypotheses </span><span class="repeat-wrapper"><span class="repeat"><span>( </span><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a><span>)</span></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmdv.hypotheses" title="Permalink to this definition">¶</a></dt>
+<dd><p>These variants are synonyms of <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">Variable</span></span><span class="repeat-wrapper"><span class="repeat"><span><span class="pre">(</span></span><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span> <span><span class="pre">:</span></span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole"><span class="pre">type</span></span></a><span><span class="pre">)</span></span></span><span class="notation-sup"><span class="pre">+</span></span></span></span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="cmd">
+<dt id="coq:cmd.let">
+<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Let</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <span>:=</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><span class="hole">term</span></a></span></code><a class="headerlink" href="#coq:cmd.let" title="Permalink to this definition">¶</a></dt>
+<dd><p>This command binds the value <a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a> to the name <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a> in the
+environment of the current section. The name <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a> is accessible
+only within the current section. When the section is closed, all persistent
+definitions and theorems within it and depending on <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>
+will be prefixed by the let-in definition <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">let</span></span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a><span><span class="pre">&nbsp;:=&nbsp;</span></span><a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">in</span></span></span></code>.</p>
+<dl class="exn">
+<dt id="coq:exn.ident-already-exists-let">
+<em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <span>already</span> <span>exists.</span></span></code><a class="headerlink" href="#coq:exn.ident-already-exists-let" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="cmdv">
+<dt>
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Let</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-binders"><span class="hole">binders</span></a></span><span class="notation-sup">?</span></span> <span class="repeat-wrapper"><span class="repeat"><span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a></span><span class="notation-sup">?</span></span> <span>:=</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><span class="hole">term</span></a></span></code></dt>
+<dd></dd></dl>
+
+<dl class="cmdv">
+<dt id="coq:cmdv.let-fixpoint">
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Let</span> <span>Fixpoint</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <a class="reference internal" href="gallina-specification-language.html#grammar-token-fix_body"><span class="hole">fix_body</span></a> <span class="repeat-wrapper"><span class="repeat"><span>with</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-fix_body"><span class="hole">fix_body</span></a></span><span class="notation-sup">*</span></span></span></code><a class="headerlink" href="#coq:cmdv.let-fixpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="cmdv">
+<dt id="coq:cmdv.let-cofixpoint">
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Let</span> <span>CoFixpoint</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a> <a class="reference internal" href="gallina-specification-language.html#grammar-token-cofix_body"><span class="hole">cofix_body</span></a> <span class="repeat-wrapper"><span class="repeat"><span>with</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-cofix_body"><span class="hole">cofix_body</span></a></span><span class="notation-sup">*</span></span></span></code><a class="headerlink" href="#coq:cmdv.let-cofixpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="cmd">
+<dt id="coq:cmd.context">
+<em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Context</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-binders"><span class="hole">binders</span></a></span></code><a class="headerlink" href="#coq:cmd.context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declare variables in the context of the current section, like <a class="reference internal" href="#coq:cmd.variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a>,
+but also allowing implicit variables, <a class="reference internal" href="#implicit-generalization"><span class="std std-ref">Implicit generalization</span></a>, and
+let-binders.</p>
+<div class="coqdoc literal-block docutils container">
+<span><span class="coqdoc-keyword">Context</span><span> {</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-keyword">Type</span><span>} (</span><span class="coqdoc-var">a</span><span> </span><span class="coqdoc-var">b</span><span> : </span><span class="coqdoc-var">A</span><span>).</span><span>
+</span><span class="coqdoc-keyword">Context</span><span> `{</span><span class="coqdoc-var">EqDec</span><span> </span><span class="coqdoc-var">A</span><span>}.</span><span>
+</span><span class="coqdoc-keyword">Context</span><span> (</span><span class="coqdoc-var">b'</span><span> := </span><span class="coqdoc-var">b</span><span>).</span></span></div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">Section <a class="reference internal" href="gallina-specification-language.html#binders"><span class="std std-ref">Binders</span></a>. Section <a class="reference internal" href="../addendum/type-classes.html#contexts"><span class="std std-ref">Sections and contexts</span></a> in chapter <a class="reference internal" href="../addendum/type-classes.html#typeclasses"><span class="std std-ref">Typeclasses</span></a>.</p>
 </div>
 </div>
 <div class="section" id="module-system">
@@ -3471,7 +3571,7 @@ with an explicit type in which case, this latter type is considered).</p>
 
 <dl class="cmdv">
 <dt>
-<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Implicit</span> <span>Types</span> <span class="repeat-wrapper"><span class="repeat"><span>(</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><span class="hole">term</span></a> <span>)</span></span><span class="notation-sup">+</span></span></span></code></dt>
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>Implicit</span> <span>Types</span> <span class="repeat-wrapper"><span class="repeat"><span>(</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">+</span></span> <span>:</span> <a class="reference internal" href="gallina-specification-language.html#grammar-token-type"><span class="hole">type</span></a> <span>)</span></span><span class="notation-sup">+</span></span></span></code></dt>
 <dd><p>Adds blocks of implicit types with different specifications.</p>
 </dd></dl>
 
