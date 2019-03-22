@@ -761,7 +761,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#customizations">Customizations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-unicode-symbols">Using Unicode symbols</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#displaying-unicode-symbols">Displaying Unicode symbols</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#defining-an-input-method-for-non-ascii-symbols">Defining an input method for non-ASCII symbols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bindings-for-input-of-unicode-symbols">Bindings for input of Unicode symbols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-custom-bindings">Adding custom bindings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#character-encoding-for-saved-files">Character encoding for saved files</a></li>
 </ul>
 </li>
@@ -1335,7 +1336,8 @@ still edit this configuration file by hand, but this is more involved.</p>
 <h2>Using Unicode symbols<a class="headerlink" href="#using-unicode-symbols" title="Permalink to this headline">¶</a></h2>
 <p><span class="smallcaps">CoqIDE</span> is based on GTK+ and inherits from it support for Unicode in
 its text windows. Consequently a large set of symbols is available for
-notations.</p>
+notations. Furthermore, <span class="smallcaps">CoqIDE</span> conveniently provides a simple way to
+input Unicode characters.</p>
 <div class="section" id="displaying-unicode-symbols">
 <h3>Displaying Unicode symbols<a class="headerlink" href="#displaying-unicode-symbols" title="Permalink to this headline">¶</a></h3>
 <p>You just need to define suitable notations as described in the chapter
@@ -1365,32 +1367,72 @@ to this, one thing you may need to do is choosing whether GTK+ should
 use antialiased fonts or not, by setting the environment variable
 <code class="docutils literal notranslate"><span class="pre">GDK_USE_XFT</span></code> to 1 or 0 respectively.</p>
 </div>
-<div class="section" id="defining-an-input-method-for-non-ascii-symbols">
-<h3>Defining an input method for non-ASCII symbols<a class="headerlink" href="#defining-an-input-method-for-non-ascii-symbols" title="Permalink to this headline">¶</a></h3>
-<p>To input a Unicode symbol, a general method provided by GTK+ is to
-simultaneously press the Control, Shift and “u” keys, release, then
-type the hexadecimal code of the symbol required, for example <code class="docutils literal notranslate"><span class="pre">2200</span></code>
-for the ∀ symbol. A list of symbol codes is available at
-<code class="docutils literal notranslate"><span class="pre">http://www.unicode.org</span></code>.</p>
-<p>An alternative method which does not require to know the hexadecimal
-code of the character is to use an Input Method Editor. On POSIX
-systems (Linux distributions, BSD variants and MacOS X), you can
-use <code class="docutils literal notranslate"><span class="pre">uim</span></code> version 1.6 or later which provides a LaTeX-style input
-method.</p>
-<p>To configure uim, execute uim-pref-gtk as your regular user. In the
-&quot;Global Settings&quot; group set the default Input Method to &quot;ELatin&quot;
-(don’t forget to tick the checkbox &quot;Specify default IM&quot;). In the
-&quot;ELatin&quot; group set the layout to &quot;TeX&quot;, and remember the content of
-the &quot;[ELatin] on&quot; field (by default Control-\). You can now execute
-<span class="smallcaps">CoqIDE</span> with the following commands (assuming you use a Bourne-style
-shell):</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ export GTK_IM_MODULE=uim
-$ coqide
+<div class="section" id="bindings-for-input-of-unicode-symbols">
+<h3>Bindings for input of Unicode symbols<a class="headerlink" href="#bindings-for-input-of-unicode-symbols" title="Permalink to this headline">¶</a></h3>
+<p>CoqIDE supports a builtin mechanism to input non-ASCII symbols.
+For example, to input <code class="docutils literal notranslate"><span class="pre">π</span></code>, it suffices to type <code class="docutils literal notranslate"><span class="pre">\pi</span></code> then press the
+combination of key <code class="docutils literal notranslate"><span class="pre">Shift+Space</span></code> (default key binding). Often, it
+suffices to type a prefix of the latex token, e.g. typing <code class="docutils literal notranslate"><span class="pre">\p</span></code>
+then <code class="docutils literal notranslate"><span class="pre">Shift+Space</span></code> suffices to insert a <code class="docutils literal notranslate"><span class="pre">π</span></code>.</p>
+<p>For several symbols, ASCII art is also recognized, e.g. <code class="docutils literal notranslate"><span class="pre">\-&gt;</span></code> for a
+right arrow, or <code class="docutils literal notranslate"><span class="pre">\&gt;=</span></code> for a greater than or equal sign.</p>
+<p>A larger number of latex tokens are supported by default. The full list
+is available here:
+<a class="reference external" href="https://github.com/coq/coq/blob/master/ide/default_bindings_src.ml">https://github.com/coq/coq/blob/master/ide/default_bindings_src.ml</a></p>
+<p>Custom bindings may be added, as explained further on.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It remains possible to input non-ASCII symbols using system-wide
+approaches independent of <span class="smallcaps">CoqIDE</span>.</p>
+</div>
+</div>
+<div class="section" id="adding-custom-bindings">
+<h3>Adding custom bindings<a class="headerlink" href="#adding-custom-bindings" title="Permalink to this headline">¶</a></h3>
+<p>To extend the default set of bindings, create a file named <code class="docutils literal notranslate"><span class="pre">coqide.bindings</span></code>
+and place it in the same folder as <code class="docutils literal notranslate"><span class="pre">coqide.keys</span></code>. On Linux, this would be
+the folder <code class="docutils literal notranslate"><span class="pre">~/.config/coq</span></code>. The file <code class="docutils literal notranslate"><span class="pre">coqide.bindings</span></code> should contain one
+binding per line, in the form <code class="docutils literal notranslate"><span class="pre">\key</span> <span class="pre">value</span></code>, followed by an optional priority
+integer. (The key and value should not contain any space character.)</p>
+<div class="admonition note">
+<p class="first admonition-title">Example</p>
+<p>Here is an example configuration file:</p>
+<div class="last highlight-text notranslate"><div class="highlight"><pre><span></span>\par ||
+\pi π 1
+\le ≤ 1
+\lambda λ 2
+\lambdas λs
 </pre></div>
 </div>
-<p>Activate the ELatin Input Method with Control-\, then type the
-sequence <code class="docutils literal notranslate"><span class="pre">\Gamma</span></code>. You will see the sequence being replaced by Γ as
-soon as you type the second &quot;a&quot;.</p>
+</div>
+<p>Above, the priority number 1 on <code class="docutils literal notranslate"><span class="pre">\pi</span></code> indicates that the prefix <code class="docutils literal notranslate"><span class="pre">\p</span></code>
+should resolve to <code class="docutils literal notranslate"><span class="pre">\pi</span></code>, and not to something else (e.g. <code class="docutils literal notranslate"><span class="pre">\par</span></code>).
+Similarly, the above settings ensure than <code class="docutils literal notranslate"><span class="pre">\l</span></code> resolves to <code class="docutils literal notranslate"><span class="pre">\le</span></code>,
+and that <code class="docutils literal notranslate"><span class="pre">\la</span></code> resolves to <code class="docutils literal notranslate"><span class="pre">\lambda</span></code>.</p>
+<p>It can be useful to work with per-project binding files. For this purpose
+<span class="smallcaps">CoqIDE</span> accepts a command line argument of the form
+<code class="docutils literal notranslate"><span class="pre">-unicode-bindings</span> <span class="pre">file1,file2,...,fileN</span></code>.
+Each of the file tokens provided may consists of one of:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a path to a custom bindings file,</li>
+<li>the token <code class="docutils literal notranslate"><span class="pre">default</span></code>, which resolves to the default bindings file,</li>
+<li>the token <code class="docutils literal notranslate"><span class="pre">local</span></code>, which resolves to the <code class="docutils literal notranslate"><span class="pre">coqide.bindings</span></code> file
+stored in the user configuration directory.</li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If a filename other than the first one includes a &quot;~&quot; to refer
+to the home directory, it won't be expanded properly. To work around that
+issue, one should not use comas but instead repeat the flag, in the form:
+<code class="docutils literal notranslate"><span class="pre">-unicode-bindings</span> <span class="pre">file1</span> <span class="pre">..</span> <span class="pre">-unicode-bindings</span> <span class="pre">fileN</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If two bindings for a same token both have the same priority value
+(or both have no priority value set), then the binding considered is
+the one from the file that comes first on the command line.</p>
+</div>
 </div>
 <div class="section" id="character-encoding-for-saved-files">
 <span id="character-encoding-saved-files"></span><h3>Character encoding for saved files<a class="headerlink" href="#character-encoding-for-saved-files" title="Permalink to this headline">¶</a></h3>
