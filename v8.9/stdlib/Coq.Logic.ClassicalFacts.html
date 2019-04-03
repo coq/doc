@@ -1,0 +1,983 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Logic.ClassicalFacts</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Some facts and definitions about classical logic
+
+<div class="paragraph"> </div>
+
+Table of contents:
+
+<div class="paragraph"> </div>
+
+1. Propositional degeneracy = excluded-middle + propositional extensionality
+
+<div class="paragraph"> </div>
+
+2. Classical logic and proof-irrelevance
+
+<div class="paragraph"> </div>
+
+2.1. CC |- prop. ext. + A inhabited -&gt; (A = A-&gt;A) -&gt; A has fixpoint
+
+<div class="paragraph"> </div>
+
+2.2. CC |- prop. ext. + dep elim on bool -&gt; proof-irrelevance
+
+<div class="paragraph"> </div>
+
+2.3. CIC |- prop. ext. -&gt; proof-irrelevance
+
+<div class="paragraph"> </div>
+
+2.4. CC |- excluded-middle + dep elim on bool -&gt; proof-irrelevance
+
+<div class="paragraph"> </div>
+
+2.5. CIC |- excluded-middle -&gt; proof-irrelevance
+
+<div class="paragraph"> </div>
+
+3. Weak classical axioms
+
+<div class="paragraph"> </div>
+
+3.1. Weak excluded middle
+
+<div class="paragraph"> </div>
+
+3.2. Gödel-Dummett axiom and right distributivity of implication over
+     disjunction
+
+<div class="paragraph"> </div>
+
+3 3. Independence of general premises and drinker's paradox
+
+<div class="paragraph"> </div>
+
+4. Principles equivalent to classical logic
+
+<div class="paragraph"> </div>
+
+4.1 Classical logic = principle of unrestricted minimization
+
+<div class="paragraph"> </div>
+
+4.2 Classical logic = choice of representatives in a partition of bool
+
+<div class="paragraph"> </div>
+
+<a name="lab1099"></a><h1 class="section">Prop degeneracy = excluded-middle + prop extensionality</h1>
+
+<div class="paragraph"> </div>
+
+ i.e.        <span class="inlinecode">(<span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span>,</span> <span class="inlinecode"><span class="id" title="var">A</span>=<span class="id" title="var">True</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">A</span>=<span class="id" title="var">False</span>)</span>
+                         <span class="inlinecode">&lt;-&gt;</span>
+       <span class="inlinecode">(<span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span>,</span> <span class="inlinecode"><span class="id" title="var">A</span>\/~<span class="id" title="var">A</span>)</span> <span class="inlinecode">/\</span> <span class="inlinecode">(<span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">B</span>,</span> <span class="inlinecode">(<span class="id" title="var">A</span>&lt;-&gt;<span class="id" title="var">B</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">A</span>=<span class="id" title="var">B</span>)</span>
+
+<div class="paragraph"> </div>
+
+ <span class="inlinecode"><span class="id" title="var">prop_degeneracy</span></span> (also referred to as propositional completeness)
+    asserts (up to consistency) that there are only two distinct formulas 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="prop_degeneracy"><span class="id" title="definition">prop_degeneracy</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#True"><span class="id" title="inductive">True</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">prop_extensionality</span></span> asserts that equivalent formulas are equal 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">excluded_middle</span></span> asserts that we can reason by case on the truth
+    or falsity of any formula 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="excluded_middle"><span class="id" title="definition">excluded_middle</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We show <span class="inlinecode"><span class="id" title="var">prop_degeneracy</span></span> <span class="inlinecode">&lt;-&gt;</span> <span class="inlinecode">(<span class="id" title="var">prop_extensionality</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">excluded_middle</span>)</span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="prop_degen_ext"><span class="id" title="lemma">prop_degen_ext</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_degeneracy"><span class="id" title="definition">prop_degeneracy</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="prop_degen_em"><span class="id" title="lemma">prop_degen_em</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_degeneracy"><span class="id" title="definition">prop_degeneracy</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="prop_ext_em_degen"><span class="id" title="lemma">prop_ext_em_degen</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_degeneracy"><span class="id" title="definition">prop_degeneracy</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A weakest form of propositional extensionality: extensionality for
+    provable propositions only 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Logic.PropExtensionalityFacts.html#"><span class="id" title="library">PropExtensionalityFacts</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="provable_prop_extensionality"><span class="id" title="definition">provable_prop_extensionality</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#True"><span class="id" title="inductive">True</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="provable_prop_ext"><span class="id" title="lemma">provable_prop_ext</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#provable_prop_extensionality"><span class="id" title="definition">provable_prop_extensionality</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1100"></a><h1 class="section">Classical logic and proof-irrelevance</h1>
+
+<div class="paragraph"> </div>
+
+<a name="lab1101"></a><h2 class="section">CC |- prop ext + A inhabited -&gt; (A = A-&gt;A) -&gt; A has fixpoint</h2>
+
+<div class="paragraph"> </div>
+
+ We successively show that:
+
+<div class="paragraph"> </div>
+
+   <span class="inlinecode"><span class="id" title="var">prop_extensionality</span></span>
+     implies equality of <span class="inlinecode"><span class="id" title="var">A</span></span> and <span class="inlinecode"><span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span></span> for inhabited <span class="inlinecode"><span class="id" title="var">A</span></span>, which
+     implies the existence of a (trivial) retract from <span class="inlinecode"><span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span></span> to <span class="inlinecode"><span class="id" title="var">A</span></span>
+        (just take the identity), which
+     implies the existence of a fixpoint operator in <span class="inlinecode"><span class="id" title="var">A</span></span>
+        (e.g. take the Y combinator of lambda-calculus)
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="prop_ext_A_eq_A_imp_A"><span class="id" title="lemma">prop_ext_A_eq_A_imp_A</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#inhabited"><span class="id" title="abbreviation">inhabited</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Record</span> <a name="retract"><span class="id" title="record">retract</span></a> (<span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;{<a name="f1"><span class="id" title="projection">f1</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>; <a name="f2"><span class="id" title="projection">f2</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>; <a name="f1_o_f2"><span class="id" title="projection">f1_o_f2</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#f1"><span class="id" title="method">f1</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#f2"><span class="id" title="method">f2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="prop_ext_retract_A_A_imp_A"><span class="id" title="lemma">prop_ext_retract_A_A_imp_A</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#inhabited"><span class="id" title="abbreviation">inhabited</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#retract"><span class="id" title="record">retract</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Record</span> <a name="has_fixpoint"><span class="id" title="record">has_fixpoint</span></a> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;{<a name="F"><span class="id" title="projection">F</span></a> : <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>; <a name="Fix"><span class="id" title="projection">Fix</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#F"><span class="id" title="method">F</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#F"><span class="id" title="method">F</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a>)}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="ext_prop_fixpoint"><span class="id" title="lemma">ext_prop_fixpoint</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#inhabited"><span class="id" title="abbreviation">inhabited</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#has_fixpoint"><span class="id" title="record">has_fixpoint</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remark: <span class="inlinecode"><span class="id" title="var">prop_extensionality</span></span> can be replaced in lemma <span class="inlinecode"><span class="id" title="var">ext_prop_fixpoint</span></span>
+    by the weakest property <span class="inlinecode"><span class="id" title="var">provable_prop_extensionality</span></span>.
+
+<div class="paragraph"> </div>
+
+<a name="lab1102"></a><h2 class="section">CC |- prop_ext /\ dep elim on bool -&gt; proof-irrelevance</h2>
+
+<div class="paragraph"> </div>
+
+ <span class="inlinecode"><span class="id" title="var">proof_irrelevance</span></span> asserts equality of all proofs of a given formula 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a name="proof_irrelevance"><span class="id" title="definition">proof_irrelevance</span></a> := <span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">a1</span> <span class="id" title="var">a2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>), <a class="idref" href="Coq.Logic.ClassicalFacts.html#a1"><span class="id" title="variable">a1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a2"><span class="id" title="variable">a2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Assume that we have booleans with the property that there is at most 2
+    booleans (which is equivalent to dependent case analysis). Consider
+    the fixpoint of the negation function: it is either true or false by
+    dependent case analysis, but also the opposite by fixpoint. Hence
+    proof-irrelevance.
+
+<div class="paragraph"> </div>
+
+    We then map equality of boolean proofs to proof irrelevance in all
+    propositions.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_gen"><span class="id" title="section">Proof_irrelevance_gen</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a> : <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_gen.true"><span class="id" title="variable">true</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_gen.false"><span class="id" title="variable">false</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_gen.bool_elim"><span class="id" title="variable">bool_elim</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_gen.bool_elim_redl"><span class="id" title="variable">bool_elim_redl</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>), <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool_elim"><span class="id" title="variable">bool_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.true"><span class="id" title="variable">true</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_gen.bool_elim_redr"><span class="id" title="variable">bool_elim_redr</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>), <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool_elim"><span class="id" title="variable">bool_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.false"><span class="id" title="variable">false</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Proof_irrelevance_gen.bool_dep_induction"><span class="id" title="variable">bool_dep_induction</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.true"><span class="id" title="variable">true</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.false"><span class="id" title="variable">false</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool"><span class="id" title="variable">bool</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="aux"><span class="id" title="lemma">aux</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool_dep_induction"><span class="id" title="variable">bool_dep_induction</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.true"><span class="id" title="variable">true</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.false"><span class="id" title="variable">false</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="ext_prop_dep_proof_irrel_gen"><span class="id" title="lemma">ext_prop_dep_proof_irrel_gen</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen.bool_dep_induction"><span class="id" title="variable">bool_dep_induction</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#proof_irrelevance"><span class="id" title="definition">proof_irrelevance</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_gen"><span class="id" title="section">Proof_irrelevance_gen</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In the pure Calculus of Constructions, we can define the boolean
+    proposition bool = (C:Prop)C-&gt;C-&gt;C but we cannot prove that it has at
+    most 2 elements.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_Prop_Ext_CC"><span class="id" title="section">Proof_irrelevance_Prop_Ext_CC</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="BoolP"><span class="id" title="definition">BoolP</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="TrueP"><span class="id" title="definition">TrueP</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP"><span class="id" title="definition">BoolP</span></a> := <span class="id" title="keyword">fun</span> <span class="id" title="var">C</span> <span class="id" title="var">c1</span> <span class="id" title="var">c2</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="FalseP"><span class="id" title="definition">FalseP</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP"><span class="id" title="definition">BoolP</span></a> := <span class="id" title="keyword">fun</span> <span class="id" title="var">C</span> <span class="id" title="var">c1</span> <span class="id" title="var">c2</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="BoolP_elim"><span class="id" title="definition">BoolP_elim</span></a> <span class="id" title="var">C</span> <span class="id" title="var">c1</span> <span class="id" title="var">c2</span> (<span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP"><span class="id" title="definition">BoolP</span></a>) := <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="BoolP_elim_redl"><span class="id" title="definition">BoolP_elim_redl</span></a> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP_elim"><span class="id" title="definition">BoolP_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#TrueP"><span class="id" title="definition">TrueP</span></a> := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="BoolP_elim_redr"><span class="id" title="definition">BoolP_elim_redr</span></a> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP_elim"><span class="id" title="definition">BoolP_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#FalseP"><span class="id" title="definition">FalseP</span></a> := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="BoolP_dep_induction"><span class="id" title="definition">BoolP_dep_induction</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP"><span class="id" title="definition">BoolP</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#TrueP"><span class="id" title="definition">TrueP</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#FalseP"><span class="id" title="definition">FalseP</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP"><span class="id" title="definition">BoolP</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="ext_prop_dep_proof_irrel_cc"><span class="id" title="lemma">ext_prop_dep_proof_irrel_cc</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#BoolP_dep_induction"><span class="id" title="definition">BoolP_dep_induction</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#proof_irrelevance"><span class="id" title="definition">proof_irrelevance</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_Prop_Ext_CC"><span class="id" title="section">Proof_irrelevance_Prop_Ext_CC</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remark: <span class="inlinecode"><span class="id" title="var">prop_extensionality</span></span> can be replaced in lemma
+    <span class="inlinecode"><span class="id" title="var">ext_prop_dep_proof_irrel_gen</span></span> by the weakest property
+    <span class="inlinecode"><span class="id" title="var">provable_prop_extensionality</span></span>.
+
+<div class="paragraph"> </div>
+
+<a name="lab1103"></a><h2 class="section">CIC |- prop. ext. -&gt; proof-irrelevance</h2>
+
+<div class="paragraph"> </div>
+
+ In the Calculus of Inductive Constructions, inductively defined booleans
+    enjoy dependent case analysis, hence directly proof-irrelevance from
+    propositional extensionality.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_CIC"><span class="id" title="section">Proof_irrelevance_CIC</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <a name="boolP"><span class="id" title="inductive">boolP</span></a> : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a name="trueP"><span class="id" title="constructor">trueP</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#boolP"><span class="id" title="inductive">boolP</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a name="falseP"><span class="id" title="constructor">falseP</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#boolP"><span class="id" title="inductive">boolP</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="boolP_elim_redl"><span class="id" title="definition">boolP_elim_redl</span></a> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#boolP_ind"><span class="id" title="definition">boolP_ind</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#trueP"><span class="id" title="constructor">trueP</span></a> := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="boolP_elim_redr"><span class="id" title="definition">boolP_elim_redr</span></a> (<span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">c1</span> <span class="id" title="var">c2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#boolP_ind"><span class="id" title="definition">boolP_ind</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c1"><span class="id" title="variable">c1</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#falseP"><span class="id" title="constructor">falseP</span></a> := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#c2"><span class="id" title="variable">c2</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Scheme</span> <a name="boolP_indd"><span class="id" title="definition">boolP_indd</span></a> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#boolP"><span class="id" title="inductive">boolP</span></a> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="ext_prop_dep_proof_irrel_cic"><span class="id" title="lemma">ext_prop_dep_proof_irrel_cic</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#prop_extensionality"><span class="id" title="definition">prop_extensionality</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#proof_irrelevance"><span class="id" title="definition">proof_irrelevance</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_CIC"><span class="id" title="section">Proof_irrelevance_CIC</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Can we state proof irrelevance from propositional degeneracy
+  (i.e. propositional extensionality + excluded middle) without
+  dependent case analysis ?
+
+<div class="paragraph"> </div>
+
+  Berardi <span class="inlinecode">[<span class="id" title="var">Berardi90</span>]</span> built a model of CC interpreting inhabited
+  types by the set of all untyped lambda-terms. This model satisfies
+  propositional degeneracy without satisfying proof-irrelevance (nor
+  dependent case analysis). This implies that the previous results
+  cannot be refined.
+
+<div class="paragraph"> </div>
+
+  <span class="inlinecode">[<span class="id" title="var">Berardi90</span>]</span> Stefano Berardi, "Type dependence and constructive
+  mathematics", Ph. D. thesis, Dipartimento Matematica, Università di
+  Torino, 1990.
+
+<div class="paragraph"> </div>
+
+<a name="lab1104"></a><h2 class="section">CC |- excluded-middle + dep elim on bool -&gt; proof-irrelevance</h2>
+
+<div class="paragraph"> </div>
+
+ This is a proof in the pure Calculus of Construction that
+    classical logic in <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> + dependent elimination of disjunction entails
+    proof-irrelevance.
+
+<div class="paragraph"> </div>
+
+    Reference:
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">Coquand90</span>]</span> T. Coquand, "Metamathematical Investigations of a
+    Calculus of Constructions", Proceedings of Logic in Computer Science
+    (LICS'90), 1990.
+
+<div class="paragraph"> </div>
+
+    Proof skeleton: classical logic + dependent elimination of
+    disjunction + discrimination of proofs implies the existence of a
+    retract from <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> into <span class="inlinecode"><span class="id" title="var">bool</span></span>, hence inconsistency by encoding any
+    paradox of system U- (e.g. Hurkens' paradox).
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Logic.Hurkens.html#"><span class="id" title="library">Hurkens</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_EM_CC"><span class="id" title="section">Proof_irrelevance_EM_CC</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> : <span class="id" title="keyword">Prop</span> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_EM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_EM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_EM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_EM_CC.or_elim_redl"><span class="id" title="variable">or_elim_redl</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">a</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_EM_CC.or_elim_redr"><span class="id" title="variable">or_elim_redr</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_EM_CC.or_dep_elim"><span class="id" title="variable">or_dep_elim</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>)<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>)<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_EM_CC.em"><span class="id" title="variable">em</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_EM_CC.B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variables</span> <a name="Proof_irrelevance_EM_CC.b1"><span class="id" title="variable">b1</span></a> <a name="Proof_irrelevance_EM_CC.b2"><span class="id" title="variable">b2</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.B"><span class="id" title="variable">B</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">p2b</span></span> and <span class="inlinecode"><span class="id" title="var">b2p</span></span> form a retract if <span class="inlinecode">~<span class="id" title="var">b1</span>=<span class="id" title="var">b2</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Proof_irrelevance_EM_CC.p2b"><span class="id" title="variable">p2b</span></a> <span class="id" title="var">A</span> := <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.B"><span class="id" title="variable">B</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b1"><span class="id" title="variable">b1</span></a>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b2"><span class="id" title="variable">b2</span></a>) (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.em"><span class="id" title="variable">em</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Proof_irrelevance_EM_CC.b2p"><span class="id" title="variable">b2p</span></a> <span class="id" title="var">b</span> := <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="p2p1"><span class="id" title="lemma">p2p1</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b2p"><span class="id" title="variable">b2p</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.p2b"><span class="id" title="variable">p2b</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="p2p2"><span class="id" title="lemma">p2p2</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b2p"><span class="id" title="variable">b2p</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.p2b"><span class="id" title="variable">p2b</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Using excluded-middle a second time, we get proof-irrelevance 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="proof_irrelevance_cc"><span class="id" title="lemma">proof_irrelevance_cc</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC.b2"><span class="id" title="variable">b2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_EM_CC"><span class="id" title="section">Proof_irrelevance_EM_CC</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Hurkens' paradox still holds with a retract from the <i>negative</i>
+    fragment of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> into <span class="inlinecode"><span class="id" title="var">bool</span></span>, hence weak classical logic,
+    i.e. <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span>,</span> <span class="inlinecode">~<span class="id" title="var">A</span>\/~~<span class="id" title="var">A</span></span>, is enough for deriving a weak version of
+    proof-irrelevance. This is enough to derive a contradiction from a
+    <span class="inlinecode"><span class="id" title="keyword">Set</span></span>-bound weak excluded middle wih an impredicative <span class="inlinecode"><span class="id" title="keyword">Set</span></span>
+    universe. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_WEM_CC"><span class="id" title="section">Proof_irrelevance_WEM_CC</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> : <span class="id" title="keyword">Prop</span> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_WEM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_WEM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_WEM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_WEM_CC.or_elim_redl"><span class="id" title="variable">or_elim_redl</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">a</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_WEM_CC.or_elim_redr"><span class="id" title="variable">or_elim_redr</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="Proof_irrelevance_WEM_CC.or_dep_elim"><span class="id" title="variable">or_dep_elim</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_introl"><span class="id" title="variable">or_introl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>)<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_intror"><span class="id" title="variable">or_intror</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>)<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_WEM_CC.wem"><span class="id" title="variable">wem</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or"><span class="id" title="variable">or</span></a> (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>).<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Proof_irrelevance_WEM_CC.B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variables</span> <a name="Proof_irrelevance_WEM_CC.b1"><span class="id" title="variable">b1</span></a> <a name="Proof_irrelevance_WEM_CC.b2"><span class="id" title="variable">b2</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.B"><span class="id" title="variable">B</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">p2b</span></span> and <span class="inlinecode"><span class="id" title="var">b2p</span></span> form a retract if <span class="inlinecode">~<span class="id" title="var">b1</span>=<span class="id" title="var">b2</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Proof_irrelevance_WEM_CC.p2b"><span class="id" title="variable">p2b</span></a> (<span class="id" title="var">A</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#NProp"><span class="id" title="abbreviation">NProp</span></a>) := <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.or_elim"><span class="id" title="variable">or_elim</span></a> (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.B"><span class="id" title="variable">B</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b1"><span class="id" title="variable">b1</span></a>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b2"><span class="id" title="variable">b2</span></a>) (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.wem"><span class="id" title="variable">wem</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>)).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Proof_irrelevance_WEM_CC.b2p"><span class="id" title="variable">b2p</span></a> <span class="id" title="var">b</span> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#NProp"><span class="id" title="abbreviation">NProp</span></a> := <a class="idref" href="Coq.Init.Specif.html#exist"><span class="id" title="constructor">exist</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">P</span>=&gt;<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a>) (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">)</span></a>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">x</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#h"><span class="id" title="variable">h</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">k</span> =&gt; <a class="idref" href="Coq.Logic.ClassicalFacts.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="wp2p1"><span class="id" title="lemma">wp2p1</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#NProp"><span class="id" title="abbreviation">NProp</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b2p"><span class="id" title="variable">b2p</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.p2b"><span class="id" title="variable">p2b</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="wp2p2"><span class="id" title="lemma">wp2p2</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#NProp"><span class="id" title="abbreviation">NProp</span></a>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b2p"><span class="id" title="variable">b2p</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.p2b"><span class="id" title="variable">p2b</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>)) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#El"><span class="id" title="abbreviation">El</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+By Hurkens's paradox, we get a weak form of proof irrelevance. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="wproof_irrelevance_cc"><span class="id" title="lemma">wproof_irrelevance_cc</span></a> : <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC.b2"><span class="id" title="variable">b2</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_WEM_CC"><span class="id" title="section">Proof_irrelevance_WEM_CC</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1105"></a><h2 class="section">CIC |- excluded-middle -&gt; proof-irrelevance</h2>
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+    Since, dependent elimination is derivable in the Calculus of
+    Inductive Constructions (CCI), we get proof-irrelevance from classical
+    logic in the CCI.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Proof_irrelevance_CCI"><span class="id" title="section">Proof_irrelevance_CCI</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Proof_irrelevance_CCI.em"><span class="id" title="variable">em</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="or_elim_redl"><span class="id" title="definition">or_elim_redl</span></a> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">a</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>) : <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#or_ind"><span class="id" title="definition">or_ind</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Init.Logic.html#or_introl"><span class="id" title="constructor">or_introl</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>) := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#a"><span class="id" title="variable">a</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="or_elim_redr"><span class="id" title="definition">or_elim_redr</span></a> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>) (<span class="id" title="var">g</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">b</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>) : <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#or_ind"><span class="id" title="definition">or_ind</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> (<a class="idref" href="Coq.Init.Logic.html#or_intror"><span class="id" title="constructor">or_intror</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>) := <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> (<a class="idref" href="Coq.Logic.ClassicalFacts.html#g"><span class="id" title="variable">g</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b"><span class="id" title="variable">b</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Scheme</span> <a name="or_indd"><span class="id" title="definition">or_indd</span></a> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <a class="idref" href="Coq.Init.Logic.html#or"><span class="id" title="inductive">or</span></a> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="proof_irrelevance_cci"><span class="id" title="lemma">proof_irrelevance_cci</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>), <a class="idref" href="Coq.Logic.ClassicalFacts.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b2"><span class="id" title="variable">b2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Proof_irrelevance_CCI"><span class="id" title="section">Proof_irrelevance_CCI</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The same holds with weak excluded middle. The proof is a little
+    more involved, however. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Weak_proof_irrelevance_CCI"><span class="id" title="section">Weak_proof_irrelevance_CCI</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Weak_proof_irrelevance_CCI.wem"><span class="id" title="variable">wem</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="wem_proof_irrelevance_cci"><span class="id" title="lemma">wem_proof_irrelevance_cci</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a>), <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#b2"><span class="id" title="variable">b2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Weak_proof_irrelevance_CCI"><span class="id" title="section">Weak_proof_irrelevance_CCI</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remark: in the Set-impredicative CCI, Hurkens' paradox still holds with
+    <span class="inlinecode"><span class="id" title="var">bool</span></span> in <span class="inlinecode"><span class="id" title="keyword">Set</span></span> and since <span class="inlinecode">~<span class="id" title="var">true</span>=<span class="id" title="var">false</span></span> for <span class="inlinecode"><span class="id" title="var">true</span></span> and <span class="inlinecode"><span class="id" title="var">false</span></span>
+    in <span class="inlinecode"><span class="id" title="var">bool</span></span> from <span class="inlinecode"><span class="id" title="keyword">Set</span></span>, we get the inconsistency of
+    <span class="inlinecode"><span class="id" title="var">em</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>,</span> <span class="inlinecode">{<span class="id" title="var">A</span>}+{~<span class="id" title="var">A</span>}</span> in the Set-impredicative CCI.
+
+<div class="paragraph"> </div>
+
+<a name="lab1106"></a><h1 class="section">Weak classical axioms</h1>
+
+<div class="paragraph"> </div>
+
+ We show the following increasing in the strength of axioms:
+<ul class="doclist">
+<li> weak excluded-middle
+
+</li>
+<li> right distributivity of implication over disjunction and Gödel-Dummett axiom
+
+</li>
+<li> independence of general premises and drinker's paradox
+
+</li>
+<li> excluded-middle
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab1107"></a><h2 class="section">Weak excluded-middle</h2>
+
+<div class="paragraph"> </div>
+
+ The weak classical logic based on <span class="inlinecode">~~<span class="id" title="var">A</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">A</span></span> is referred to with
+    name KC in <span class="inlinecode">[<span class="id" title="var">ChagrovZakharyaschev97</span>]</span>
+
+<div class="paragraph"> </div>
+
+   <span class="inlinecode">[<span class="id" title="var">ChagrovZakharyaschev97</span>]</span> Alexander Chagrov and Michael
+   Zakharyaschev, "Modal Logic", Clarendon Press, 1997.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="weak_excluded_middle"><span class="id" title="definition">weak_excluded_middle</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The interest in the equivalent variant
+    <span class="inlinecode"><span class="id" title="var">weak_generalized_excluded_middle</span></span> is that it holds even in logic
+    without a primitive <span class="inlinecode"><span class="id" title="var">False</span></span> connective (like Gödel-Dummett axiom) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="weak_generalized_excluded_middle"><span class="id" title="definition">weak_generalized_excluded_middle</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1108"></a><h2 class="section">Gödel-Dummett axiom</h2>
+
+<div class="paragraph"> </div>
+
+ <span class="inlinecode">(<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>)</span> <span class="inlinecode">\/</span> <span class="inlinecode">(<span class="id" title="var">B</span>-&gt;<span class="id" title="var">A</span>)</span> is studied in <span class="inlinecode">[<span class="id" title="var">Dummett59</span>]</span> and is based on <span class="inlinecode">[<span class="id" title="var">Gödel33</span>]</span>.
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">Dummett59</span>]</span> Michael A. E. Dummett. "A Propositional Calculus
+    with a Denumerable Matrix", In the Journal of Symbolic Logic, Vol
+    24 No. 2(1959), pp 97-103.
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">Gödel33</span>]</span> Kurt Gödel. "Zum intuitionistischen Aussagenkalkül",
+    Ergeb. Math. Koll. 4 (1933), pp. 34-38.
+ 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="GodelDummett"><span class="id" title="definition">GodelDummett</span></a> := <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="excluded_middle_Godel_Dummett"><span class="id" title="lemma">excluded_middle_Godel_Dummett</span></a> : <a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#GodelDummett"><span class="id" title="definition">GodelDummett</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">(<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>)</span> <span class="inlinecode">\/</span> <span class="inlinecode">(<span class="id" title="var">B</span>-&gt;<span class="id" title="var">A</span>)</span> is equivalent to <span class="inlinecode">(<span class="id" title="var">C</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">A</span>\/<span class="id" title="var">B</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">(<span class="id" title="var">C</span>-&gt;<span class="id" title="var">A</span>)</span> <span class="inlinecode">\/</span> <span class="inlinecode">(<span class="id" title="var">C</span>-&gt;<span class="id" title="var">B</span>)</span>
+    (proof from <span class="inlinecode">[<span class="id" title="var">Dummett59</span>]</span>) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="RightDistributivityImplicationOverDisjunction"><span class="id" title="definition">RightDistributivityImplicationOverDisjunction</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#C"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="Godel_Dummett_iff_right_distr_implication_over_disjunction"><span class="id" title="lemma">Godel_Dummett_iff_right_distr_implication_over_disjunction</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#GodelDummett"><span class="id" title="definition">GodelDummett</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#RightDistributivityImplicationOverDisjunction"><span class="id" title="definition">RightDistributivityImplicationOverDisjunction</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">(<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>)</span> <span class="inlinecode">\/</span> <span class="inlinecode">(<span class="id" title="var">B</span>-&gt;<span class="id" title="var">A</span>)</span> is stronger than the weak excluded middle 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="Godel_Dummett_weak_excluded_middle"><span class="id" title="lemma">Godel_Dummett_weak_excluded_middle</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#GodelDummett"><span class="id" title="definition">GodelDummett</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#weak_excluded_middle"><span class="id" title="definition">weak_excluded_middle</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1109"></a><h2 class="section">Independence of general premises and drinker's paradox</h2>
+
+<div class="paragraph"> </div>
+
+ Independence of general premises is the unconstrained, non
+    constructive, version of the Independence of Premises as
+    considered in <span class="inlinecode">[<span class="id" title="var">Troelstra73</span>]</span>.
+
+<div class="paragraph"> </div>
+
+    It is a generalization to predicate logic of the right
+    distributivity of implication over disjunction (hence of
+    Gödel-Dummett axiom) whose own constructive form (obtained by a
+    restricting the third formula to be negative) is called
+    Kreisel-Putnam principle <span class="inlinecode">[<span class="id" title="var">KreiselPutnam57</span>]</span>.
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">KreiselPutnam57</span>]</span>, Georg Kreisel and Hilary Putnam. "Eine
+    Unableitsbarkeitsbeweismethode für den intuitionistischen
+    Aussagenkalkül". Archiv für Mathematische Logik und
+    Graundlagenforschung, 3:74- 78, 1957.
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">Troelstra73</span>]</span>, Anne Troelstra, editor. Metamathematical
+    Investigation of Intuitionistic Arithmetic and Analysis, volume
+    344 of Lecture Notes in Mathematics, Springer-Verlag, 1973.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="IndependenceOfGeneralPremises"><span class="id" title="definition">IndependenceOfGeneralPremises</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">Q</span>:<span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#inhabited"><span class="id" title="abbreviation">inhabited</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">x</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">x</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span><br/>
+&nbsp;&nbsp;<a name="independence_general_premises_right_distr_implication_over_disjunction"><span class="id" title="lemma">independence_general_premises_right_distr_implication_over_disjunction</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#IndependenceOfGeneralPremises"><span class="id" title="definition">IndependenceOfGeneralPremises</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#RightDistributivityImplicationOverDisjunction"><span class="id" title="definition">RightDistributivityImplicationOverDisjunction</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="independence_general_premises_Godel_Dummett"><span class="id" title="lemma">independence_general_premises_Godel_Dummett</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#IndependenceOfGeneralPremises"><span class="id" title="definition">IndependenceOfGeneralPremises</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#GodelDummett"><span class="id" title="definition">GodelDummett</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Independence of general premises is equivalent to the drinker's paradox 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="DrinkerParadox"><span class="id" title="definition">DrinkerParadox</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#inhabited"><span class="id" title="abbreviation">inhabited</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">x</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">x</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="independence_general_premises_drinker"><span class="id" title="lemma">independence_general_premises_drinker</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#IndependenceOfGeneralPremises"><span class="id" title="definition">IndependenceOfGeneralPremises</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#DrinkerParadox"><span class="id" title="definition">DrinkerParadox</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Independence of general premises is weaker than (generalized)
+    excluded middle
+
+<div class="paragraph"> </div>
+
+Remark: generalized excluded middle is preferred here to avoid relying on
+the "ex falso quodlibet" property (i.e. <span class="inlinecode"><span class="id" title="var">False</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">A</span>,</span> <span class="inlinecode"><span class="id" title="var">A</span></span>)
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="generalized_excluded_middle"><span class="id" title="definition">generalized_excluded_middle</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="excluded_middle_independence_general_premises"><span class="id" title="lemma">excluded_middle_independence_general_premises</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#generalized_excluded_middle"><span class="id" title="definition">generalized_excluded_middle</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#DrinkerParadox"><span class="id" title="definition">DrinkerParadox</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1110"></a><h1 class="section">Axioms equivalent to classical logic</h1>
+
+<div class="paragraph"> </div>
+
+<a name="lab1111"></a><h2 class="section">Principle of unrestricted minimization</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Arith.PeanoNat.html#"><span class="id" title="library">Coq.Arith.PeanoNat</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Minimal"><span class="id" title="definition">Minimal</span></a> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">k</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="Coq.Init.Peano.html#cb53cf0ee22c036a03b4a9281c68b5a3"><span class="id" title="notation">&lt;=</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#k"><span class="id" title="variable">k</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Minimization_Property"><span class="id" title="definition">Minimization_Property</span></a> (<span class="id" title="var">P</span> : <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">m</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Minimal"><span class="id" title="definition">Minimal</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Unrestricted_minimization_entails_excluded_middle"><span class="id" title="section">Unrestricted_minimization_entails_excluded_middle</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Unrestricted_minimization_entails_excluded_middle.unrestricted_minimization"><span class="id" title="variable">unrestricted_minimization</span></a>: <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#Minimization_Property"><span class="id" title="definition">Minimization_Property</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="unrestricted_minimization_entails_excluded_middle"><span class="id" title="lemma">unrestricted_minimization_entails_excluded_middle</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Unrestricted_minimization_entails_excluded_middle"><span class="id" title="section">Unrestricted_minimization_entails_excluded_middle</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Arith.Wf_nat.html#"><span class="id" title="library">Wf_nat</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Excluded_middle_entails_unrestricted_minimization"><span class="id" title="section">Excluded_middle_entails_unrestricted_minimization</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Excluded_middle_entails_unrestricted_minimization.em"><span class="id" title="variable">em</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="excluded_middle_entails_unrestricted_minimization"><span class="id" title="lemma">excluded_middle_entails_unrestricted_minimization</span></a> : <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>, <a class="idref" href="Coq.Logic.ClassicalFacts.html#Minimization_Property"><span class="id" title="definition">Minimization_Property</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#P"><span class="id" title="variable">P</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Excluded_middle_entails_unrestricted_minimization"><span class="id" title="section">Excluded_middle_entails_unrestricted_minimization</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+However, minimization for a given predicate does not necessarily imply
+    decidability of this predicate 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="Example_of_undecidable_predicate_with_the_minimization_property"><span class="id" title="section">Example_of_undecidable_predicate_with_the_minimization_property</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Example_of_undecidable_predicate_with_the_minimization_property.s"><span class="id" title="variable">s</span></a> : <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="Example_of_undecidable_predicate_with_the_minimization_property.P"><span class="id" title="variable">P</span></a> <span class="id" title="var">n</span> := <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">k</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="Coq.Init.Peano.html#cb53cf0ee22c036a03b4a9281c68b5a3"><span class="id" title="notation">&lt;=</span></a><a class="idref" href="Coq.Logic.ClassicalFacts.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Example_of_undecidable_predicate_with_the_minimization_property.s"><span class="id" title="variable">s</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Example</span> <a name="undecidable_predicate_with_the_minimization_property"><span class="id" title="definition">undecidable_predicate_with_the_minimization_property</span></a> : <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#Minimization_Property"><span class="id" title="definition">Minimization_Property</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Example_of_undecidable_predicate_with_the_minimization_property.P"><span class="id" title="variable">P</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.ClassicalFacts.html#Example_of_undecidable_predicate_with_the_minimization_property"><span class="id" title="section">Example_of_undecidable_predicate_with_the_minimization_property</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1112"></a><h2 class="section">Choice of representatives in a partition of bool</h2>
+
+<div class="paragraph"> </div>
+
+ This is similar to Bell's "weak extensional selection principle"  in <span class="inlinecode">[<span class="id" title="var">Bell</span>]</span>
+
+<div class="paragraph"> </div>
+
+   <span class="inlinecode">[<span class="id" title="var">Bell</span>]</span> John L. Bell, Choice principles in intuitionistic set theory, unpublished.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Classes.RelationClasses.html#"><span class="id" title="library">RelationClasses</span></a>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="representative_boolean_partition_imp_excluded_middle"><span class="id" title="lemma">representative_boolean_partition_imp_excluded_middle</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#representative_boolean_partition"><span class="id" title="abbreviation">representative_boolean_partition</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="excluded_middle_imp_representative_boolean_partition"><span class="id" title="lemma">excluded_middle_imp_representative_boolean_partition</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#representative_boolean_partition"><span class="id" title="abbreviation">representative_boolean_partition</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="excluded_middle_iff_representative_boolean_partition"><span class="id" title="lemma">excluded_middle_iff_representative_boolean_partition</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Logic.ClassicalFacts.html#excluded_middle"><span class="id" title="definition">excluded_middle</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.Logic.ClassicalFacts.html#representative_boolean_partition"><span class="id" title="abbreviation">representative_boolean_partition</span></a>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
