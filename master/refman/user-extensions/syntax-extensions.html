@@ -775,7 +775,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#the-function-scope-interpretation-scope">The <code class="docutils literal notranslate"><span class="pre">function_scope</span></code> interpretation scope</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#interpretation-scopes-used-in-the-standard-library-of-coq">Interpretation scopes used in the standard library of Coq</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#displaying-information-about-scopes">Displaying information about scopes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#impact-of-scopes-on-printing">Impact of scopes on printing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#abbreviations">Abbreviations</a></li>
@@ -2372,7 +2371,7 @@ interpreted in the scope stack extended with the scope bound tokey.</p>
 
 </div>
 <div class="section" id="binding-arguments-of-a-constant-to-an-interpretation-scope">
-<span id="argumentscopes"></span><h4>Binding arguments of a constant to an interpretation scope<a class="headerlink" href="#binding-arguments-of-a-constant-to-an-interpretation-scope" title="Permalink to this headline">¶</a></h4>
+<h4>Binding arguments of a constant to an interpretation scope<a class="headerlink" href="#binding-arguments-of-a-constant-to-an-interpretation-scope" title="Permalink to this headline">¶</a></h4>
 <dl class="cmd">
 <dt id="coq:cmd.arguments-scopes">
 <em class="property"><span class="sigannot">Command</span></em> <code class="descname"><span class="notation"><span>Arguments</span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-qualid"><span class="hole">qualid</span></a> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-name"><span class="hole">name</span></a><span>%</span><a class="reference internal" href="#grammar-token-scope"><span class="hole">scope</span></a></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.arguments-scopes" title="Permalink to this definition">¶</a></dt>
@@ -2656,59 +2655,6 @@ scope is bound, if any.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="impact-of-scopes-on-printing">
-<h3>Impact of scopes on printing<a class="headerlink" href="#impact-of-scopes-on-printing" title="Permalink to this headline">¶</a></h3>
-<p>When several notations are available for printing the same expression,
-Coq will use the following rules for printing priorities:</p>
-<ul class="simple">
-<li>If two notations are available in different scopes which are open,
-the notation in the more recently opened scope takes precedence.</li>
-<li>If two notations are available in the same scope, the more recently
-defined (or imported) notation takes precedence.</li>
-<li>Abbreviations and lonely notations, both of which have no scope,
-take precedence over a notation in an open scope if and only if the
-abbreviation or lonely notation was defined (or imported) more
-recently than when the corresponding scope was open. They take
-precedence over any notation not in an open scope, whether this scope
-has a delimiter or not.</li>
-<li>A scope is <em>active</em> for printing a term either because it was opened
-with <a class="reference internal" href="#coq:cmd.open-scope" title="Open Scope"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Scope</span></code></a>, or the term is the immediate argument of a
-constant which temporarily opens a scope for this argument (see
-<a class="reference internal" href="#argumentscopes"><span class="std std-ref">Arguments</span></a>) in which case this temporary
-scope is the most recent open one.</li>
-<li>In case no abbreviation, nor lonely notation, nor notation in an
-explicitly open scope, nor notation in a temporarily open scope of
-arguments, has been found, notations in those closed scopes which
-have a delimiter are considered, giving priority to the most
-recently defined (or imported) ones. The corresponding delimiter is
-inserted, making the corresponding scope the most recent explicitly
-open scope for all subterms of the current term. As an exception to
-the insertion of the corresponding delimiter, when an expression is
-statically known to be in a position expecting a type and the
-notation is from scope <code class="docutils literal notranslate"><span class="pre">type_scope</span></code>, and the latter is closed, the
-delimiter is not inserted. This is because expressions statically
-known to be in a position expecting a type are by default
-interpreted with <code class="docutils literal notranslate"><span class="pre">type_scope</span></code> temporarily activated. Expressions
-statically known to be in a position expecting a type typically
-include being on the right-hand side of <code class="docutils literal notranslate"><span class="pre">:</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;:</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;&lt;:</span></code> and after
-the comma in a <code class="docutils literal notranslate"><span class="pre">forall</span></code> expression.</li>
-<li>As a refinement of the previous rule, in the case of applied global
-references, notations in a non-opened scope with delimiter
-specifically defined for this applied global reference take priority
-over notations in a non-opened scope with delimiter for generic
-applications. For instance, in the presence of <code class="docutils literal notranslate"><span class="pre">Notation</span> <span class="pre">&quot;f</span> <span class="pre">(</span> <span class="pre">x</span>
-<span class="pre">)&quot;</span> <span class="pre">:=</span> <span class="pre">(f</span> <span class="pre">x)</span> <span class="pre">(at</span> <span class="pre">level</span> <span class="pre">10,</span> <span class="pre">format</span> <span class="pre">&quot;f</span> <span class="pre">(</span> <span class="pre">x</span> <span class="pre">)&quot;)</span> <span class="pre">:</span> <span class="pre">app_scope</span></code> and
-<code class="docutils literal notranslate"><span class="pre">Notation</span> <span class="pre">&quot;x</span> <span class="pre">'.+1'&quot;</span> <span class="pre">:=</span> <span class="pre">(S</span> <span class="pre">x)</span> <span class="pre">(at</span> <span class="pre">level</span> <span class="pre">10,</span> <span class="pre">format</span> <span class="pre">&quot;x</span> <span class="pre">'.+1'&quot;)</span> <span class="pre">:</span>
-<span class="pre">mynat_scope.</span></code> and both of <code class="docutils literal notranslate"><span class="pre">app_scope</span></code> and <code class="docutils literal notranslate"><span class="pre">mynat_scope</span></code> being
-bound to a delimiter <em>and</em> both not opened, the latter, more
-specific notation will always take precedence over the first, more
-generic one.</li>
-<li>A scope can be closed by using <a class="reference internal" href="#coq:cmd.close-scope" title="Close Scope"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Close</span> <span class="pre">Scope</span></code></a> and its delimiter
-removed by using <a class="reference internal" href="#coq:cmd.undelimit-scope" title="Undelimit Scope"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Undelimit</span> <span class="pre">Scope</span></code></a>. To remove automatic
-temporary opening of scopes for arguments of a constant, use
-<a class="reference internal" href="#argumentscopes"><span class="std std-ref">Arguments</span></a>.</li>
-</ul>
 </div>
 </div>
 <div class="section" id="abbreviations">
