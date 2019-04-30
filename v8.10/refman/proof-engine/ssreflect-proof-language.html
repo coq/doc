@@ -678,6 +678,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#existential-metavariables-and-rewriting">Existential metavariables and rewriting</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#rewriting-under-binders">Rewriting under binders</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-under-tactic">The under tactic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interactive-mode">Interactive mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#one-liner-mode">One-liner mode</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#locking-unlocking">Locking, unlocking</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#congruence">Congruence</a></li>
 </ul>
@@ -3230,7 +3236,7 @@ for each <a class="reference internal" href="../language/gallina-specification-l
 <code class="docutils literal notranslate"><span class="pre">abstract</span></code> tactic.  Before then the type displayed is <code class="docutils literal notranslate"><span class="pre">&lt;hidden&gt;</span></code>.</dd>
 </dl>
 <p>Note that <span class="smallcaps">SSReflect</span> does not support the syntax <code class="docutils literal notranslate"><span class="pre">(ipat,</span> <span class="pre">…,</span> <span class="pre">ipat)</span></code> for
-destructing intro-patterns.</p>
+destructing intro patterns.</p>
 </div>
 <div class="section" id="clear-switch">
 <h4>Clear switch<a class="headerlink" href="#clear-switch" title="Permalink to this headline">¶</a></h4>
@@ -5766,6 +5772,352 @@ relations). It will be extended to other rewriting relations in the
 future.</p>
 </div>
 </div>
+<div class="section" id="rewriting-under-binders">
+<span id="under-ssr"></span><h3>Rewriting under binders<a class="headerlink" href="#rewriting-under-binders" title="Permalink to this headline">¶</a></h3>
+<p>Goals involving objects defined with higher-order functions often
+require &quot;rewriting under binders&quot;. While setoid rewriting is a
+possible approach in this case, it is common to use regular rewriting
+along with dedicated extensionality lemmas. This may cause some
+practical issues during the development of the corresponding scripts,
+notably as we might be forced to provide the rewrite tactic with
+complete terms, as shown by the simple example below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Example</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl class="docutils">
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">From</span><span> </span><span class="coqdoc-var">Coq</span><span> </span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">ssreflect</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Set Implicit Arguments</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Unset</span><span> </span><span class="coqdoc-keyword">Strict</span><span> </span><span class="coqdoc-keyword">Implicit</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Unset</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Implicit</span><span> </span><span class="coqdoc-var">Defensive</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">subnn</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">n</span><span> - </span><span class="coqdoc-var">n</span><span> = 0.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">subnn is declared</span></dd>
+<dt><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">map</span><span> : (</span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">nat</span><span>) -&gt; </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">nat</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">map is declared</span></dd>
+<dt><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">sumlist</span><span> : </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">nat</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">sumlist is declared</span></dd>
+<dt><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">eq_map</span><span> :</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">F2</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">nat</span><span>,</span><span>
+&nbsp;&nbsp;(</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">n</span><span> = </span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">n</span><span>) -&gt;</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">l</span><span> : </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">map</span><span> </span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">l</span><span> = </span><span class="coqdoc-var">map</span><span> </span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">l</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">eq_map is declared</span></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">example_map</span><span> </span><span class="coqdoc-var">l</span><span> : </span><span class="coqdoc-var">sumlist</span><span> (</span><span class="coqdoc-var">map</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">m</span><span> =&gt; </span><span class="coqdoc-var">m</span><span> - </span><span class="coqdoc-var">m</span><span>) </span><span class="coqdoc-var">l</span><span>) = 0.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> m : nat =&gt; m</span><span class="ansi-fg-white"> -</span><span> m) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+</dl>
+</div>
+<p>In this context, one cannot directly use <code class="docutils literal notranslate"><span class="pre">eq_map</span></code>:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-tactic">rewrite</span><span> </span><span class="coqdoc-var">eq_map</span><span>.</span></dt>
+<dd><span class="first">Toplevel input, characters 0-15:
+&gt; rewrite eq_map.
+&gt; ^^^^^^^^^^^^^^^
+</span><span class="ansi-fg-white ansi-bg-red ansi-bold">Error:</span><span> Unable to find an instance for the variable F2.
+Rule's type:
+(</span><span class="ansi-bold">forall</span><span> F1 F2 : nat</span><span class="ansi-fg-white"> -&gt;</span><span> nat,
+ (</span><span class="ansi-bold">forall</span><span> n : nat, F1 n</span><span class="ansi-fg-white"> =</span><span> F2 n)</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-bold">forall</span><span> l : list nat, map F1 l</span><span class="ansi-fg-white"> =</span><span class="last"> map F2 l)</span></dd>
+</dl>
+</div>
+<p>as we need to explicitly provide the non-inferable argument <code class="docutils literal notranslate"><span class="pre">F2</span></code>,
+which corresponds here to the term we want to obtain <em>after</em> the
+rewriting step. In order to perform the rewrite step one has to
+provide the term by hand as follows:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-tactic">rewrite</span><span> (&#64;</span><span class="coqdoc-var">eq_map</span><span> </span><span class="coqdoc-var">_</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">nat</span><span> =&gt; 0)).</span></dt>
+<dd><span class="first">2 subgoals
+  
+  l : list nat
+  ============================
+  </span><span class="ansi-bold">forall</span><span> n : nat, n</span><span class="ansi-fg-white"> -</span><span> n</span><span class="ansi-fg-white"> =</span><span> 0
+
+subgoal 2 is:
+ sumlist (map (</span><span class="ansi-bold">fun</span><span> _ : nat =&gt; 0) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-tactic">by</span><span> </span><span class="coqdoc-tactic">move</span><span>=&gt; </span><span class="coqdoc-var">m</span><span>; </span><span class="coqdoc-tactic">rewrite</span><span> </span><span class="coqdoc-var">subnn</span><span>.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> _ : nat =&gt; 0) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+</dl>
+</div>
+<p>The <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> tactic lets one perform the same operation in a more
+convenient way:</p>
+<div class="coqtop literal-block last docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">example_map</span><span> </span><span class="coqdoc-var">l</span><span> : </span><span class="coqdoc-var">sumlist</span><span> (</span><span class="coqdoc-var">map</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">m</span><span> =&gt; </span><span class="coqdoc-var">m</span><span> - </span><span class="coqdoc-var">m</span><span>) </span><span class="coqdoc-var">l</span><span>) = 0.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> m : nat =&gt; m</span><span class="ansi-fg-white"> -</span><span> m) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-var">under</span><span> </span><span class="coqdoc-var">eq_map</span><span> =&gt; </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-tactic">do</span><span> </span><span class="coqdoc-tactic">rewrite</span><span> </span><span class="coqdoc-var">subnn</span><span>.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> _ : nat =&gt; 0) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+</dl>
+</div>
+</div>
+<div class="section" id="the-under-tactic">
+<h4>The under tactic<a class="headerlink" href="#the-under-tactic" title="Permalink to this headline">¶</a></h4>
+<p>The convenience <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> tactic supports the following syntax:</p>
+<dl class="tacn">
+<dt id="coq:tacn.under">
+<code class="descname"><span class="notation"><span>under</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-r_prefix"><span class="hole">r_prefix</span></a></span><span class="notation-sup">?</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole">term</span></a> <span class="repeat-wrapper"><span class="repeat"><span>=&gt;</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-i_item"><span class="hole">i_item</span></a></span><span class="notation-sup">+</span></span></span><span class="notation-sup">?</span></span> <span class="repeat-wrapper"><span class="repeat"><span>do</span> <span>(</span> <span class="hole">tactic</span> <span>|</span> <span>[</span> <span class="repeat-wrapper"><span class="repeat"><span class="hole">tactic</span></span><span class="notation-sup">*</span><span class="notation-sub">|</span></span> <span>]</span> <span>)</span></span><span class="notation-sup">?</span></span></span></code><a class="headerlink" href="#coq:tacn.under" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operate under the context proved to be extensional by
+lemma <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a>.</p>
+<dl class="exn">
+<dt id="coq:exn.incorrect-number-of-tactics-expected-n-tactics-was-given-m">
+<em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><span>Incorrect</span> <span>number</span> <span>of</span> <span>tactics</span> <span>(expected</span> <span>N</span> <span>tactics,</span> <span>was</span> <span>given</span> <span>M).</span></span></code><a class="headerlink" href="#coq:exn.incorrect-number-of-tactics-expected-n-tactics-was-given-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error can occur when using the version with a <code class="docutils literal notranslate"><span class="pre">do</span></code> clause.</p>
+</dd></dl>
+
+<p>The multiplier part of <a class="reference internal" href="#grammar-token-r_prefix"><code class="xref std std-token docutils literal notranslate"><span class="pre">r_prefix</span></code></a> is not supported.</p>
+</dd></dl>
+
+<p>We distinguish two modes,
+<a class="reference internal" href="#under-interactive"><span class="std std-ref">interactive mode</span></a> without a <code class="docutils literal notranslate"><span class="pre">do</span></code> clause, and
+<a class="reference internal" href="#under-one-liner"><span class="std std-ref">one-liner mode</span></a> with a <code class="docutils literal notranslate"><span class="pre">do</span></code> clause,
+which are explained in more detail below.</p>
+</div>
+<div class="section" id="interactive-mode">
+<span id="under-interactive"></span><h4>Interactive mode<a class="headerlink" href="#interactive-mode" title="Permalink to this headline">¶</a></h4>
+<p>Let us redo the running example in interactive mode.</p>
+<div class="admonition note">
+<p class="first admonition-title">Example</p>
+<div class="coqtop literal-block last docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">example_map</span><span> </span><span class="coqdoc-var">l</span><span> : </span><span class="coqdoc-var">sumlist</span><span> (</span><span class="coqdoc-var">map</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">m</span><span> =&gt; </span><span class="coqdoc-var">m</span><span> - </span><span class="coqdoc-var">m</span><span>) </span><span class="coqdoc-var">l</span><span>) = 0.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> m : nat =&gt; m</span><span class="ansi-fg-white"> -</span><span> m) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-var">under</span><span> </span><span class="coqdoc-var">eq_map</span><span> =&gt; </span><span class="coqdoc-var">m</span><span>.</span></dt>
+<dd><span class="first">2 focused subgoals
+(shelved: 2)
+  
+  l : list nat
+  m : nat
+  ============================
+  </span><span class="ansi-fg-white">'Under[</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> -</span><span> m</span><span class="ansi-fg-white"> ]</span><span>
+
+subgoal 2 is:
+ sumlist (map </span><span class="ansi-fg-light-blue">?Goal</span><span> l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-tactic">rewrite</span><span> </span><span class="coqdoc-var">subnn</span><span>.</span></dt>
+<dd><span class="first">2 focused subgoals
+(shelved: 2)
+  
+  l : list nat
+  m : nat
+  ============================
+  </span><span class="ansi-fg-white">'Under[</span><span class="ansi-fg-white"> </span><span>0</span><span class="ansi-fg-white"> ]</span><span>
+
+subgoal 2 is:
+ sumlist (map </span><span class="ansi-fg-light-blue">?Goal</span><span> l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-var">over</span><span>.</span></dt>
+<dd><span class="first">1 focused subgoal
+(shelved: 1)
+  
+  l : list nat
+  ============================
+  sumlist (map (</span><span class="ansi-bold">fun</span><span> _ : nat =&gt; 0) l)</span><span class="ansi-fg-white"> =</span><span class="last"> 0</span></dd>
+</dl>
+</div>
+</div>
+<p>The execution of the Ltac expression:</p>
+<p><code class="docutils literal notranslate"><span class="notation"><span><span class="pre">under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">=&gt;</span></span> <span><span class="pre">[</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">1</span></sub></span></a> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">n</span></sub></span></a> <span><span class="pre">].</span></span></span></code></p>
+<p>involves the following steps:</p>
+<ol class="arabic simple">
+<li>It performs a <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">rewrite</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code>
+without failing like in the first example with <code class="docutils literal notranslate"><span class="pre">rewrite</span> <span class="pre">eq_map.</span></code>,
+but creating evars (see <a class="reference internal" href="tactics.html#coq:tacn.evar" title="evar"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">evar</span></code></a>). If <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">term</span></span></span></code> is prefixed by
+a pattern or an occurrence selector, then the modifiers are honoured.</li>
+<li>As a n-branches intro pattern is provided <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> checks that
+n+1 subgoals have been created. The last one is the main subgoal,
+while the other ones correspond to premises of the rewrite rule (such as
+<code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">n,</span> <span class="pre">F1</span> <span class="pre">n</span> <span class="pre">=</span> <span class="pre">F2</span> <span class="pre">n</span></code> for <code class="docutils literal notranslate"><span class="pre">eq_map</span></code>).</li>
+<li>If so <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> puts these n goals in head normal form (using
+the defective form of the tactic <a class="reference internal" href="#coq:tacn.move" title="move"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">move</span></code></a>), then executes
+the corresponding intro pattern <code class="docutils literal notranslate"><span class="notation"><span class="hole"><span class="pre">ipat</span><sub><span class="pre">i</span></sub></span></span></code> in each goal.</li>
+<li>Then <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> checks that the first n subgoals
+are (quantified) equalities or double implications between a
+term and an evar (e.g. <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">-</span> <span class="pre">m</span> <span class="pre">=</span> <span class="pre">?F2</span> <span class="pre">m</span></code> in the running example).</li>
+<li>If so <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> protects these n goals against an
+accidental instantiation of the evar.
+These protected goals are displayed using the <code class="docutils literal notranslate"><span class="pre">Under[</span> <span class="pre">…</span> <span class="pre">]</span></code>
+notation (e.g. <code class="docutils literal notranslate"><span class="pre">Under[</span> <span class="pre">m</span> <span class="pre">-</span> <span class="pre">m</span> <span class="pre">]</span></code> in the running example).</li>
+<li>The expression inside the <code class="docutils literal notranslate"><span class="pre">Under[</span> <span class="pre">…</span> <span class="pre">]</span></code> notation can be
+proved equivalent to the desired expression
+by using a regular <a class="reference internal" href="tactics.html#coq:tacn.rewrite" title="rewrite"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">rewrite</span></code></a> tactic.</li>
+<li>Interactive editing of the first n goals has to be signalled by
+using the <a class="reference internal" href="#coq:tacn.over" title="over"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">over</span></code></a> tactic or rewrite rule (see below).</li>
+<li>Finally, a post-processing step is performed in the main goal
+to keep the name(s) for the bound variables chosen by the user in
+the intro pattern for the first branch.</li>
+</ol>
+<div class="section" id="the-over-tactic">
+<span id="over-ssr"></span><h5>The over tactic<a class="headerlink" href="#the-over-tactic" title="Permalink to this headline">¶</a></h5>
+<p>Two equivalent facilities (a terminator and a lemma) are provided to
+close intermediate subgoals generated by <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> (i.e. goals
+displayed as <code class="docutils literal notranslate"><span class="pre">Under[</span> <span class="pre">…</span> <span class="pre">]</span></code>):</p>
+<dl class="tacn">
+<dt id="coq:tacn.over">
+<code class="descname"><span class="notation"><span>over</span></span></code><a class="headerlink" href="#coq:tacn.over" title="Permalink to this definition">¶</a></dt>
+<dd><p>This terminator tactic allows one to close goals of the form
+<code class="docutils literal notranslate"><span class="pre">'Under[</span> <span class="pre">…</span> <span class="pre">]</span></code>.</p>
+</dd></dl>
+
+<dl class="tacv">
+<dt>
+<em class="property"><span class="sigannot">Variant</span></em> <code class="descname"><span class="notation"><span>by</span> <span>rewrite</span> <span>over</span></span></code></dt>
+<dd><p>This is a variant of <a class="reference internal" href="#coq:tacn.over" title="over"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">over</span></code></a> in order to close <code class="docutils literal notranslate"><span class="pre">Under[</span> <span class="pre">…</span> <span class="pre">]</span></code>
+goals, relying on the <code class="docutils literal notranslate"><span class="pre">over</span></code> rewrite rule.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="one-liner-mode">
+<span id="under-one-liner"></span><h4>One-liner mode<a class="headerlink" href="#one-liner-mode" title="Permalink to this headline">¶</a></h4>
+<p>The Ltac expression:</p>
+<p><code class="docutils literal notranslate"><span class="notation"><span><span class="pre">under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">=&gt;</span></span> <span><span class="pre">[</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">1</span></sub></span></a> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">n</span></sub></span></a> <span><span class="pre">]</span></span> <span><span class="pre">do</span></span> <span><span class="pre">[</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">1</span></sub></span> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">n</span></sub></span> <span><span class="pre">].</span></span></span></code></p>
+<p>can be seen as a shorter form for the following expression:</p>
+<p><code class="docutils literal notranslate"><span class="notation"><span><span class="pre">(under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a><span><span class="pre">)</span></span> <span><span class="pre">=&gt;</span></span> <span><span class="pre">[</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">1</span></sub></span></a> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <a class="reference internal" href="#grammar-token-i_item"><span class="hole"><span class="pre">i_item</span><sub><span class="pre">n</span></sub></span></a> <span><span class="pre">|</span></span> <span><span class="pre">];</span></span> <span><span class="pre">[</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">1</span></sub></span><span><span class="pre">;</span></span> <span><span class="pre">over</span></span> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">n</span></sub></span><span><span class="pre">;</span></span> <span><span class="pre">over</span></span> <span><span class="pre">|</span></span> <span><span class="pre">cbv</span></span> <span><span class="pre">beta</span></span> <span><span class="pre">iota</span></span> <span><span class="pre">].</span></span></span></code></p>
+<p>Notes:</p>
+<ul class="simple">
+<li>The <code class="docutils literal notranslate"><span class="pre">beta-iota</span></code> reduction here is useful to get rid of the beta
+redexes that could be introduced after the substitution of the evars
+by the <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> tactic.</li>
+<li>Note that the provided tactics can as well
+involve other <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> tactics. See below for a typical example
+involving the <code class="docutils literal notranslate"><span class="pre">bigop</span></code> theory from the Mathematical Components library.</li>
+<li>If there is only one tactic, the brackets can be omitted, e.g.:
+<code class="docutils literal notranslate"><span class="notation"><span><span class="pre">under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">=&gt;</span></span> <span><span class="pre">i</span></span> <span><span class="pre">do</span></span> <span class="hole"><span class="pre">tac</span></span><span><span class="pre">.</span></span></span></code> and that shorter form should be
+preferred.</li>
+<li>If the <code class="docutils literal notranslate"><span class="pre">do</span></code> clause is provided and the intro pattern is omitted,
+then the default <a class="reference internal" href="#grammar-token-i_item"><code class="xref std std-token docutils literal notranslate"><span class="pre">i_item</span></code></a> <code class="docutils literal notranslate"><span class="pre">*</span></code> is applied to each branch.
+E.g., the Ltac expression:
+<code class="docutils literal notranslate"><span class="notation"><span><span class="pre">under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">do</span></span> <span><span class="pre">[</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">1</span></sub></span> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">n</span></sub></span> <span><span class="pre">]</span></span></span></code> is equivalent to:
+<code class="docutils literal notranslate"><span class="notation"><span><span class="pre">under</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a> <span><span class="pre">=&gt;</span></span> <span><span class="pre">[</span></span> <span><span class="pre">*</span></span> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <span><span class="pre">*</span></span> <span><span class="pre">]</span></span> <span><span class="pre">do</span></span> <span><span class="pre">[</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">1</span></sub></span> <span><span class="pre">|</span></span> <span><span class="pre">…</span></span> <span><span class="pre">|</span></span> <span class="hole"><span class="pre">tac</span><sub><span class="pre">n</span></sub></span> <span><span class="pre">]</span></span></span></code>
+(and it can be noted here that the <a class="reference internal" href="#coq:tacn.under" title="under"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">under</span></code></a> tactic performs a
+<code class="docutils literal notranslate"><span class="pre">move.</span></code> before processing the intro patterns <code class="docutils literal notranslate"><span class="pre">=&gt;</span> <span class="pre">[</span> <span class="pre">*</span> <span class="pre">|</span> <span class="pre">…</span> <span class="pre">|</span> <span class="pre">*</span> <span class="pre">]</span></code>).</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Example</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl class="docutils">
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">From</span><span> </span><span class="coqdoc-var">Coq</span><span> </span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">ssreflect</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Set Implicit Arguments</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Unset</span><span> </span><span class="coqdoc-keyword">Strict</span><span> </span><span class="coqdoc-keyword">Implicit</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Unset</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Implicit</span><span> </span><span class="coqdoc-var">Defensive</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Coercion</span><span> </span><span class="coqdoc-var">is_true</span><span> : </span><span class="coqdoc-var">bool</span><span> &gt;-&gt; </span><span class="coqdoc-var">Sortclass</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">is_true is now a coercion</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Reserved Notation</span><span> &quot;\big [ op / idx ]_ ( m &lt;= i &lt; n | P ) F&quot;</span><span>
+&nbsp;&nbsp;(</span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 36, </span><span class="coqdoc-var">F</span><span> </span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 36, </span><span class="coqdoc-var">op</span><span>, </span><span class="coqdoc-var">idx</span><span> </span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 10, </span><span class="coqdoc-var">m</span><span>, </span><span class="coqdoc-var">i</span><span>, </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 50,</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">format</span><span> &quot;'[' \big [ op / idx ]_ ( m  &lt;=  i  &lt;  n  |  P )  F ']'&quot;).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Variant</span><span> </span><span class="coqdoc-var">bigbody</span><span> (</span><span class="coqdoc-var">R</span><span> </span><span class="coqdoc-var">I</span><span> : </span><span class="coqdoc-keyword">Type</span><span>) : </span><span class="coqdoc-keyword">Type</span><span> :=</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-var">BigBody</span><span> : </span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">I</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>), </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">bool</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>), </span><span class="coqdoc-var">bigbody</span><span> </span><span class="coqdoc-var">R</span><span> </span><span class="coqdoc-var">I</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">bigbody is defined</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">bigop</span><span> :</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">R</span><span> </span><span class="coqdoc-var">I</span><span> : </span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">I</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">I</span><span>, </span><span class="coqdoc-var">bigbody</span><span> </span><span class="coqdoc-var">R</span><span> </span><span class="coqdoc-var">I</span><span>), </span><span class="coqdoc-var">R</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">bigop is declared</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">eq_bigr_</span><span> :</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">R</span><span> : </span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">idx</span><span> : </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">op</span><span> : </span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">_</span><span> : </span><span class="coqdoc-var">R</span><span>), </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">I</span><span> : </span><span class="coqdoc-keyword">Type</span><span>)</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(</span><span class="coqdoc-var">r</span><span> : </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">I</span><span>) (</span><span class="coqdoc-var">P</span><span> : </span><span class="coqdoc-var">I</span><span> -&gt; </span><span class="coqdoc-var">bool</span><span>) (</span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">F2</span><span> : </span><span class="coqdoc-var">I</span><span> -&gt; </span><span class="coqdoc-var">R</span><span>),</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;(</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">I</span><span>, </span><span class="coqdoc-var">is_true</span><span> (</span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">x</span><span>) -&gt; </span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">x</span><span> = </span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">x</span><span>) -&gt;</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">bigop</span><span> </span><span class="coqdoc-var">idx</span><span> </span><span class="coqdoc-var">r</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">I</span><span> =&gt; </span><span class="coqdoc-var">BigBody</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">op</span><span> (</span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">i</span><span>) (</span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">i</span><span>)) =</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">bigop</span><span> </span><span class="coqdoc-var">idx</span><span> </span><span class="coqdoc-var">r</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">I</span><span> =&gt; </span><span class="coqdoc-var">BigBody</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">op</span><span> (</span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">i</span><span>) (</span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">i</span><span>)).</span></dt>
+<dd class="coqtop-hidden"><span class="first last">eq_bigr_ is declared</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">eq_big_</span><span> :</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">R</span><span> : </span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">idx</span><span> : </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">op</span><span> : </span><span class="coqdoc-var">R</span><span> -&gt; </span><span class="coqdoc-var">R</span><span> -&gt; </span><span class="coqdoc-var">R</span><span>) (</span><span class="coqdoc-var">I</span><span> : </span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">r</span><span> : </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">I</span><span>)</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(</span><span class="coqdoc-var">P1</span><span> </span><span class="coqdoc-var">P2</span><span> : </span><span class="coqdoc-var">I</span><span> -&gt; </span><span class="coqdoc-var">bool</span><span>) (</span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">F2</span><span> : </span><span class="coqdoc-var">I</span><span> -&gt; </span><span class="coqdoc-var">R</span><span>),</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;(</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">I</span><span>, </span><span class="coqdoc-var">P1</span><span> </span><span class="coqdoc-var">x</span><span> = </span><span class="coqdoc-var">P2</span><span> </span><span class="coqdoc-var">x</span><span>) -&gt;</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;(</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">I</span><span>, </span><span class="coqdoc-var">is_true</span><span> (</span><span class="coqdoc-var">P1</span><span> </span><span class="coqdoc-var">i</span><span>) -&gt; </span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">i</span><span> = </span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">i</span><span>) -&gt;</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">bigop</span><span> </span><span class="coqdoc-var">idx</span><span> </span><span class="coqdoc-var">r</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">I</span><span> =&gt; </span><span class="coqdoc-var">BigBody</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">op</span><span> (</span><span class="coqdoc-var">P1</span><span> </span><span class="coqdoc-var">i</span><span>) (</span><span class="coqdoc-var">F1</span><span> </span><span class="coqdoc-var">i</span><span>)) =</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">bigop</span><span> </span><span class="coqdoc-var">idx</span><span> </span><span class="coqdoc-var">r</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">I</span><span> =&gt; </span><span class="coqdoc-var">BigBody</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">op</span><span> (</span><span class="coqdoc-var">P2</span><span> </span><span class="coqdoc-var">i</span><span>) (</span><span class="coqdoc-var">F2</span><span> </span><span class="coqdoc-var">i</span><span>)).</span></dt>
+<dd class="coqtop-hidden"><span class="first last">eq_big_ is declared</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Reserved Notation</span><span> &quot;\sum_ ( m &lt;= i &lt; n | P ) F&quot;</span><span>
+&nbsp;&nbsp;(</span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 41, </span><span class="coqdoc-var">F</span><span> </span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 41, </span><span class="coqdoc-var">i</span><span>, </span><span class="coqdoc-var">m</span><span>, </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 50,</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="coqdoc-var">format</span><span> &quot;'[' \sum_ ( m  &lt;=  i  &lt;  n  |  P ) '/  '  F ']'&quot;).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">index_iota</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">list</span><span> </span><span class="coqdoc-var">nat</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">index_iota is declared</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Notation</span><span> &quot;\big [ op / idx ]_ ( m &lt;= i &lt; n | P ) F&quot; :=</span><span>
+&nbsp;&nbsp;(</span><span class="coqdoc-var">bigop</span><span> </span><span class="coqdoc-var">idx</span><span> (</span><span class="coqdoc-var">index_iota</span><span> </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">n</span><span>) (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">i</span><span> : </span><span class="coqdoc-var">nat</span><span> =&gt; </span><span class="coqdoc-var">BigBody</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">op</span><span> </span><span class="coqdoc-var">P</span><span>%</span><span class="coqdoc-var">bool</span><span> </span><span class="coqdoc-var">F</span><span>)).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Notation</span><span> &quot;\sum_ ( m &lt;= i &lt; n | P ) F&quot; :=</span><span>
+&nbsp;&nbsp;(\</span><span class="coqdoc-var">big</span><span>[</span><span class="coqdoc-var">plus</span><span>/</span><span class="coqdoc-var">O</span><span>]</span><span class="coqdoc-var">_</span><span>(</span><span class="coqdoc-var">m</span><span> &lt;= </span><span class="coqdoc-var">i</span><span> &lt; </span><span class="coqdoc-var">n</span><span> | </span><span class="coqdoc-var">P</span><span>%</span><span class="coqdoc-var">bool</span><span>) </span><span class="coqdoc-var">F</span><span>%</span><span class="coqdoc-var">nat</span><span>).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Notation</span><span> </span><span class="coqdoc-var">eq_bigr</span><span> := (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span> =&gt; </span><span class="coqdoc-var">eq_bigr_</span><span> 0 </span><span class="coqdoc-var">plus</span><span> (</span><span class="coqdoc-var">index_iota</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span>)).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Notation</span><span> </span><span class="coqdoc-var">eq_big</span><span> := (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span> =&gt; </span><span class="coqdoc-var">eq_big_</span><span> 0 </span><span class="coqdoc-var">plus</span><span> (</span><span class="coqdoc-var">index_iota</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span>)).</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">odd</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">bool</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">odd is declared</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">prime</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-var">bool</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">prime is declared</span></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">addnC</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">m</span><span> + </span><span class="coqdoc-var">n</span><span> = </span><span class="coqdoc-var">n</span><span> + </span><span class="coqdoc-var">m</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">addnC is declared</span></dd>
+<dt><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">muln1</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">n</span><span> * 1 = </span><span class="coqdoc-var">n</span><span>.</span></dt>
+<dd class="coqtop-hidden"><span class="first last">muln1 is declared</span></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">eq_bigr</span><span>.</span></dt>
+<dd><span class="first">eq_bigr
+     : </span><span class="ansi-bold">forall</span><span> (n m : nat) (P : nat</span><span class="ansi-fg-white"> -&gt;</span><span> bool) (F1 F2 : nat</span><span class="ansi-fg-white"> -&gt;</span><span> nat),
+       (</span><span class="ansi-bold">forall</span><span> x : nat, P x</span><span class="ansi-fg-white"> -&gt;</span><span> F1 x</span><span class="ansi-fg-white"> =</span><span> F2 x)</span><span class="ansi-fg-white"> -&gt;</span><span>
+       </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>P i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>F1 i</span><span class="ansi-fg-white"> =</span><span> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>P i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="last">F2 i</span></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">eq_big</span><span>.</span></dt>
+<dd><span class="first">eq_big
+     : </span><span class="ansi-bold">forall</span><span> (n m : nat) (P1 P2 : nat</span><span class="ansi-fg-white"> -&gt;</span><span> bool) (F1 F2 : nat</span><span class="ansi-fg-white"> -&gt;</span><span> nat),
+       (</span><span class="ansi-bold">forall</span><span> x : nat, P1 x</span><span class="ansi-fg-white"> =</span><span> P2 x)</span><span class="ansi-fg-white"> -&gt;</span><span>
+       (</span><span class="ansi-bold">forall</span><span> i : nat, P1 i</span><span class="ansi-fg-white"> -&gt;</span><span> F1 i</span><span class="ansi-fg-white"> =</span><span> F2 i)</span><span class="ansi-fg-white"> -&gt;</span><span>
+       </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>P1 i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>F1 i</span><span class="ansi-fg-white"> =</span><span> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>P2 i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="last">F2 i</span></dd>
+<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">test_big_nested</span><span> (</span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>) :</span><span>
+&nbsp;&nbsp;\</span><span class="coqdoc-var">sum_</span><span>(0 &lt;= </span><span class="coqdoc-var">a</span><span> &lt; </span><span class="coqdoc-var">m</span><span> | </span><span class="coqdoc-var">prime</span><span> </span><span class="coqdoc-var">a</span><span>) \</span><span class="coqdoc-var">sum_</span><span>(0 &lt;= </span><span class="coqdoc-var">j</span><span> &lt; </span><span class="coqdoc-var">n</span><span> | </span><span class="coqdoc-var">odd</span><span> (</span><span class="coqdoc-var">j</span><span> * 1)) (</span><span class="coqdoc-var">a</span><span> + </span><span class="coqdoc-var">j</span><span>) =</span><span>
+&nbsp;&nbsp;\</span><span class="coqdoc-var">sum_</span><span>(0 &lt;= </span><span class="coqdoc-var">i</span><span> &lt; </span><span class="coqdoc-var">m</span><span> | </span><span class="coqdoc-var">prime</span><span> </span><span class="coqdoc-var">i</span><span>) \</span><span class="coqdoc-var">sum_</span><span>(0 &lt;= </span><span class="coqdoc-var">j</span><span> &lt; </span><span class="coqdoc-var">n</span><span> | </span><span class="coqdoc-var">odd</span><span> </span><span class="coqdoc-var">j</span><span>) (</span><span class="coqdoc-var">j</span><span> + </span><span class="coqdoc-var">i</span><span>).</span></dt>
+<dd><span class="first">1 subgoal
+  
+  m, n : nat
+  ============================
+  </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>a</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>prime a</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>j</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>odd (j</span><span class="ansi-fg-white"> *</span><span> 1)</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>(a</span><span class="ansi-fg-white"> +</span><span> j)</span><span class="ansi-fg-white"> =</span><span>
+  </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>prime i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>j</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>odd j</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>(j</span><span class="ansi-fg-white"> +</span><span class="last"> i)</span></dd>
+<dt><span class="coqdoc-var">under</span><span> </span><span class="coqdoc-var">eq_bigr</span><span> =&gt; </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">prime_i</span><span> </span><span class="coqdoc-tactic">do</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-var">under</span><span> </span><span class="coqdoc-var">eq_big</span><span> =&gt; [ </span><span class="coqdoc-var">j</span><span> | </span><span class="coqdoc-var">j</span><span> </span><span class="coqdoc-var">odd_j</span><span> ] </span><span class="coqdoc-tactic">do</span><span>
+&nbsp;&nbsp;&nbsp;&nbsp;[ </span><span class="coqdoc-tactic">rewrite</span><span> (</span><span class="coqdoc-var">muln1</span><span> </span><span class="coqdoc-var">j</span><span>) | </span><span class="coqdoc-tactic">rewrite</span><span> (</span><span class="coqdoc-var">addnC</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span>) ].</span></dt>
+<dd><span class="first">1 subgoal
+  
+  m, n : nat
+  ============================
+  </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>prime i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>j</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>odd j</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>(j</span><span class="ansi-fg-white"> +</span><span> i)</span><span class="ansi-fg-white"> =</span><span>
+  </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>i</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>m</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>prime i</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">\sum_</span><span class="ansi-fg-white">(</span><span>0</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;=</span><span class="ansi-fg-white"> </span><span>j</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">&lt;</span><span class="ansi-fg-white"> </span><span>n</span><span class="ansi-fg-white"> </span><span class="ansi-fg-white">|</span><span class="ansi-fg-white"> </span><span>odd j</span><span class="ansi-fg-white">)</span><span class="ansi-fg-white"> </span><span>(j</span><span class="ansi-fg-white"> +</span><span class="last"> i)</span></dd>
+</dl>
+</div>
+<p class="last">Remark how the final goal uses the name <code class="docutils literal notranslate"><span class="pre">i</span></code> (the name given in the
+intro pattern) rather than <code class="docutils literal notranslate"><span class="pre">a</span></code> in the binder of the first summation.</p>
+</div>
+</div>
+</div>
 <div class="section" id="locking-unlocking">
 <span id="locking-ssr"></span><h3>Locking, unlocking<a class="headerlink" href="#locking-unlocking" title="Permalink to this headline">¶</a></h3>
 <p>As program proofs tend to generate large goals, it is important to be
@@ -8065,7 +8417,19 @@ respectively.</p>
 <dl class="tacn">
 <dt>
 <code class="descname"><span class="notation"><span>rewrite</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-r_step"><span class="hole">r_step</span></a></span><span class="notation-sup">+</span></span></span></code></dt>
-<dd><p>rewrite  (see <a class="reference internal" href="#rewriting-ssr"><span class="std std-ref">Rewriting</span></a>)</p>
+<dd><p>rewrite (see <a class="reference internal" href="#rewriting-ssr"><span class="std std-ref">Rewriting</span></a>)</p>
+</dd></dl>
+
+<dl class="tacn">
+<dt>
+<code class="descname"><span class="notation"><span>under</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-r_prefix"><span class="hole">r_prefix</span></a></span><span class="notation-sup">?</span></span> <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-term"><span class="hole">term</span></a> <span class="repeat-wrapper"><span class="repeat"><span>=&gt;</span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-i_item"><span class="hole">i_item</span></a></span><span class="notation-sup">+</span></span></span><span class="notation-sup">?</span></span> <span class="repeat-wrapper"><span class="repeat"><span>do</span> <span>(</span> <span class="hole">tactic</span> <span>|</span> <span>[</span> <span class="repeat-wrapper"><span class="repeat"><span class="hole">tactic</span></span><span class="notation-sup">*</span><span class="notation-sub">|</span></span> <span>]</span> <span>)</span></span><span class="notation-sup">?</span></span></span></code></dt>
+<dd><p>under (see <a class="reference internal" href="#under-ssr"><span class="std std-ref">Rewriting under binders</span></a>)</p>
+</dd></dl>
+
+<dl class="tacn">
+<dt>
+<code class="descname"><span class="notation"><span>over</span></span></code></dt>
+<dd><p>over (see <a class="reference internal" href="#over-ssr"><span class="std std-ref">The over tactic</span></a>)</p>
 </dd></dl>
 
 <dl class="tacn">
