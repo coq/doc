@@ -3681,26 +3681,90 @@ with an explicit type in which case, this latter type is considered).</p>
 </div>
 <div class="section" id="implicit-generalization">
 <span id="id9"></span><h3>Implicit generalization<a class="headerlink" href="#implicit-generalization" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="index-0"></span><p id="index-1">Implicit generalization is an automatic elaboration of a statement
+<span class="target" id="index-0"></span><span class="target" id="index-1"></span><span class="target" id="index-2"></span><p id="index-3">Implicit generalization is an automatic elaboration of a statement
 with free variables into a closed statement where these variables are
-quantified explicitly. Implicit generalization is done inside binders
-starting with a ` and terms delimited by `{ } and `( ), always
-introducing maximally inserted implicit arguments for the generalized
-variables. Inside implicit generalization delimiters, free variables
-in the current context are automatically quantified using a product or
-a lambda abstraction to generate a closed term. In the following
-statement for example, the variables n and m are automatically
-generalized and become explicit arguments of the lemma as we are using
-`( ):</p>
+quantified explicitly.</p>
+<p>It is activated for a binder by prefixing a `, and for terms by
+surrounding it with `{ } or `( ).</p>
+<p>Terms surrounded by `{ } introduce their free variables as maximally
+inserted implicit arguments, and terms surrounded by `( ) introduce
+them as explicit arguments.</p>
+<p>Generalizing binders always introduce their free variables as
+maximally inserted implicit arguments. The binder itself introduces
+its argument as usual.</p>
+<p>In the following statement, <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are automatically
+generalized, <code class="docutils literal notranslate"><span class="pre">A</span></code> is implicit and <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and the anonymous
+equality argument are explicit.</p>
 <div class="coqtop literal-block docutils container">
-<span></span><dl class="docutils">
+<span class="coqtop-reset"></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Generalizable</span><span> </span><span class="coqdoc-keyword">All</span><span> </span><span class="coqdoc-keyword">Variables</span><span>.</span></dt>
 <dd class="coqtop-hidden"></dd>
-<dt><span class="coqdoc-keyword">Lemma</span><span> </span><span class="coqdoc-var">nat_comm</span><span> : `(</span><span class="coqdoc-var">n</span><span> = </span><span class="coqdoc-var">n</span><span> + 0).</span></dt>
-<dd><span class="first">1 subgoal
-  
-  ============================
-  </span><span class="ansi-bold">forall</span><span> n : nat, n</span><span class="ansi-fg-white"> =</span><span> n</span><span class="ansi-fg-white"> +</span><span class="last"> 0</span></dd>
+<dt><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">sym</span><span> `(</span><span class="coqdoc-var">x</span><span>:</span><span class="coqdoc-var">A</span><span>) : `(</span><span class="coqdoc-var">x</span><span> = </span><span class="coqdoc-var">y</span><span> -&gt; </span><span class="coqdoc-var">y</span><span> = </span><span class="coqdoc-var">x</span><span>) := </span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">_</span><span> </span><span class="coqdoc-var">p</span><span> =&gt; </span><span class="coqdoc-var">eq_sym</span><span> </span><span class="coqdoc-var">p</span><span>.</span></dt>
+<dd><span class="first last">sym is defined</span></dd>
+<dt><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">sym</span><span>.</span></dt>
+<dd><span class="first">sym = 
+</span><span class="ansi-bold">fun</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (x y : A) (p : x</span><span class="ansi-fg-white"> =</span><span> y) =&gt; eq_sym p
+     : </span><span class="ansi-bold">forall</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (x y : A), x</span><span class="ansi-fg-white"> =</span><span> y</span><span class="ansi-fg-white"> -&gt;</span><span> y</span><span class="ansi-fg-white"> =</span><span class="last"> x
+
+Argument A is implicit and maximally inserted
+Argument scopes are [type_scope _ _ _]</span></dd>
+</dl>
+</div>
+<p>Dually to normal binders, the name is optional but the type is required:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{</span><span class="coqdoc-var">x</span><span> = </span><span class="coqdoc-var">y</span><span> :&gt; </span><span class="coqdoc-var">A</span><span>}, </span><span class="coqdoc-var">y</span><span> = </span><span class="coqdoc-var">x</span><span>).</span></dt>
+<dd><span class="ansi-bold first">forall</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (x y : A), x</span><span class="ansi-fg-white"> =</span><span> y</span><span class="ansi-fg-white"> -&gt;</span><span> y</span><span class="ansi-fg-white"> =</span><span> x
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
+</dl>
+</div>
+<p>When generalizing a binder whose type is a typeclass, its own class
+arguments are omitted from the syntax and are generalized using
+automatic names, without instance search. Other arguments are also
+generalized unless provided. This produces a fully general statement.
+this behaviour may be disabled by prefixing the type with a <code class="docutils literal notranslate"><span class="pre">!</span></code> or
+by forcing the typeclass name to be an explicit application using
+<code class="docutils literal notranslate"><span class="pre">&#64;</span></code> (however the later ignores implicit argument information).</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Class</span><span> </span><span class="coqdoc-var">Op</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-keyword">Type</span><span>) := </span><span class="coqdoc-var">op</span><span> : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">A</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-keyword">Class</span><span> </span><span class="coqdoc-var">Commutative</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-keyword">Type</span><span>) `(</span><span class="coqdoc-var">Op</span><span> </span><span class="coqdoc-var">A</span><span>) := </span><span class="coqdoc-var">commutative</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span>, </span><span class="coqdoc-var">op</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> = </span><span class="coqdoc-var">op</span><span> </span><span class="coqdoc-var">y</span><span> </span><span class="coqdoc-var">x</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-keyword">Instance</span><span> </span><span class="coqdoc-var">nat_op</span><span> : </span><span class="coqdoc-var">Op</span><span> </span><span class="coqdoc-var">nat</span><span> := </span><span class="coqdoc-var">plus</span><span>.</span></dt>
+<dd><span class="first last">nat_op is defined</span></dd>
+<dt><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Implicit</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{</span><span class="coqdoc-var">Commutative</span><span> }, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="ansi-bold first">forall</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (H : Op A), Commutative A H</span><span class="ansi-fg-white"> -&gt;</span><span> True
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="ansi-bold first">forall</span><span> H : Op nat, Commutative nat H</span><span class="ansi-fg-white"> -&gt;</span><span> True
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
+<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span> </span><span class="coqdoc-var">_</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="first last">The command has indeed failed with message:
+Typeclass does not expect more arguments</span></dd>
+<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{!</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="first">The command has indeed failed with message:
+The term &quot;Commutative nat&quot; has type &quot;Op nat</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Prop</span><span class="last">&quot;
+which should be Set, Prop or Type.</span></dd>
+<dt><span class="coqdoc-var">Arguments</span><span> </span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">_</span><span> {</span><span class="coqdoc-var">_</span><span>}.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{!</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="first">&#64;Commutative nat nat_op</span><span class="ansi-fg-white"> -&gt;</span><span> True
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{&#64;</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span> </span><span class="coqdoc-var">plus</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="first">&#64;Commutative nat </span><span class="ansi-fg-light-magenta">Nat</span><span>.</span><span class="ansi-fg-light-green">add</span><span class="ansi-fg-white"> -&gt;</span><span> True
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
+</dl>
+</div>
+<p>Multiple binders can be merged using <code class="docutils literal notranslate"><span class="pre">,</span></code> as a separator:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">forall</span><span> `{</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">A</span><span>, </span><span class="coqdoc-var">Hnat</span><span> : !</span><span class="coqdoc-var">Commutative</span><span> </span><span class="coqdoc-var">nat</span><span>}, </span><span class="coqdoc-var">True</span><span>).</span></dt>
+<dd><span class="ansi-bold first">forall</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (H : Op A),
+&#64;Commutative A H</span><span class="ansi-fg-white"> -&gt;</span><span> &#64;Commutative nat nat_op</span><span class="ansi-fg-white"> -&gt;</span><span> True
+     : </span><span class="ansi-fg-yellow ansi-bold last">Prop</span></dd>
 </dl>
 </div>
 <p>One can control the set of generalizable identifiers with
@@ -3736,26 +3800,6 @@ adds to the allowed identifiers.</p>
 <dd><p>Allows exporting the choice of generalizable variables.</p>
 </dd></dl>
 
-<p>One can also use implicit generalization for binders, in which case
-the generalized variables are added as binders and set maximally
-implicit.</p>
-<div class="coqtop literal-block docutils container">
-<span></span><dl class="docutils">
-<dt><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">id</span><span> `(</span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">A</span><span>) : </span><span class="coqdoc-var">A</span><span> := </span><span class="coqdoc-var">x</span><span>.</span></dt>
-<dd><span class="first last">id is defined</span></dd>
-<dt><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">id</span><span>.</span></dt>
-<dd><span class="first">id = </span><span class="ansi-bold">fun</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (x : A) =&gt; x
-     : </span><span class="ansi-bold">forall</span><span> A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>, A</span><span class="ansi-fg-white"> -&gt;</span><span class="last"> A
-
-Argument A is implicit and maximally inserted
-Argument scopes are [type_scope _]</span></dd>
-</dl>
-</div>
-<p>The generalizing binders `{ } and `( ) work similarly to their
-explicit counterparts, only binding the generalized variables
-implicitly, as maximally-inserted arguments. In these binders, the
-binding name for the bound object is optional, whereas the type is
-mandatory, dually to regular binders.</p>
 </div>
 </div>
 <div class="section" id="coercions">
@@ -3857,22 +3901,18 @@ existential variable is represented by “?” followed by an identifier.</p>
 <dt><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">identity</span><span> : </span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">X</span><span>:</span><span class="coqdoc-keyword">Set</span><span>), </span><span class="coqdoc-var">X</span><span> -&gt; </span><span class="coqdoc-var">X</span><span>.</span></dt>
 <dd><span class="first last">identity is declared</span></dd>
 <dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">identity</span><span> </span><span class="coqdoc-var">_</span><span> </span><span class="coqdoc-var">_</span><span>.</span></dt>
-<dd><span class="first">identity </span><span class="ansi-fg-light-blue">?y</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
-     : </span><span class="ansi-fg-light-blue">?S0</span><span>&#64;{x:=</span><span class="ansi-fg-light-blue">?x</span><span>}
+<dd><span class="first">identity </span><span class="ansi-fg-light-blue">?X</span><span> </span><span class="ansi-fg-light-blue">?y</span><span>
+     : </span><span class="ansi-fg-light-blue">?X</span><span>
 where
-?y : [ |- </span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-fg-light-blue">?S</span><span>, </span><span class="ansi-fg-light-blue">?S0</span><span>]
+?X : [ |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
+?y : [ |- </span><span class="ansi-fg-light-blue">?X</span><span class="last">]</span></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">identity</span><span> </span><span class="coqdoc-var">_</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> =&gt; </span><span class="coqdoc-var">_</span><span>).</span></dt>
+<dd><span class="first">identity (</span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-fg-light-blue">?S</span><span>, </span><span class="ansi-fg-light-blue">?S0</span><span>) (</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-light-blue">?S</span><span> =&gt; </span><span class="ansi-fg-light-blue">?y</span><span>)
+     : </span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-fg-light-blue">?S</span><span>, </span><span class="ansi-fg-light-blue">?S0</span><span>
+where
 ?S : [ |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
 ?S0 : [x : </span><span class="ansi-fg-light-blue">?S</span><span> |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
-?x : [ |- </span><span class="ansi-fg-light-blue">?S</span><span class="last">]</span></dd>
-<dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">identity</span><span> </span><span class="coqdoc-var">_</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> =&gt; </span><span class="coqdoc-var">_</span><span>).</span></dt>
-<dd><span class="first">identity </span><span class="ansi-fg-light-blue">?y</span><span> (</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-light-blue">?S0</span><span> =&gt; </span><span class="ansi-fg-light-blue">?y0</span><span>)
-     : </span><span class="ansi-fg-light-blue">?S</span><span>&#64;{x:=</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-light-blue">?S0</span><span> =&gt; </span><span class="ansi-fg-light-blue">?y0</span><span>}
-where
-?y : [ |- </span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-fg-light-blue">?S0</span><span>, </span><span class="ansi-fg-light-blue">?S1</span><span>, </span><span class="ansi-fg-light-blue">?S</span><span>]
-?S : [x : </span><span class="ansi-bold">forall</span><span> x : </span><span class="ansi-fg-light-blue">?S0</span><span>, </span><span class="ansi-fg-light-blue">?S1</span><span> |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
-?S0 : [ |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
-?S1 : [x : </span><span class="ansi-fg-light-blue">?S0</span><span> |- </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>]
-?y0 : [x : </span><span class="ansi-fg-light-blue">?S0</span><span> |- </span><span class="ansi-fg-light-blue">?S1</span><span class="last">]</span></dd>
+?y : [x : </span><span class="ansi-fg-light-blue">?S</span><span> |- </span><span class="ansi-fg-light-blue">?S0</span><span class="last">]</span></dd>
 </dl>
 </div>
 <p>In the general case, when an existential variable <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">?</span></span><a class="reference internal" href="gallina-specification-language.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code> appears
@@ -3930,8 +3970,7 @@ expression as described in <a class="reference internal" href="../proof-engine/l
 <div class="coqtop literal-block docutils container">
 <span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">foo</span><span> (</span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">nat</span><span>) : </span><span class="coqdoc-var">nat</span><span> := </span><span class="coqdoc-keyword">ltac</span><span>:(</span><span class="coqdoc-tactic">exact</span><span> </span><span class="coqdoc-var">x</span><span>).</span></dt>
-<dd><span class="first last">identity is declared
-foo is defined</span></dd>
+<dd><span class="first last">foo is defined</span></dd>
 </dl>
 </div>
 <p>This construction is useful when one wants to define complicated terms
