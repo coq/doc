@@ -32,22 +32,25 @@ The syntax of the tactic language is given below. See Chapter
 :ref:`gallinaspecificationlanguage` for a description of the BNF metasyntax used
 in these grammar rules. Various already defined entries will be used in this
 chapter: entries :token:`natural`, :token:`integer`, :token:`ident`,
-:token:`qualid`, :token:`term`, :token:`cpattern` and :token:`atomic_tactic`
+:token:`qualid`, :token:`term`, :token:`cpattern` and :token:`tactic`
 represent respectively the natural and integer numbers, the authorized
 identificators and qualified names, Coq terms and patterns and all the atomic
-tactics described in Chapter :ref:`tactics`. The syntax of :token:`cpattern` is
+tactics described in Chapter :ref:`tactics`.
+
+The syntax of :production:`cpattern` is
 the same as that of terms, but it is extended with pattern matching
 metavariables. In :token:`cpattern`, a pattern matching metavariable is
-represented with the syntax :g:`?id` where :g:`id` is an :token:`ident`. The
+represented with the syntax :n:`?@ident`. The
 notation :g:`_` can also be used to denote metavariable whose instance is
-irrelevant. In the notation :g:`?id`, the identifier allows us to keep
+irrelevant. In the notation :n:`?@ident`, the identifier allows us to keep
 instantiations and to make constraints whereas :g:`_` shows that we are not
 interested in what will be matched. On the right hand side of pattern matching
 clauses, the named metavariables are used without the question mark prefix. There
 is also a special notation for second-order pattern matching problems: in an
-applicative pattern of the form :g:`@?id id1 … idn`, the variable id matches any
-complex expression with (possible) dependencies in the variables :g:`id1 … idn`
-and returns a functional term of the form :g:`fun id1 … idn => term`.
+applicative pattern of the form :n:`%@?@ident @ident__1 … @ident__n`,
+the variable :token:`ident` matches any complex expression with (possible)
+dependencies in the variables :n:`@ident__i` and returns a functional term
+of the form :n:`fun @ident__1 … ident__n => @term`.
 
 The main entry of the grammar is :n:`@expr`. This language is used in proof
 mode but it can also be used in toplevel definitions as shown below.
@@ -121,6 +124,7 @@ mode but it can also be used in toplevel definitions as shown below.
                      : solve [ `expr` | ... | `expr` ]
                      : idtac [ `message_token` ... `message_token`]
                      : fail [`natural`] [`message_token` ... `message_token`]
+                     : gfail [`natural`] [`message_token` ... `message_token`]
                      : fresh [ `component` … `component` ]
                      : context `ident` [`term`]
                      : eval `redexpr` in `term`
@@ -132,7 +136,7 @@ mode but it can also be used in toplevel definitions as shown below.
                      : guard `test`
                      : assert_fails `tacexpr3`
                      : assert_succeeds `tacexpr3`
-                     : `atomic_tactic`
+                     : `tactic`
                      : `qualid` `tacarg` ... `tacarg`
                      : `atom`
    atom              : `qualid`
@@ -582,11 +586,11 @@ Failing
       the call to :n:`fail @num` is not enclosed in a :n:`+` command,
       respecting the algebraic identity.
 
-   .. tacv:: fail {* message_token}
+   .. tacv:: fail {* @message_token}
 
       The given tokens are used for printing the failure message.
 
-   .. tacv:: fail @num {* message_token}
+   .. tacv:: fail @num {* @message_token}
 
       This is a combination of the previous variants.
 
@@ -597,8 +601,8 @@ Failing
       Similarly, ``gfail`` fails even when used after ``all:`` and there are no
       goals left. See the example for clarification.
 
-   .. tacv:: gfail {* message_token}
-             gfail @num {* message_token}
+   .. tacv:: gfail {* @message_token}
+             gfail @num {* @message_token}
 
       These variants fail with an error message or an error level even if
       there are no goals left. Be careful however if Coq terms have to be
@@ -964,7 +968,7 @@ system decide a name with the intro tactic is not so good since it is
 very awkward to retrieve the name the system gave. The following
 expression returns an identifier:
 
-.. tacn:: fresh {* component}
+.. tacn:: fresh {* @component}
 
    It evaluates to an identifier unbound in the goal. This fresh identifier
    is obtained by concatenating the value of the :n:`@component`\ s (each of them
