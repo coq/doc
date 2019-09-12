@@ -147,6 +147,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#summary-of-changes">Summary of changes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#other-changes-in-8-10-beta1">Other changes in 8.10+beta1</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#changes-in-8-10-beta2">Changes in 8.10+beta2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changes-in-8-10-beta3">Changes in 8.10+beta3</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#version-8-9">Version 8.9</a><ul>
@@ -1335,34 +1336,6 @@
 <div class="section" id="unreleased-changes">
 <h2>Unreleased changes<a class="headerlink" href="#unreleased-changes" title="Permalink to this headline">¶</a></h2>
 <p><strong>Kernel</strong></p>
-<ul>
-<li><p class="first">Fix soundness issue with template polymorphism (<a class="reference external" href="https://github.com/coq/coq/issues/9294">#9294</a>)</p>
-<p>Declarations of template-polymorphic inductive types ignored the
-provenance of the universes they were abstracting on and did not
-detect if they should be greater or equal to <span class="math notranslate nohighlight">\(\Set\)</span> in
-general. Previous universes and universes introduced by the inductive
-definition could have constraints that prevented their instantiation
-with e.g. <span class="math notranslate nohighlight">\(\Prop\)</span>, resulting in unsound instantiations later. The
-implemented fix only allows abstraction over universes introduced by
-the inductive declaration, and properly records all their constraints
-by making them by default only <span class="math notranslate nohighlight">\(&gt;= \Prop\)</span>. It is also checked
-that a template polymorphic inductive actually is polymorphic on at
-least one universe.</p>
-<p>This prevents inductive declarations in sections to be universe
-polymorphic over section parameters. For a backward compatible fix,
-simply hoist the inductive definition out of the section.
-An alternative is to declare the inductive as universe-polymorphic and
-cumulative in a universe-polymorphic section: all universes and
-constraints will be properly gathered in this case.
-See <a class="reference internal" href="language/cic.html#template-polymorphism"><span class="std std-ref">Template polymorphism</span></a> for a detailed exposition of the
-rules governing template-polymorphic types.</p>
-<p>To help users incrementally fix this issue, a command line option
-<code class="docutils literal notranslate"><span class="pre">-no-template-check</span></code> and a global flag <a class="reference internal" href="language/cic.html#coq:flag.template-check" title="Template Check"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Template</span> <span class="pre">Check</span></code></a> are
-available to selectively disable the new check. Use at your own risk.</p>
-<p>(<a class="reference external" href="https://github.com/coq/coq/pull/9918">#9918</a>, by Matthieu Sozeau
-and Maxime Dénès).</p>
-</li>
-</ul>
 <p><strong>Specification language, type inference</strong></p>
 <ul>
 <li><p class="first">New annotation in <code class="docutils literal notranslate"><span class="pre">Arguments</span></code> for bidirectionality hints: it is now possible
@@ -1470,11 +1443,6 @@ by Maxime Dénès, review by Gaëtan Gilbert).</li>
 and universes checking (providing a local <code class="docutils literal notranslate"><span class="pre">-type-in-type</span></code>).
 See <a class="reference internal" href="proof-engine/vernacular-commands.html#controlling-typing-flags"><span class="std std-ref">Controlling Typing Flags</span></a>.
 (<a class="reference external" href="https://github.com/coq/coq/pull/10291">#10291</a> by Simon Boulier).</li>
-<li>Improve the ambiguous paths warning to indicate which path is ambiguous with
-new one
-(<a class="reference external" href="https://github.com/coq/coq/pull/10336">#10336</a>,
-closes <a class="reference external" href="https://github.com/coq/coq/issues/3219">#3219</a>,
-by Kazuhiko Sakaguchi).</li>
 </ul>
 <p><strong>Tools</strong></p>
 <ul class="simple">
@@ -1484,30 +1452,10 @@ shorthand, <code class="docutils literal notranslate"><span class="pre">-ri</spa
 confusing command line option <code class="docutils literal notranslate"><span class="pre">-require</span></code>
 (<a class="reference external" href="https://github.com/coq/coq/pull/10245">#10245</a>
 by Hugo Herbelin, review by Emilio Gallego).</li>
-<li>Fix extraction to OCaml of primitive machine integers;
-see <a class="reference internal" href="language/gallina-extensions.html#primitive-integers"><span class="std std-ref">Primitive Integers</span></a>
-(<a class="reference external" href="https://github.com/coq/coq/pull/10430">#10430</a>,
-fixes <a class="reference external" href="https://github.com/coq/coq/issues/10361">#10361</a>,
-by Vincent Laporte).</li>
-<li>Fix a printing bug of OCaml extraction on dependent record projections, which
-produced improper <code class="docutils literal notranslate"><span class="pre">assert</span> <span class="pre">false</span></code>. This change makes the OCaml extractor
-internally inline record projections by default; thus the monolithic OCaml
-extraction (<a class="reference internal" href="addendum/extraction.html#coq:cmd.extraction" title="Extraction"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Extraction</span></code></a> and <a class="reference internal" href="addendum/extraction.html#coq:cmd.recursive-extraction" title="Recursive Extraction"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Recursive</span> <span class="pre">Extraction</span></code></a>) does not
-produce record projection constants anymore except for record projections
-explicitly instructed to extract, and records declared in opaque modules
-(<a class="reference external" href="https://github.com/coq/coq/pull/10577">#10577</a>,
-fixes <a class="reference external" href="https://github.com/coq/coq/issues/7348">#7348</a>,
-by Kazuhiko Sakaguchi).</li>
 </ul>
 <p><strong>CoqIDE</strong></p>
 <p><strong>Standard library</strong></p>
 <ul>
-<li><p class="first">Added <code class="docutils literal notranslate"><span class="pre">splitat</span></code> function and lemmas about <code class="docutils literal notranslate"><span class="pre">splitat</span></code> and <code class="docutils literal notranslate"><span class="pre">uncons</span></code>
-(<a class="reference external" href="https://github.com/coq/coq/pull/9379">#9379</a>,
-by Yishuai Li, with help of Konstantinos Kallas,
-follow-up of <a class="reference external" href="https://github.com/coq/coq/pull/8365">#8365</a>,
-which added <code class="docutils literal notranslate"><span class="pre">uncons</span></code> in 8.10+beta1).</p>
-</li>
 <li><p class="first">Removes deprecated modules <code class="docutils literal notranslate"><span class="pre">Coq.ZArith.Zlogarithm</span></code>
 and <code class="docutils literal notranslate"><span class="pre">Coq.ZArith.Zsqrt_compat</span></code>
 (#9881 &lt;<a class="reference external" href="https://github.com/coq/coq/pull/9811">https://github.com/coq/coq/pull/9811</a>&gt;
@@ -2164,6 +2112,71 @@ in color
 (<a class="reference external" href="https://github.com/coq/coq/pull/10019">#10019</a> and
 (in Proof General) <a class="reference external" href="https://github.com/ProofGeneral/PG/pull/421">#421</a>,
 by Jim Fehrle).</li>
+</ul>
+</div>
+<div class="section" id="changes-in-8-10-beta3">
+<h3>Changes in 8.10+beta3<a class="headerlink" href="#changes-in-8-10-beta3" title="Permalink to this headline">¶</a></h3>
+<p><strong>Kernel</strong></p>
+<ul>
+<li><p class="first">Fix soundness issue with template polymorphism (<a class="reference external" href="https://github.com/coq/coq/issues/9294">#9294</a>).</p>
+<p>Declarations of template-polymorphic inductive types ignored the
+provenance of the universes they were abstracting on and did not
+detect if they should be greater or equal to <span class="math notranslate nohighlight">\(\Set\)</span> in
+general. Previous universes and universes introduced by the inductive
+definition could have constraints that prevented their instantiation
+with e.g. <span class="math notranslate nohighlight">\(\Prop\)</span>, resulting in unsound instantiations later. The
+implemented fix only allows abstraction over universes introduced by
+the inductive declaration, and properly records all their constraints
+by making them by default only <span class="math notranslate nohighlight">\(&gt;= \Prop\)</span>. It is also checked
+that a template polymorphic inductive actually is polymorphic on at
+least one universe.</p>
+<p>This prevents inductive declarations in sections to be universe
+polymorphic over section parameters. For a backward compatible fix,
+simply hoist the inductive definition out of the section.
+An alternative is to declare the inductive as universe-polymorphic and
+cumulative in a universe-polymorphic section: all universes and
+constraints will be properly gathered in this case.
+See <a class="reference internal" href="language/cic.html#template-polymorphism"><span class="std std-ref">Template polymorphism</span></a> for a detailed exposition of the
+rules governing template-polymorphic types.</p>
+<p>To help users incrementally fix this issue, a command line option
+<code class="docutils literal notranslate"><span class="pre">-no-template-check</span></code> and a global flag <a class="reference internal" href="language/cic.html#coq:flag.template-check" title="Template Check"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Template</span> <span class="pre">Check</span></code></a> are
+available to selectively disable the new check. Use at your own risk.</p>
+<p>(<a class="reference external" href="https://github.com/coq/coq/pull/9918">#9918</a>, by Matthieu Sozeau
+and Maxime Dénès).</p>
+</li>
+</ul>
+<p><strong>User messages</strong></p>
+<ul class="simple">
+<li>Improve the ambiguous paths warning to indicate which path is ambiguous with
+new one
+(<a class="reference external" href="https://github.com/coq/coq/pull/10336">#10336</a>,
+closes <a class="reference external" href="https://github.com/coq/coq/issues/3219">#3219</a>,
+by Kazuhiko Sakaguchi).</li>
+</ul>
+<p><strong>Extraction</strong></p>
+<ul class="simple">
+<li>Fix extraction to OCaml of primitive machine integers;
+see <a class="reference internal" href="language/gallina-extensions.html#primitive-integers"><span class="std std-ref">Primitive Integers</span></a>
+(<a class="reference external" href="https://github.com/coq/coq/pull/10430">#10430</a>,
+fixes <a class="reference external" href="https://github.com/coq/coq/issues/10361">#10361</a>,
+by Vincent Laporte).</li>
+<li>Fix a printing bug of OCaml extraction on dependent record projections, which
+produced improper <code class="docutils literal notranslate"><span class="pre">assert</span> <span class="pre">false</span></code>. This change makes the OCaml extractor
+internally inline record projections by default; thus the monolithic OCaml
+extraction (<a class="reference internal" href="addendum/extraction.html#coq:cmd.extraction" title="Extraction"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Extraction</span></code></a> and <a class="reference internal" href="addendum/extraction.html#coq:cmd.recursive-extraction" title="Recursive Extraction"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Recursive</span> <span class="pre">Extraction</span></code></a>) does not
+produce record projection constants anymore except for record projections
+explicitly instructed to extract, and records declared in opaque modules
+(<a class="reference external" href="https://github.com/coq/coq/pull/10577">#10577</a>,
+fixes <a class="reference external" href="https://github.com/coq/coq/issues/7348">#7348</a>,
+by Kazuhiko Sakaguchi).</li>
+</ul>
+<p><strong>Standard library</strong></p>
+<ul class="simple">
+<li>Added <code class="docutils literal notranslate"><span class="pre">splitat</span></code> function and lemmas about <code class="docutils literal notranslate"><span class="pre">splitat</span></code> and <code class="docutils literal notranslate"><span class="pre">uncons</span></code>
+(<a class="reference external" href="https://github.com/coq/coq/pull/9379">#9379</a>,
+by Yishuai Li, with help of Konstantinos Kallas,
+follow-up of <a class="reference external" href="https://github.com/coq/coq/pull/8365">#8365</a>,
+which added <code class="docutils literal notranslate"><span class="pre">uncons</span></code> in 8.10+beta1).</li>
 </ul>
 </div>
 </div>
