@@ -2015,19 +2015,54 @@ Expands to: Constant Top.baz</span></dd>
 </div>
 <div class="section" id="universe-polymorphism-and-sections">
 <span id="universe-polymorphism-in-sections"></span><h2>Universe polymorphism and sections<a class="headerlink" href="#universe-polymorphism-and-sections" title="Permalink to this headline">¶</a></h2>
-<p>The universe polymorphic or monomorphic status is
-attached to each individual section, and all term or universe declarations
-contained inside must respect it, as described below. It is possible to nest a
-polymorphic section inside a monomorphic one, but the converse is not allowed.</p>
-<p><a class="reference internal" href="../language/gallina-extensions.html#coq:cmdv.variables" title="Variables"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variables</span></code></a>, <a class="reference internal" href="../language/gallina-extensions.html#coq:cmd.context" title="Context"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Context</span></code></a>, <a class="reference internal" href="#coq:cmd.universe" title="Universe"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Universe</span></code></a> and <a class="reference internal" href="#coq:cmd.constraint" title="Constraint"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Constraint</span></code></a> in a section support
-polymorphism. This means that the universe variables and their associated
-constraints are discharged polymorphically over definitions that use
-them. In other words, two definitions in the section sharing a common
-variable will both get parameterized by the universes produced by the
-variable declaration. This is in contrast to a “mononorphic” variable
-which introduces global universes and constraints, making the two
-definitions depend on the <em>same</em> global universes associated to the
-variable.</p>
+<p><a class="reference internal" href="../language/gallina-extensions.html#coq:cmdv.variables" title="Variables"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variables</span></code></a>, <a class="reference internal" href="../language/gallina-extensions.html#coq:cmd.context" title="Context"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Context</span></code></a>, <a class="reference internal" href="#coq:cmd.universe" title="Universe"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Universe</span></code></a> and
+<a class="reference internal" href="#coq:cmd.constraint" title="Constraint"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Constraint</span></code></a> in a section support polymorphism. This means that
+the universe variables and their associated constraints are discharged
+polymorphically over definitions that use them. In other words, two
+definitions in the section sharing a common variable will both get
+parameterized by the universes produced by the variable declaration.
+This is in contrast to a “mononorphic” variable which introduces
+global universes and constraints, making the two definitions depend on
+the <em>same</em> global universes associated to the variable.</p>
+<p>It is possible to mix universe polymorphism and monomorphism in
+sections, except in the following ways:</p>
+<ul>
+<li><p class="first">no monomorphic constraint may refer to a polymorphic universe:</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Section</span><span> </span><span class="coqdoc-var">Foo</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-var">Universe</span><span> </span><span class="coqdoc-var">i</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-var">Constraint</span><span> </span><span class="coqdoc-var">i</span><span> = </span><span class="coqdoc-var">i</span><span>.</span></dt>
+<dd><span class="first last">The command has indeed failed with message:
+Cannot declare a global constraint on a polymorphic universe, use Polymorphic Constraint instead</span></dd>
+</dl>
+</div>
+<p>This includes constraints implictly declared by commands such as
+<a class="reference internal" href="../language/gallina-extensions.html#coq:cmd.variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a>, which may as a such need to be used with universe
+polymorphism activated (locally by attribute or globally by option):</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Variable</span><span> </span><span class="coqdoc-var">A</span><span> : (</span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} : </span><span class="coqdoc-keyword">Type</span><span>).</span></dt>
+<dd><span class="first last">The command has indeed failed with message:
+Cannot add monomorphic constraints which refer to section polymorphic universes.</span></dd>
+<dt><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-keyword">Variable</span><span> </span><span class="coqdoc-var">A</span><span> : (</span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} : </span><span class="coqdoc-keyword">Type</span><span>).</span></dt>
+<dd><span class="first last">A is declared</span></dd>
+</dl>
+</div>
+<p>(in the above example the anonymous <code class="code Coq docutils literal notranslate"><span class="keyword type"><span class="pre">Type</span></span></code> constrains polymorphic
+universe <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">i</span></span></code> to be strictly smaller.)</p>
+</li>
+<li><p class="first">no monomorphic constant or inductive may be declared if polymorphic
+universes or universe constraints are present.</p>
+</li>
+</ul>
+<p>These restrictions are required in order to produce a sensible result
+when closing the section (the requirement on constants and inductives
+is stricter than the one on constraints, because constants and
+inductives are abstracted by <em>all</em> the section's polymorphic universes
+and constraints).</p>
 </div>
 </div>
 
