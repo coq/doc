@@ -2013,6 +2013,10 @@ R_plus_complete is defined</span></dd>
 <p>than like this:</p>
 <div class="coqtop literal-block last docutils container">
 <span class="coqtop-reset"></span><dl class="docutils">
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">FunInd</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+</dl>
+<span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">Function</span><span> </span><span class="coqdoc-var">plus</span><span> (</span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span> : </span><span class="coqdoc-var">nat</span><span>) {</span><span class="coqdoc-keyword">struct</span><span> </span><span class="coqdoc-var">n</span><span>} : </span><span class="coqdoc-var">nat</span><span> :=</span><span>
 </span><span class="coqdoc-keyword">match</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-keyword">with</span><span>
 | 0 =&gt; </span><span class="coqdoc-var">m</span><span>
@@ -2030,17 +2034,32 @@ R_plus_complete is defined</span></dd>
 </div>
 </div>
 <p><em>Limitations</em></p>
-<p><code class="docutils literal notranslate"><span class="pre">term</span></code><span class="math notranslate nohighlight">\(_{0}\)</span> must be built as a <em>pure pattern matching tree</em> (<code class="code Coq docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span> <span class="error"><span class="pre">…</span></span> <span class="keyword"><span class="pre">with</span></span></code>)
+<p><a class="reference internal" href="gallina-specification-language.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a> must be built as a <em>pure pattern matching tree</em> (<code class="code Coq docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span> <span class="error"><span class="pre">…</span></span> <span class="keyword"><span class="pre">with</span></span></code>)
 with applications only <em>at the end</em> of each branch.</p>
 <p>Function does not support partial application of the function being
 defined. Thus, the following example cannot be accepted due to the
 presence of partial application of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">wrong</span></span></code> in the body of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">wrong</span></span></code>:</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl class="docutils">
-<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Function</span><span> </span><span class="coqdoc-var">wrong</span><span> (</span><span class="coqdoc-var">C</span><span>:</span><span class="coqdoc-var">nat</span><span>) : </span><span class="coqdoc-var">nat</span><span> :=</span><span>
-</span><span class="coqdoc-var">List.hd</span><span> 0 (</span><span class="coqdoc-var">List.map</span><span> </span><span class="coqdoc-var">wrong</span><span> (</span><span class="coqdoc-var">C</span><span>::</span><span class="coqdoc-var">nil</span><span>)).</span></dt>
-<dd><span class="first last">The command has indeed failed with message:
-The reference List.hd was not found in the current environment.</span></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-var">List</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">List.ListNotations</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Function</span><span> </span><span class="coqdoc-var">wrong</span><span> (</span><span class="coqdoc-var">C</span><span>:</span><span class="coqdoc-var">nat</span><span>) : </span><span class="coqdoc-var">nat</span><span> :=</span><span>
+&nbsp;&nbsp;</span><span class="coqdoc-var">List.hd</span><span> 0 (</span><span class="coqdoc-var">List.map</span><span> </span><span class="coqdoc-var">wrong</span><span> (</span><span class="coqdoc-var">C</span><span>::</span><span class="coqdoc-var">nil</span><span>)).</span></dt>
+<dd><span class="first">Toplevel input, characters 0-70:
+&gt; Function wrong (C:nat) : nat :=   List.hd 0 (List.map wrong (C::nil)).
+&gt; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+</span><span class="ansi-fg-white ansi-bg-red ansi-bold">Error:</span><span>
+Recursive definition of wrong is ill-formed.
+In environment
+wrong : nat</span><span class="ansi-fg-white"> -&gt;</span><span> nat
+C : nat
+Recursive call to wrong has principal argument equal to 
+&quot;C&quot; instead of a subterm of &quot;C&quot;.
+Recursive definition is: &quot;</span><span class="ansi-bold">fun</span><span> C : nat =&gt; </span><span class="ansi-fg-light-magenta">List</span><span>.</span><span class="ansi-fg-light-green">hd</span><span> 0 (</span><span class="ansi-fg-light-magenta">List</span><span>.</span><span class="ansi-fg-light-green">map</span><span> wrong </span><span class="ansi-fg-white">[</span><span>C</span><span class="ansi-fg-white">]</span><span class="last">)&quot;.</span></dd>
 </dl>
 </div>
 <p>For now, dependent cases are not treated for non structurally
