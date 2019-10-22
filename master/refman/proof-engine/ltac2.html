@@ -2124,10 +2124,13 @@ modify the state of the proof, and in particular all side-effects are discarded.
 a Ltac1 expression, and semantics of this quotation is the evaluation of the
 corresponding code for its side effects. In particular, it cannot return values,
 and the quotation has type <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">unit</span></span></span></code>.</p>
+<pre>
+<strong id="id7">ltac2_term</strong> ::=  ltac1 : ( <a class="reference internal" href="#grammar-token-ltac_expr"><code class="xref docutils literal notranslate"><span class="pre">ltac_expr</span></code></a> )
+</pre>
 <p>Ltac1 <strong>cannot</strong> implicitly access variables from the Ltac2 scope, but this can
 be done with an explicit annotation on the <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">ltac1</span></span></span></code> quotation.</p>
 <pre>
-<strong id="id7">ltac2_term</strong> ::=  ltac1 : ( <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> ... <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> |- <a class="reference internal" href="ltac.html#grammar-token-ltac_expr"><code class="xref docutils literal notranslate"><span class="pre">ltac_expr</span></code></a> )
+<strong id="id8">ltac2_term</strong> ::=  ltac1 : ( <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> ... <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> |- <a class="reference internal" href="#grammar-token-ltac_expr"><code class="xref docutils literal notranslate"><span class="pre">ltac_expr</span></code></a> )
 </pre>
 <p>The return type of this expression is a function of the same arity as the number
 of identifiers, with arguments of type <code class="docutils literal notranslate"><span class="pre">Ltac2.Ltac1.t</span></code> (see below). This syntax
@@ -2156,10 +2159,18 @@ previous section applies.</p>
 <h3>Ltac2 from Ltac1<a class="headerlink" href="#ltac2-from-ltac1" title="Permalink to this headline">¶</a></h3>
 <p>Same as above by switching Ltac1 by Ltac2 and using the <code class="docutils literal notranslate"><span class="pre">ltac2</span></code> quotation
 instead.</p>
-<p>Note that the tactic expression is evaluated eagerly, if one wants to use it as
-an argument to a Ltac1 function, one has to resort to the good old
-<code class="docutils literal notranslate"><span class="notation"><span><span class="pre">idtac;</span></span> <span><span class="pre">ltac2:(foo)</span></span></span></code> trick. For instance, the code below will fail immediately
-and won't print anything.</p>
+<pre>
+<strong id="grammar-token-ltac_expr">ltac_expr</strong> ::=  ltac2 : ( <a class="reference internal" href="#grammar-token-ltac2_term"><code class="xref docutils literal notranslate"><span class="pre">ltac2_term</span></code></a> )
+               ltac2 : ( <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> ... <a class="reference internal" href="../language/gallina-specification-language.html#grammar-token-ident"><code class="xref docutils literal notranslate"><span class="pre">ident</span></code></a> |- <a class="reference internal" href="#grammar-token-ltac2_term"><code class="xref docutils literal notranslate"><span class="pre">ltac2_term</span></code></a> )
+</pre>
+<p>The typing rules are dual, that is, the optional identifiers are bound
+with type <code class="docutils literal notranslate"><span class="pre">Ltac2.Ltac1.t</span></code> in the Ltac2 expression, which is expected to have
+type unit. The value returned by this quotation is an Ltac1 function with the
+same arity as the number of bound variables.</p>
+<p>Note that when no variables are bound, the inner tactic expression is evaluated
+eagerly, if one wants to use it as an argument to a Ltac1 function, one has to
+resort to the good old <code class="docutils literal notranslate"><span class="notation"><span><span class="pre">idtac;</span></span> <span><span class="pre">ltac2:(foo)</span></span></span></code> trick. For instance, the code
+below will fail immediately and won't print anything.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl class="docutils">
 <dt><span class="coqdoc-keyword">From</span><span> </span><span class="coqdoc-var">Ltac2</span><span> </span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">Ltac2</span><span>.</span></dt>
@@ -2168,7 +2179,7 @@ and won't print anything.</p>
 <dd class="coqtop-hidden"></dd>
 </dl>
 <span></span><dl class="docutils">
-<dt><span class="coqdoc-keyword">Ltac</span><span> </span><span class="coqdoc-var">mytac</span><span> </span><span class="coqdoc-var">tac</span><span> := </span><span class="coqdoc-tactic">idtac</span><span> &quot;wow&quot;; </span><span class="coqdoc-var">tac</span><span>.</span></dt>
+<dt><span class="coqdoc-keyword">Ltac</span><span> </span><span class="coqdoc-var">mytac</span><span> </span><span class="coqdoc-var">tac</span><span> := </span><span class="coqdoc-tactic">idtac</span><span> &quot;I am being evaluated&quot;; </span><span class="coqdoc-var">tac</span><span>.</span></dt>
 <dd><span class="first last">mytac is defined</span></dd>
 <dt><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">True</span><span>.</span></dt>
 <dd><span class="first last">1 subgoal
@@ -2180,8 +2191,14 @@ and won't print anything.</p>
 <dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-var">mytac</span><span> </span><span class="coqdoc-var">ltac2</span><span>:(</span><span class="coqdoc-tactic">fail</span><span>).</span></dt>
 <dd><span class="first last">The command has indeed failed with message:
 Uncaught Ltac2 exception: Tactic_failure (None)</span></dd>
+<dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-var">mytac</span><span> </span><span class="coqdoc-keyword">ltac</span><span>:(</span><span class="coqdoc-tactic">idtac</span><span>; </span><span class="coqdoc-var">ltac2</span><span>:(</span><span class="coqdoc-tactic">fail</span><span>)).</span></dt>
+<dd><span class="first last">I am being evaluated
+The command has indeed failed with message:
+Uncaught Ltac2 exception: Tactic_failure (None)</span></dd>
 </dl>
 </div>
+<p>In any case, the value returned by the fully applied quotation is an
+unspecified dummy Ltac1 closure and should not be further used.</p>
 </div>
 </div>
 <div class="section" id="transition-from-ltac1">
