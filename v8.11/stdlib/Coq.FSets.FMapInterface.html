@@ -1,0 +1,697 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.FSets.FMapInterface</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab719"></a><h1 class="section">Finite map library</h1>
+
+<div class="paragraph"> </div>
+
+ This file proposes interfaces for finite maps 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="Coq.Bool.Bool.html#"><span class="id" title="library">Bool</span></a> <a class="idref" href="Coq.Structures.DecidableType.html#"><span class="id" title="library">DecidableType</span></a> <a class="idref" href="Coq.Structures.OrderedType.html#"><span class="id" title="library">OrderedType</span></a>.<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When compared with Ocaml Map, this signature has been split in
+    several parts :
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> The first parts <span class="inlinecode"><span class="id" title="var">WSfun</span></span> and <span class="inlinecode"><span class="id" title="var">WS</span></span> propose signatures for weak
+     maps, which are maps with no ordering on the key type nor the
+     data type.  <span class="inlinecode"><span class="id" title="var">WSfun</span></span> and <span class="inlinecode"><span class="id" title="var">WS</span></span> are almost identical, apart from the
+     fact that <span class="inlinecode"><span class="id" title="var">WSfun</span></span> is expressed in a functorial way whereas <span class="inlinecode"><span class="id" title="var">WS</span></span>
+     is self-contained. For obtaining an instance of such signatures,
+     a decidable equality on keys in enough (see for example
+     <span class="inlinecode"><span class="id" title="var">FMapWeakList</span></span>). These signatures contain the usual operators
+     (add, find, ...). The only function that asks for more is
+     <span class="inlinecode"><span class="id" title="var">equal</span></span>, whose first argument should be a comparison on data.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Then comes <span class="inlinecode"><span class="id" title="var">Sfun</span></span> and <span class="inlinecode"><span class="id" title="var">S</span></span>, that extend <span class="inlinecode"><span class="id" title="var">WSfun</span></span> and <span class="inlinecode"><span class="id" title="var">WS</span></span> to the
+     case where the key type is ordered. The main novelty is that
+     <span class="inlinecode"><span class="id" title="var">elements</span></span> is required to produce sorted lists.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Finally, <span class="inlinecode"><span class="id" title="var">Sord</span></span> extends <span class="inlinecode"><span class="id" title="var">S</span></span> with a complete comparison function. For
+     that, the data type should have a decidable total ordering as well.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+   If unsure, what you're looking for is probably <span class="inlinecode"><span class="id" title="var">S</span></span>: apart from <span class="inlinecode"><span class="id" title="var">Sord</span></span>,
+   all other signatures are subsets of <span class="inlinecode"><span class="id" title="var">S</span></span>.
+
+<div class="paragraph"> </div>
+
+   Some additional differences with Ocaml:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> no <span class="inlinecode"><span class="id" title="var">iter</span></span> function, useless since Coq is purely functional
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">option</span></span> types are used instead of <span class="inlinecode"><span class="id" title="var">Not_found</span></span> exceptions
+
+</li>
+<li> more functions are provided: <span class="inlinecode"><span class="id" title="var">elements</span></span> and <span class="inlinecode"><span class="id" title="var">cardinal</span></span> and <span class="inlinecode"><span class="id" title="var">map2</span></span>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Cmp"><span class="id" title="definition">Cmp</span></a> (<span class="id" title="var">elt</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">cmp</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> := <a class="idref" href="Coq.FSets.FMapInterface.html#cmp"><span class="id" title="variable">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e1"><span class="id" title="variable">e1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e2"><span class="id" title="variable">e2</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab720"></a><h2 class="section">Weak signature for maps</h2>
+
+
+<div class="paragraph"> </div>
+
+    No requirements for an ordering on keys nor elements, only decidability
+    of equality on keys. First, a functorial signature: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="WSfun"><span class="id" title="module">WSfun</span></a> (<span class="id" title="var">E</span> : <a class="idref" href="Coq.Structures.DecidableType.html#DecidableType"><span class="id" title="module">DecidableType</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.key"><span class="id" title="definition">key</span></a> := <a class="idref" href="Coq.FSets.FMapInterface.html#E.t"><span class="id" title="axiom">E.t</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Transparent</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.t"><span class="id" title="axiom">t</span></a> : <span class="id" title="keyword">Type</span> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>.<br/>
+</div>
+
+<div class="doc">
+the abstract type of maps 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="WSfun.Types"><span class="id" title="section">Types</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.elt"><span class="id" title="variable">elt</span></a>:<span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.empty"><span class="id" title="axiom">empty</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+</div>
+
+<div class="doc">
+The empty map. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.is_empty"><span class="id" title="axiom">is_empty</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+</div>
+
+<div class="doc">
+Test whether a map is empty or not. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.add"><span class="id" title="axiom">add</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">add</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns a map containing the same bindings as <span class="inlinecode"><span class="id" title="var">m</span></span>,
+	plus a binding of <span class="inlinecode"><span class="id" title="var">x</span></span> to <span class="inlinecode"><span class="id" title="var">y</span></span>. If <span class="inlinecode"><span class="id" title="var">x</span></span> was already bound in <span class="inlinecode"><span class="id" title="var">m</span></span>,
+	its previous binding disappears. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.find"><span class="id" title="axiom">find</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">find</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns the current binding of <span class="inlinecode"><span class="id" title="var">x</span></span> in <span class="inlinecode"><span class="id" title="var">m</span></span>,
+	or <span class="inlinecode"><span class="id" title="var">None</span></span> if no such binding exists. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.remove"><span class="id" title="axiom">remove</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">remove</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns a map containing the same bindings as <span class="inlinecode"><span class="id" title="var">m</span></span>,
+	except for <span class="inlinecode"><span class="id" title="var">x</span></span> which is unbound in the returned map. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mem"><span class="id" title="axiom">mem</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">mem</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns <span class="inlinecode"><span class="id" title="var">true</span></span> if <span class="inlinecode"><span class="id" title="var">m</span></span> contains a binding for <span class="inlinecode"><span class="id" title="var">x</span></span>,
+	and <span class="inlinecode"><span class="id" title="var">false</span></span> otherwise. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a> <a name="WSfun.Types.elt''"><span class="id" title="variable">elt''</span></a> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map"><span class="id" title="axiom">map</span></a> : <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">map</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns a map with same domain as <span class="inlinecode"><span class="id" title="var">m</span></span>, where the associated
+	value a of all bindings of <span class="inlinecode"><span class="id" title="var">m</span></span> has been replaced by the result of the
+	application of <span class="inlinecode"><span class="id" title="var">f</span></span> to <span class="inlinecode"><span class="id" title="var">a</span></span>. Since Coq is purely functional, the order
+        in which the bindings are passed to <span class="inlinecode"><span class="id" title="var">f</span></span> is irrelevant. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mapi"><span class="id" title="axiom">mapi</span></a> : <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a>.<br/>
+</div>
+
+<div class="doc">
+Same as <span class="inlinecode"><span class="id" title="var">map</span></span>, but the function receives as arguments both the
+	key and the associated value for each binding of the map. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map2"><span class="id" title="axiom">map2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt''"><span class="id" title="variable">elt''</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt'"><span class="id" title="variable">elt'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a>  <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt''"><span class="id" title="variable">elt''</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">map2</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">m'</span></span> creates a new map whose bindings belong to the ones
+        of either <span class="inlinecode"><span class="id" title="var">m</span></span> or <span class="inlinecode"><span class="id" title="var">m'</span></span>. The presence and value for a key <span class="inlinecode"><span class="id" title="var">k</span></span> is
+        determined by <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">e</span></span> <span class="inlinecode"><span class="id" title="var">e'</span></span> where <span class="inlinecode"><span class="id" title="var">e</span></span> and <span class="inlinecode"><span class="id" title="var">e'</span></span> are the (optional) bindings
+        of <span class="inlinecode"><span class="id" title="var">k</span></span> in <span class="inlinecode"><span class="id" title="var">m</span></span> and <span class="inlinecode"><span class="id" title="var">m'</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.elements"><span class="id" title="axiom">elements</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>).<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">elements</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns an assoc list corresponding to the bindings
+        of <span class="inlinecode"><span class="id" title="var">m</span></span>, in any order. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.cardinal"><span class="id" title="axiom">cardinal</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cardinal</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> returns the number of bindings in <span class="inlinecode"><span class="id" title="var">m</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.fold"><span class="id" title="axiom">fold</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="tactic">fold</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">a</span></span> computes <span class="inlinecode">(<span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">kN</span></span> <span class="inlinecode"><span class="id" title="var">dN</span></span> <span class="inlinecode">...</span> <span class="inlinecode">(<span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">k1</span></span> <span class="inlinecode"><span class="id" title="var">d1</span></span> <span class="inlinecode"><span class="id" title="var">a</span>)...)</span>,
+	where <span class="inlinecode"><span class="id" title="var">k1</span></span> ... <span class="inlinecode"><span class="id" title="var">kN</span></span> are the keys of all bindings in <span class="inlinecode"><span class="id" title="var">m</span></span>
+	(in any order), and <span class="inlinecode"><span class="id" title="var">d1</span></span> ... <span class="inlinecode"><span class="id" title="var">dN</span></span> are the associated data. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.equal"><span class="id" title="axiom">equal</span></a> : <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">equal</span></span> <span class="inlinecode"><span class="id" title="var">cmp</span></span> <span class="inlinecode"><span class="id" title="var">m1</span></span> <span class="inlinecode"><span class="id" title="var">m2</span></span> tests whether the maps <span class="inlinecode"><span class="id" title="var">m1</span></span> and <span class="inlinecode"><span class="id" title="var">m2</span></span> are equal,
+      that is, contain equal keys and associate them with equal data.
+      <span class="inlinecode"><span class="id" title="var">cmp</span></span> is the equality predicate used to compare the data associated
+      with the keys. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="WSfun.Types.Spec"><span class="id" title="section">Spec</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a name="WSfun.Types.Spec.m'"><span class="id" title="variable">m'</span></a> <a name="WSfun.Types.Spec.m''"><span class="id" title="variable">m''</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a name="WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a name="WSfun.Types.Spec.z"><span class="id" title="variable">z</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a name="WSfun.Types.Spec.e'"><span class="id" title="variable">e'</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.In"><span class="id" title="definition">In</span></a> (<span class="id" title="var">k</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>) : <span class="id" title="keyword">Prop</span> := <a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">e</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.Empty"><span class="id" title="definition">Empty</span></a> <span class="id" title="var">m</span> := <span class="id" title="keyword">forall</span> (<span class="id" title="var">a</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">e</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>) , <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.eq_key"><span class="id" title="definition">eq_key</span></a> (<span class="id" title="var">p</span> <span class="id" title="var">p'</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>) := <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a>) (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p'"><span class="id" title="variable">p'</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.eq_key_elt"><span class="id" title="definition">eq_key_elt</span></a> (<span class="id" title="var">p</span> <span class="id" title="var">p'</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a>) (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p'"><span class="id" title="variable">p'</span></a>) <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p'"><span class="id" title="variable">p'</span></a><a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">MapsTo</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.MapsTo_1"><span class="id" title="axiom">MapsTo_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">mem</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mem_1"><span class="id" title="axiom">mem_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.mem"><span class="id" title="axiom">mem</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mem_2"><span class="id" title="axiom">mem_2</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.mem"><span class="id" title="axiom">mem</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">empty</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.empty_1"><span class="id" title="axiom">empty_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Empty"><span class="id" title="definition">Empty</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.empty"><span class="id" title="axiom">empty</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">is_empty</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.is_empty_1"><span class="id" title="axiom">is_empty_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Empty"><span class="id" title="definition">Empty</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.is_empty"><span class="id" title="axiom">is_empty</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.is_empty_2"><span class="id" title="axiom">is_empty_2</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.is_empty"><span class="id" title="axiom">is_empty</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Empty"><span class="id" title="definition">Empty</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">add</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.add_1"><span class="id" title="axiom">add_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.add"><span class="id" title="axiom">add</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.add_2"><span class="id" title="axiom">add_2</span></a> : <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.add"><span class="id" title="axiom">add</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e'"><span class="id" title="variable">e'</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.add_3"><span class="id" title="axiom">add_3</span></a> : <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.add"><span class="id" title="axiom">add</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e'"><span class="id" title="variable">e'</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">remove</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.remove_1"><span class="id" title="axiom">remove_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.remove"><span class="id" title="axiom">remove</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.remove_2"><span class="id" title="axiom">remove_2</span></a> : <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.remove"><span class="id" title="axiom">remove</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.remove_3"><span class="id" title="axiom">remove_3</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.remove"><span class="id" title="axiom">remove</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">find</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.find_1"><span class="id" title="axiom">find_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#Some"><span class="id" title="constructor">Some</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.find_2"><span class="id" title="axiom">find_2</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#Some"><span class="id" title="constructor">Some</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">elements</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.elements_1"><span class="id" title="axiom">elements_1</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Lists.SetoidList.html#InA"><span class="id" title="inductive">InA</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.eq_key_elt"><span class="id" title="definition">eq_key_elt</span></a> <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.elements_2"><span class="id" title="axiom">elements_2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Lists.SetoidList.html#InA"><span class="id" title="inductive">InA</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.eq_key_elt"><span class="id" title="definition">eq_key_elt</span></a> <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>.<br/>
+</div>
+
+<div class="doc">
+When compared with ordered maps, here comes the only
+         property that is really weaker: 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.elements_3w"><span class="id" title="axiom">elements_3w</span></a> : <a class="idref" href="Coq.Lists.SetoidList.html#NoDupA"><span class="id" title="inductive">NoDupA</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.eq_key"><span class="id" title="definition">eq_key</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">cardinal</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.cardinal_1"><span class="id" title="axiom">cardinal_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.cardinal"><span class="id" title="axiom">cardinal</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#length"><span class="id" title="definition">length</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="tactic">fold</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.fold_1"><span class="id" title="axiom">fold_1</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">i</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">f</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#A"><span class="id" title="variable">A</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.fold"><span class="id" title="axiom">fold</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#i"><span class="id" title="variable">i</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Lists.List.html#fold_left"><span class="id" title="definition">fold_left</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> <span class="id" title="var">p</span> =&gt; <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a>) (<a class="idref" href="Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a>) <a class="idref" href="Coq.FSets.FMapInterface.html#a"><span class="id" title="variable">a</span></a>) (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.FSets.FMapInterface.html#i"><span class="id" title="variable">i</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Equality of maps 
+<div class="paragraph"> </div>
+
+ Caveat: there are at least three distinct equality predicates on maps.
+<ul class="doclist">
+<li> The simplest (and maybe most natural) way is to consider keys up to
+        their equivalence <span class="inlinecode"><span class="id" title="var">E.eq</span></span>, but elements up to Leibniz equality, in
+        the spirit of <span class="inlinecode"><span class="id" title="var">eq_key_elt</span></span> above. This leads to predicate <span class="inlinecode"><span class="id" title="var">Equal</span></span>.
+
+</li>
+<li> Unfortunately, this <span class="inlinecode"><span class="id" title="var">Equal</span></span> predicate can't be used to describe
+        the <span class="inlinecode"><span class="id" title="var">equal</span></span> function, since this function (for compatibility with
+        ocaml) expects a boolean comparison <span class="inlinecode"><span class="id" title="var">cmp</span></span> that may identify more
+        elements than Leibniz. So logical specification of <span class="inlinecode"><span class="id" title="var">equal</span></span> is done
+        via another predicate <span class="inlinecode"><span class="id" title="var">Equivb</span></span>
+
+</li>
+<li> This predicate <span class="inlinecode"><span class="id" title="var">Equivb</span></span> is quite ad-hoc with its boolean <span class="inlinecode"><span class="id" title="var">cmp</span></span>,
+        it can be generalized in a <span class="inlinecode"><span class="id" title="var">Equiv</span></span> expecting a more general
+        (possibly non-decidable) equality predicate on elements 
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.Equal"><span class="id" title="definition">Equal</span></a> <span class="id" title="var">m</span> <span class="id" title="var">m'</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.Equiv"><span class="id" title="definition">Equiv</span></a> (<span class="id" title="var">eq_elt</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Prop</span>) <span class="id" title="var">m</span> <span class="id" title="var">m'</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">k</span>, <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a><a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">k</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>, <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e'"><span class="id" title="variable">e'</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#eq_elt"><span class="id" title="variable">eq_elt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e'"><span class="id" title="variable">e'</span></a><a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="WSfun.Equivb"><span class="id" title="definition">Equivb</span></a> (<span class="id" title="var">cmp</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) := <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Equiv"><span class="id" title="definition">Equiv</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#Cmp"><span class="id" title="definition">Cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#cmp"><span class="id" title="variable">cmp</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">equal</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="WSfun.Types.Spec.cmp"><span class="id" title="variable">cmp</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.elt"><span class="id" title="variable">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.equal_1"><span class="id" title="axiom">equal_1</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Equivb"><span class="id" title="definition">Equivb</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.cmp"><span class="id" title="variable">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.equal"><span class="id" title="axiom">equal</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.cmp"><span class="id" title="variable">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.equal_2"><span class="id" title="axiom">equal_2</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.equal"><span class="id" title="axiom">equal</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.cmp"><span class="id" title="variable">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Equivb"><span class="id" title="definition">Equivb</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.cmp"><span class="id" title="variable">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec.m'"><span class="id" title="variable">m'</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types.Spec"><span class="id" title="section">Spec</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.Types"><span class="id" title="section">Types</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">map</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map_1"><span class="id" title="axiom">map_1</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">e</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">f</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a>) (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.map"><span class="id" title="axiom">map</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map_2"><span class="id" title="axiom">map_2</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">f</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.map"><span class="id" title="axiom">map</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">mapi</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mapi_1"><span class="id" title="axiom">mapi_1</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">e</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>), <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <span class="id" title="var">y</span><a class="idref" href="Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#E.eq"><span class="id" title="axiom">E.eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.MapsTo"><span class="id" title="axiom">MapsTo</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a>) (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.mapi"><span class="id" title="axiom">mapi</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.mapi_2"><span class="id" title="axiom">mapi_2</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>), <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.mapi"><span class="id" title="axiom">mapi</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of <span class="inlinecode"><span class="id" title="var">map2</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map2_1"><span class="id" title="axiom">map2_1</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span> <span class="id" title="var">elt''</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">m'</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">f</span>:<a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt''"><span class="id" title="variable">elt''</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.map2"><span class="id" title="axiom">map2</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>) <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>) (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.find"><span class="id" title="axiom">find</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="WSfun.map2_2"><span class="id" title="axiom">map2_2</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">elt</span> <span class="id" title="var">elt'</span> <span class="id" title="var">elt''</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">m</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a>)(<span class="id" title="var">m'</span>: <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.t"><span class="id" title="axiom">t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">x</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.key"><span class="id" title="definition">key</span></a>)(<span class="id" title="var">f</span>:<a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt"><span class="id" title="variable">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt'"><span class="id" title="variable">elt'</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#elt''"><span class="id" title="variable">elt''</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.map2"><span class="id" title="axiom">map2</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Immediate</span> <span class="id" title="var">MapsTo_1</span> <span class="id" title="var">mem_2</span> <span class="id" title="var">is_empty_2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">map_2</span> <span class="id" title="var">mapi_2</span> <span class="id" title="var">add_3</span> <span class="id" title="var">remove_3</span> <span class="id" title="var">find_2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">map</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">mem_1</span> <span class="id" title="var">is_empty_1</span> <span class="id" title="var">is_empty_2</span> <span class="id" title="var">add_1</span> <span class="id" title="var">add_2</span> <span class="id" title="var">remove_1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">remove_2</span> <span class="id" title="var">find_1</span> <span class="id" title="var">fold_1</span> <span class="id" title="var">map_1</span> <span class="id" title="var">mapi_1</span> <span class="id" title="var">mapi_2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">map</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun"><span class="id" title="module">WSfun</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab721"></a><h2 class="section">Static signature for Weak Maps</h2>
+
+
+<div class="paragraph"> </div>
+
+    Similar to <span class="inlinecode"><span class="id" title="var">WSfun</span></span> but expressed in a self-contained way. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="WS"><span class="id" title="module">WS</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Declare Module</span> <a name="WS.E"><span class="id" title="module">E</span></a> : <a class="idref" href="Coq.Structures.DecidableType.html#DecidableType"><span class="id" title="module">DecidableType</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun"><span class="id" title="module">WSfun</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#WS.E"><span class="id" title="module">E</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WS"><span class="id" title="module">WS</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab722"></a><h2 class="section">Maps on ordered keys, functorial signature</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="Sfun"><span class="id" title="module">Sfun</span></a> (<span class="id" title="var">E</span> : <a class="idref" href="Coq.Structures.OrderedType.html#OrderedType"><span class="id" title="module">OrderedType</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.FSets.FMapInterface.html#WSfun"><span class="id" title="module">WSfun</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#E"><span class="id" title="module">E</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="Sfun.elt"><span class="id" title="section">elt</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Sfun.elt.elt"><span class="id" title="variable">elt</span></a>:<span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Sfun.lt_key"><span class="id" title="definition">lt_key</span></a> (<span class="id" title="var">p</span> <span class="id" title="var">p'</span>:<a class="idref" href="Coq.FSets.FMapInterface.html#Sfun.key"><span class="id" title="definition">key</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.FSets.FMapInterface.html#Sfun.elt.elt"><span class="id" title="variable">elt</span></a>) := <a class="idref" href="Coq.FSets.FMapInterface.html#E.lt"><span class="id" title="axiom">E.lt</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p"><span class="id" title="variable">p</span></a>) (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#p'"><span class="id" title="variable">p'</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sfun.elements_3"><span class="id" title="axiom">elements_3</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m</span>, <a class="idref" href="Coq.Sorting.Sorted.html#sort"><span class="id" title="abbreviation">sort</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sfun.lt_key"><span class="id" title="definition">lt_key</span></a> (<a class="idref" href="Coq.FSets.FMapInterface.html#Sfun.elements"><span class="id" title="axiom">elements</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>).<br/>
+</div>
+
+<div class="doc">
+Remark: since <span class="inlinecode"><span class="id" title="tactic">fold</span></span> is specified via <span class="inlinecode"><span class="id" title="var">elements</span></span>, this stronger
+   specification of <span class="inlinecode"><span class="id" title="var">elements</span></span> has an indirect impact on <span class="inlinecode"><span class="id" title="tactic">fold</span></span>,
+   which can now be proved to receive elements in increasing order. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#Sfun.elt"><span class="id" title="section">elt</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#Sfun"><span class="id" title="module">Sfun</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab723"></a><h2 class="section">Maps on ordered keys, self-contained signature</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="S"><span class="id" title="module">S</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Declare Module</span> <a name="S.E"><span class="id" title="module">E</span></a> : <a class="idref" href="Coq.Structures.OrderedType.html#OrderedType"><span class="id" title="module">OrderedType</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.FSets.FMapInterface.html#Sfun"><span class="id" title="module">Sfun</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#S.E"><span class="id" title="module">E</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#S"><span class="id" title="module">S</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab724"></a><h2 class="section">Maps with ordering both on keys and datas</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="Sord"><span class="id" title="module">Sord</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Declare Module</span> <a name="Sord.Data"><span class="id" title="module">Data</span></a> : <a class="idref" href="Coq.Structures.OrderedType.html#OrderedType"><span class="id" title="module">OrderedType</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Declare Module</span> <a name="Sord.MapS"><span class="id" title="module">MapS</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#S"><span class="id" title="module">S</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">MapS</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Sord.t"><span class="id" title="definition">t</span></a> := <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="axiom">MapS.t</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="axiom">Data.t</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sord.eq"><span class="id" title="axiom">eq</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sord.lt"><span class="id" title="axiom">lt</span></a> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="Sord.eq_refl"><span class="id" title="axiom">eq_refl</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="Sord.eq_sym"><span class="id" title="axiom">eq_sym</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m1</span> <span class="id" title="var">m2</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="Sord.eq_trans"><span class="id" title="axiom">eq_trans</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m1</span> <span class="id" title="var">m2</span> <span class="id" title="var">m3</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m3"><span class="id" title="variable">m3</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m3"><span class="id" title="variable">m3</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="Sord.lt_trans"><span class="id" title="axiom">lt_trans</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m1</span> <span class="id" title="var">m2</span> <span class="id" title="var">m3</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.lt"><span class="id" title="axiom">lt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.lt"><span class="id" title="axiom">lt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m3"><span class="id" title="variable">m3</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.lt"><span class="id" title="axiom">lt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m3"><span class="id" title="variable">m3</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="Sord.lt_not_eq"><span class="id" title="axiom">lt_not_eq</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m1</span> <span class="id" title="var">m2</span> : <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.t"><span class="id" title="definition">t</span></a>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.lt"><span class="id" title="axiom">lt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Sord.cmp"><span class="id" title="definition">cmp</span></a> <span class="id" title="var">e</span> <span class="id" title="var">e'</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.compare"><span class="id" title="axiom">Data.compare</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#e'"><span class="id" title="variable">e'</span></a> <span class="id" title="keyword">with</span> <a class="idref" href="Coq.Structures.OrderedType.html#EQ"><span class="id" title="constructor">EQ</span></a> <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> | <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a> <span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sord.eq_1"><span class="id" title="axiom">eq_1</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m</span> <span class="id" title="var">m'</span>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.Equivb"><span class="id" title="definition">Equivb</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.cmp"><span class="id" title="definition">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sord.eq_2"><span class="id" title="axiom">eq_2</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m</span> <span class="id" title="var">m'</span>, <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.Equivb"><span class="id" title="definition">Equivb</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.cmp"><span class="id" title="definition">cmp</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m'"><span class="id" title="variable">m'</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="Sord.compare"><span class="id" title="axiom">compare</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">m1</span> <span class="id" title="var">m2</span>, <a class="idref" href="Coq.Structures.OrderedType.html#Compare"><span class="id" title="inductive">Compare</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.lt"><span class="id" title="axiom">lt</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord.eq"><span class="id" title="axiom">eq</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m1"><span class="id" title="variable">m1</span></a> <a class="idref" href="Coq.FSets.FMapInterface.html#m2"><span class="id" title="variable">m2</span></a>.<br/>
+</div>
+
+<div class="doc">
+Total ordering between maps. <span class="inlinecode"><span class="id" title="var">Data.compare</span></span> is a total ordering
+      used to compare data associated with equal keys in the two maps. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.FSets.FMapInterface.html#Sord"><span class="id" title="module">Sord</span></a>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

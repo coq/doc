@@ -1,0 +1,575 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Logic.Eqdep_dec</h1>
+
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We prove that there is only one proof of <span class="inlinecode"><span class="id" title="var">x</span>=<span class="id" title="var">x</span></span>, i.e <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span>.
+    This holds if the equality upon the set of <span class="inlinecode"><span class="id" title="var">x</span></span> is decidable.
+    A corollary of this theorem is the equality of the right projections
+    of two equal dependent pairs.
+
+<div class="paragraph"> </div>
+
+    Author:   Thomas Kleymann |&lt;tms@dcs.ed.ac.uk&gt;| in Lego
+              adapted to Coq by B. Barras
+
+<div class="paragraph"> </div>
+
+    Credit:   Proofs up to <span class="inlinecode"><span class="id" title="var">K_dec</span></span> follow an outline by Michael Hedberg
+
+<div class="paragraph"> </div>
+
+Table of contents:
+
+<div class="paragraph"> </div>
+
+1. Streicher's K and injectivity of dependent pair hold on decidable types
+
+<div class="paragraph"> </div>
+
+1.1. Definition of the functor that builds properties of dependent equalities
+     from a proof of decidability of equality for a set in Type
+
+<div class="paragraph"> </div>
+
+1.2. Definition of the functor that builds properties of dependent equalities
+     from a proof of decidability of equality for a set in Set
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab1043"></a><h1 class="section">Streicher's K and injectivity of dependent pair hold on decidable types</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="EqdepDec"><span class="id" title="section">EqdepDec</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="EqdepDec.A"><span class="id" title="variable">A</span></a> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="EqdepDec.comp"><span class="id" title="variable">comp</span></a> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">y'</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">eq1</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) (<span class="id" title="var">eq2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#eq_ind"><span class="id" title="definition">eq_ind</span></a> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> =&gt; <a class="idref" href="Coq.Logic.Eqdep_dec.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a>) <a class="idref" href="Coq.Logic.Eqdep_dec.html#eq2"><span class="id" title="variable">eq2</span></a> <span class="id" title="var">_</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#eq1"><span class="id" title="variable">eq1</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Remark</span> <a name="trans_sym_eq"><span class="id" title="lemma">trans_sym_eq</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">u</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.comp"><span class="id" title="variable">comp</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="EqdepDec.x"><span class="id" title="variable">x</span></a> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="EqdepDec.eq_dec"><span class="id" title="variable">eq_dec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="EqdepDec.nu"><span class="id" title="variable">nu</span></a> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">u</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.eq_dec"><span class="id" title="variable">eq_dec</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#or_introl"><span class="id" title="constructor">or_introl</span></a> <span class="id" title="var">eqxy</span> =&gt; <span class="id" title="var">eqxy</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#or_intror"><span class="id" title="constructor">or_intror</span></a> <span class="id" title="var">neqxy</span> =&gt; <a class="idref" href="Coq.Init.Logic.html#False_ind"><span class="id" title="definition">False_ind</span></a> <span class="id" title="var">_</span> (<span class="id" title="var">neqxy</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="EqdepDec.nu_constant"><span class="id" title="variable">nu_constant</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">u</span> <span class="id" title="var">v</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.nu"><span class="id" title="variable">nu</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.nu"><span class="id" title="variable">nu</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#v"><span class="id" title="variable">v</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="EqdepDec.nu_inv"><span class="id" title="variable">nu_inv</span></a> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">v</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> := <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.comp"><span class="id" title="variable">comp</span></a> (<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.nu"><span class="id" title="variable">nu</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a>)) <a class="idref" href="Coq.Logic.Eqdep_dec.html#v"><span class="id" title="variable">v</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Remark</span> <a name="nu_left_inv_on"><span class="id" title="lemma">nu_left_inv_on</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">u</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.nu_inv"><span class="id" title="variable">nu_inv</span></a> (<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.nu"><span class="id" title="variable">nu</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a>) <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#u"><span class="id" title="variable">u</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="eq_proofs_unicity_on"><span class="id" title="lemma">eq_proofs_unicity_on</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">p1</span> <span class="id" title="var">p2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p1"><span class="id" title="variable">p1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p2"><span class="id" title="variable">p2</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="K_dec_on"><span class="id" title="lemma">K_dec_on</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The corollary 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <a name="EqdepDec.proj"><span class="id" title="variable">proj</span></a> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">exP</span>:<a class="idref" href="Coq.Init.Logic.html#ex"><span class="id" title="inductive">ex</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a>) (<span class="id" title="var">def</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#exP"><span class="id" title="variable">exP</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <span class="id" title="var">_</span> <span class="id" title="var">x'</span> <span class="id" title="var">prf</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.eq_dec"><span class="id" title="variable">eq_dec</span></a> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#or_introl"><span class="id" title="constructor">or_introl</span></a> <span class="id" title="var">eqprf</span> =&gt; <a class="idref" href="Coq.Init.Logic.html#eq_ind"><span class="id" title="definition">eq_ind</span></a> <span class="id" title="var">x'</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <span class="id" title="var">prf</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_sym"><span class="id" title="lemma">eq_sym</span></a> <span class="id" title="var">eqprf</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.Logic.Eqdep_dec.html#def"><span class="id" title="variable">def</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="inj_right_pair_on"><span class="id" title="lemma">inj_right_pair_on</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">y</span> <span class="id" title="var">y'</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec.x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#EqdepDec"><span class="id" title="section">EqdepDec</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now we prove the versions that require decidable equality for the entire type
+    rather than just on the given element.  The rest of the file uses this total
+    decidable equality.  We could do everything using decidable equality at a point
+    (because the induction rule for <span class="inlinecode"><span class="id" title="var">eq</span></span> is really an induction rule for
+    <span class="inlinecode">{</span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">|</span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">}</span>), but we don't currently, because changing everything
+    would break backward compatibility and no-one has yet taken the time to define
+    the pointed versions, and then re-define the non-pointed versions in terms of
+    those. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="eq_proofs_unicity"><span class="id" title="lemma">eq_proofs_unicity</span></a> <span class="id" title="var">A</span> (<span class="id" title="var">eq_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>)<br/>
+: <span class="id" title="keyword">forall</span> (<span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">p1</span> <span class="id" title="var">p2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p1"><span class="id" title="variable">p1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p2"><span class="id" title="variable">p2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="K_dec"><span class="id" title="lemma">K_dec</span></a> <span class="id" title="var">A</span> (<span class="id" title="var">eq_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>)<br/>
+: <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="inj_right_pair"><span class="id" title="lemma">inj_right_pair</span></a> <span class="id" title="var">A</span> (<span class="id" title="var">eq_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>) (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>)<br/>
+: <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">y</span> <span class="id" title="var">y'</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y'"><span class="id" title="variable">y'</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#"><span class="id" title="library">EqdepFacts</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We deduce axiom <span class="inlinecode"><span class="id" title="var">K</span></span> for (decidable) types 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <a name="K_dec_type"><span class="id" title="lemma">K_dec_type</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="K_dec_set"><span class="id" title="lemma">K_dec_set</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Set</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We deduce the <span class="inlinecode"><span class="id" title="var">eq_rect_eq</span></span> axiom for (decidable) types 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <a name="eq_rect_eq_dec"><span class="id" title="lemma">eq_rect_eq_dec</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">Q</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>) (<span class="id" title="var">h</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" title="definition">eq_rect</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#h"><span class="id" title="variable">h</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We deduce the injectivity of dependent equality for decidable types 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <a name="eq_dep_eq_dec"><span class="id" title="lemma">eq_dep_eq_dec</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" title="inductive">eq_dep</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <a name="UIP_dec"><span class="id" title="lemma">UIP_dec</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">p1</span> <span class="id" title="var">p2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p1"><span class="id" title="variable">p1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p2"><span class="id" title="variable">p2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Unset Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1044"></a><h2 class="section">Definition of the functor that builds properties of dependent equalities on decidable sets in Type</h2>
+
+<div class="paragraph"> </div>
+
+ The signature of decidable sets in <span class="inlinecode"><span class="id" title="keyword">Type</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="DecidableType"><span class="id" title="module">DecidableType</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="DecidableType.eq_dec"><span class="id" title="axiom">eq_dec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableType.U"><span class="id" title="axiom">U</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableType"><span class="id" title="module">DecidableType</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">DecidableEqDep</span></span> collects equality properties for decidable
+    set in <span class="inlinecode"><span class="id" title="keyword">Type</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="DecidableEqDep"><span class="id" title="module">DecidableEqDep</span></a> (<span class="id" title="var">M</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableType"><span class="id" title="module">DecidableType</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Invariance by Substitution of Reflexive Equality Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.eq_rect_eq"><span class="id" title="lemma">eq_rect_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">Q</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>) (<span class="id" title="var">h</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" title="definition">eq_rect</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#h"><span class="id" title="variable">h</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="DecidableEqDep.eq_dep_eq"><span class="id" title="lemma">eq_dep_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" title="inductive">eq_dep</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Identity Proofs (UIP) 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.UIP"><span class="id" title="lemma">UIP</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p1</span> <span class="id" title="var">p2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p1"><span class="id" title="variable">p1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p2"><span class="id" title="variable">p2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Reflexive Identity Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.UIP_refl"><span class="id" title="lemma">UIP_refl</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Streicher's axiom K 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.Streicher_K"><span class="id" title="lemma">Streicher_K</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of equality on dependent pairs in <span class="inlinecode"><span class="id" title="keyword">Type</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.inj_pairT2"><span class="id" title="lemma">inj_pairT2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Proof-irrelevance on subsets of decidable sets 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDep.inj_pairP2"><span class="id" title="lemma">inj_pairP2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p</span> <span class="id" title="var">q</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#q"><span class="id" title="variable">q</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableEqDep"><span class="id" title="module">DecidableEqDep</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1045"></a><h2 class="section">Definition of the functor that builds properties of dependent equalities on decidable sets in Set</h2>
+
+<div class="paragraph"> </div>
+
+ The signature of decidable sets in <span class="inlinecode"><span class="id" title="keyword">Set</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <a name="DecidableSet"><span class="id" title="module">DecidableSet</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <a name="DecidableSet.U"><span class="id" title="axiom">U</span></a>:<span class="id" title="keyword">Set</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <a name="DecidableSet.eq_dec"><span class="id" title="axiom">eq_dec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableSet.U"><span class="id" title="axiom">U</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">+</span></a> <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableSet"><span class="id" title="module">DecidableSet</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">DecidableEqDepSet</span></span> collects equality properties for decidable
+    set in <span class="inlinecode"><span class="id" title="keyword">Set</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="DecidableEqDepSet"><span class="id" title="module">DecidableEqDepSet</span></a> (<span class="id" title="var">M</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableSet"><span class="id" title="module">DecidableSet</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <a name="DecidableEqDepSet.N"><span class="id" title="module">N</span></a>:=<a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableEqDep"><span class="id" title="module">DecidableEqDep</span></a>(<a class="idref" href="Coq.Logic.Eqdep_dec.html#M"><span class="id" title="module">M</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Invariance by Substitution of Reflexive Equality Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.eq_rect_eq"><span class="id" title="lemma">eq_rect_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">Q</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>) (<span class="id" title="var">h</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" title="definition">eq_rect</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#h"><span class="id" title="variable">h</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <a name="DecidableEqDepSet.eq_dep_eq"><span class="id" title="lemma">eq_dep_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" title="inductive">eq_dep</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Identity Proofs (UIP) 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.UIP"><span class="id" title="lemma">UIP</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p1</span> <span class="id" title="var">p2</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p1"><span class="id" title="variable">p1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p2"><span class="id" title="variable">p2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Reflexive Identity Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.UIP_refl"><span class="id" title="lemma">UIP_refl</span></a> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Streicher's axiom K 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.Streicher_K"><span class="id" title="lemma">Streicher_K</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>), <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>, <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Proof-irrelevance on subsets of decidable sets 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.inj_pairP2"><span class="id" title="lemma">inj_pairP2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">x</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">p</span> <span class="id" title="var">q</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#q"><span class="id" title="variable">q</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#q"><span class="id" title="variable">q</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of equality on dependent pairs in <span class="inlinecode"><span class="id" title="keyword">Type</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="DecidableEqDepSet.inj_pair2"><span class="id" title="lemma">inj_pair2</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#M.U"><span class="id" title="axiom">U</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of equality on dependent pairs with second component
+      in <span class="inlinecode"><span class="id" title="keyword">Type</span></span> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> <a name="DecidableEqDepSet.inj_pairT2"><span class="id" title="abbreviation">inj_pairT2</span></a> := <a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableEqDepSet.inj_pair2"><span class="id" title="lemma">inj_pair2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.Logic.Eqdep_dec.html#DecidableEqDepSet"><span class="id" title="module">DecidableEqDepSet</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+From decidability to inj_pair2 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="inj_pair2_eq_dec"><span class="id" title="lemma">inj_pair2_eq_dec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>, <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>, <a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}+{</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Logic.html#a0a5068f83a704fcfbda8cd473a6cfea"><span class="id" title="notation">&lt;&gt;</span></a><a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a> <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">p</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#A"><span class="id" title="variable">A</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a>), <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Examples of short direct proofs of unicity of reflexivity proofs
+      on specific domains 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="UIP_refl_unit"><span class="id" title="lemma">UIP_refl_unit</span></a> (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Init.Datatypes.html#tt"><span class="id" title="constructor">tt</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#tt"><span class="id" title="constructor">tt</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <a class="idref" href="Coq.Init.Datatypes.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="UIP_refl_bool"><span class="id" title="lemma">UIP_refl_bool</span></a> (<span class="id" title="var">b</span>:<a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#b"><span class="id" title="variable">b</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="UIP_refl_nat"><span class="id" title="lemma">UIP_refl_nat</span></a> (<span class="id" title="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<span class="id" title="var">x</span> : <a class="idref" href="Coq.Logic.Eqdep_dec.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Logic.Eqdep_dec.html#n"><span class="id" title="variable">n</span></a>) : <a class="idref" href="Coq.Logic.Eqdep_dec.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
