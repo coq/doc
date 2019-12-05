@@ -1,0 +1,993 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.MSets.MSetAVL</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab334"></a><h1 class="section">MSetAVL : Implementation of MSetInterface via AVL trees</h1>
+
+<div class="paragraph"> </div>
+
+ This module implements finite sets using AVL trees.
+    It follows the implementation from Ocaml's standard library,
+
+<div class="paragraph"> </div>
+
+    All operations given here expect and produce well-balanced trees
+    (in the ocaml sense: heights of subtrees shouldn't differ by more
+    than 2), and hence has low complexities (e.g. add is logarithmic
+    in the size of the set). But proving these balancing preservations
+    is in fact not necessary for ensuring correct operational behavior
+    and hence fulfilling the MSet interface. As a consequence,
+    balancing results are not part of this file anymore, they can
+    now be found in <span class="inlinecode"><span class="id" title="var">MSetFullAVL</span></span>.
+
+<div class="paragraph"> </div>
+
+    Four operations (<span class="inlinecode"><span class="id" title="var">union</span></span>, <span class="inlinecode"><span class="id" title="var">subset</span></span>, <span class="inlinecode"><span class="id" title="var">compare</span></span> and <span class="inlinecode"><span class="id" title="var">equal</span></span>) have
+    been slightly adapted in order to have only structural recursive
+    calls. The precise ocaml versions of these operations have also
+    been formalized (thanks to Function+measure), see <span class="inlinecode"><span class="id" title="var">ocaml_union</span></span>,
+    <span class="inlinecode"><span class="id" title="var">ocaml_subset</span></span>, <span class="inlinecode"><span class="id" title="var">ocaml_compare</span></span> and <span class="inlinecode"><span class="id" title="var">ocaml_equal</span></span> in
+    <span class="inlinecode"><span class="id" title="var">MSetFullAVL</span></span>. The structural variants compute faster in Coq,
+    whereas the other variants produce nicer and/or (slightly) faster
+    code after extraction.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.funind.FunInd.html#"><span class="id" title="library">FunInd</span></a> <a class="idref" href="Coq.MSets.MSetInterface.html#"><span class="id" title="library">MSetInterface</span></a> <a class="idref" href="Coq.MSets.MSetGenTree.html#"><span class="id" title="library">MSetGenTree</span></a> <a class="idref" href="Coq.ZArith.BinInt.html#"><span class="id" title="library">BinInt</span></a> <a class="idref" href="Coq.ZArith.Int.html#"><span class="id" title="library">Int</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab335"></a><h1 class="section">Ops : the pure functions</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="Ops"><span class="id" title="module">Ops</span></a> (<span class="id" title="keyword">Import</span> <span class="id" title="var">I</span>:<a class="idref" href="Coq.ZArith.Int.html#Int"><span class="id" title="module">Int</span></a>)(<span class="id" title="var">X</span>:<a class="idref" href="Coq.Structures.Orders.html#OrderedType"><span class="id" title="module">OrderedType</span></a>) &lt;: <a class="idref" href="Coq.MSets.MSetInterface.html#Ops"><span class="id" title="module">MSetInterface.Ops</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Int_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab336"></a><h2 class="section">Generic trees instantiated with integer height</h2>
+
+<div class="paragraph"> </div>
+
+ We reuse a generic definition of trees where the information
+    parameter is a <span class="inlinecode"><span class="id" title="var">Int.t</span></span>. Functions like mem or fold are also
+    provided by this generic functor. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.MSets.MSetGenTree.html#Ops"><span class="id" title="module">MSetGenTree.Ops</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#I"><span class="id" title="module">I</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.t"><span class="id" title="definition">t</span></a> := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.tree"><span class="id" title="inductive">tree</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab337"></a><h2 class="section">Height of trees</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.height"><span class="id" title="definition">height</span></a> (<span class="id" title="var">s</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.int"><span class="id" title="abbreviation">int</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; 0<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">h</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">h</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab338"></a><h2 class="section">Singleton set</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.singleton"><span class="id" title="definition">singleton</span></a> <span class="id" title="var">x</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> 1 <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab339"></a><h2 class="section">Helper functions</h2>
+
+<div class="paragraph"> </div>
+
+ <span class="inlinecode"><span class="id" title="var">create</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">r</span></span> creates a node, assuming <span class="inlinecode"><span class="id" title="var">l</span></span> and <span class="inlinecode"><span class="id" title="var">r</span></span>
+    to be balanced and <span class="inlinecode">|<span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">-</span> <span class="inlinecode"><span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">r</span>|</span> <span class="inlinecode">&lt;=</span> <span class="inlinecode">2</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#I.max"><span class="id" title="axiom">max</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>) (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) <a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a> 1) <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bal</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">r</span></span> acts as <span class="inlinecode"><span class="id" title="var">create</span></span>, but performs one step of
+    rebalancing if necessary, i.e. assumes <span class="inlinecode">|<span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">-</span> <span class="inlinecode"><span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">r</span>|</span> <span class="inlinecode">&lt;=</span> <span class="inlinecode">3</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.assert_false"><span class="id" title="definition">assert_false</span></a> := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">hl</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">hr</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#hr"><span class="id" title="variable">hr</span></a><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#hl"><span class="id" title="variable">hl</span></a> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.assert_false"><span class="id" title="definition">assert_false</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <span class="id" title="var">lr</span><a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">&lt;=?</span></a> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <span class="id" title="var">ll</span><a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">)</span></a> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">lr</span> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lr</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.assert_false"><span class="id" title="definition">assert_false</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">lrl</span> <span class="id" title="var">lrx</span> <span class="id" title="var">lrr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lrl</span>) <span class="id" title="var">lrx</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">lrr</span> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#hl"><span class="id" title="variable">hl</span></a><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#hr"><span class="id" title="variable">hr</span></a> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.assert_false"><span class="id" title="definition">assert_false</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">rl</span> <span class="id" title="var">rx</span> <span class="id" title="var">rr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <span class="id" title="var">rl</span><a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">&lt;=?</span></a> <a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.height"><span class="id" title="definition">height</span></a> <span class="id" title="var">rr</span><a class="idref" href="Coq.ZArith.Int.html#752b87795e3b3c1ea7bc80666aee7327"><span class="id" title="notation">)</span></a> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">rl</span>) <span class="id" title="var">rx</span> <span class="id" title="var">rr</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">rl</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.assert_false"><span class="id" title="definition">assert_false</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">rll</span> <span class="id" title="var">rlx</span> <span class="id" title="var">rlr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">rll</span>) <span class="id" title="var">rlx</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <span class="id" title="var">rlr</span> <span class="id" title="var">rx</span> <span class="id" title="var">rr</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab340"></a><h2 class="section">Insertion</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.add"><span class="id" title="definition">add</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> 1 <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">h</span> <span class="id" title="var">l</span> <span class="id" title="var">y</span> <span class="id" title="var">r</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#X.compare"><span class="id" title="axiom">X.compare</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Lt"><span class="id" title="constructor">Lt</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">l</span>) <span class="id" title="var">y</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Eq"><span class="id" title="constructor">Eq</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">h</span> <span class="id" title="var">l</span> <span class="id" title="var">y</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Gt"><span class="id" title="constructor">Gt</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">l</span> <span class="id" title="var">y</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">r</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab341"></a><h2 class="section">Join</h2>
+
+
+<div class="paragraph"> </div>
+
+    Same as <span class="inlinecode"><span class="id" title="var">bal</span></span> but does not assume anything regarding heights
+    of <span class="inlinecode"><span class="id" title="var">l</span></span> and <span class="inlinecode"><span class="id" title="var">r</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.join"><span class="id" title="definition">join</span></a> <span class="id" title="var">l</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.elt"><span class="id" title="definition">elt</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.add"><span class="id" title="definition">add</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">lh</span> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">join_aux</span> (<span class="id" title="var">r</span>:<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">rh</span> <span class="id" title="var">rl</span> <span class="id" title="var">rx</span> <span class="id" title="var">rr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><span class="id" title="var">rh</span><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <span class="id" title="var">lh</span> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#join"><span class="id" title="definition">join</span></a> <span class="id" title="var">lr</span> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="keyword">if</span> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><span class="id" title="var">lh</span><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <span class="id" title="var">rh</span> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#join_aux"><span class="id" title="variable">join_aux</span></a> <span class="id" title="var">rl</span>) <span class="id" title="var">rx</span> <span class="id" title="var">rr</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab342"></a><h2 class="section">Extraction of minimum element</h2>
+
+
+<div class="paragraph"> </div>
+
+  Morally, <span class="inlinecode"><span class="id" title="var">remove_min</span></span> is to be applied to a non-empty tree
+  <span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Node</span></span> <span class="inlinecode"><span class="id" title="var">h</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">r</span></span>. Since we can't deal here with <span class="inlinecode"><span class="id" title="tactic">assert</span></span> <span class="inlinecode"><span class="id" title="var">false</span></span>
+  for <span class="inlinecode"><span class="id" title="var">t</span>=<span class="id" title="var">Leaf</span></span>, we pre-unpack <span class="inlinecode"><span class="id" title="var">t</span></span> (and forget about <span class="inlinecode"><span class="id" title="var">h</span></span>).
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.remove_min"><span class="id" title="definition">remove_min</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.elt"><span class="id" title="definition">elt</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">lh</span> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">l'</span>,<span class="id" title="var">m</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#remove_min"><span class="id" title="definition">remove_min</span></a> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span> <span class="id" title="tactic">in</span> <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l'"><span class="id" title="variable">l'</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#m"><span class="id" title="variable">m</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab343"></a><h2 class="section">Merging two trees</h2>
+
+
+<div class="paragraph"> </div>
+
+  <span class="inlinecode"><span class="id" title="var">merge</span></span> <span class="inlinecode"><span class="id" title="var">t1</span></span> <span class="inlinecode"><span class="id" title="var">t2</span></span> builds the union of <span class="inlinecode"><span class="id" title="var">t1</span></span> and <span class="inlinecode"><span class="id" title="var">t2</span></span> assuming all elements
+  of <span class="inlinecode"><span class="id" title="var">t1</span></span> to be smaller than all elements of <span class="inlinecode"><span class="id" title="var">t2</span></span>, and
+  <span class="inlinecode">|<span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">t1</span></span> <span class="inlinecode">-</span> <span class="inlinecode"><span class="id" title="var">height</span></span> <span class="inlinecode"><span class="id" title="var">t2</span>|</span> <span class="inlinecode">&lt;=</span> <span class="inlinecode">2</span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.merge"><span class="id" title="definition">merge</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> :=  <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>,<a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>, <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l2</span> <span class="id" title="var">x2</span> <span class="id" title="var">r2</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">s2'</span>,<span class="id" title="var">m</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.remove_min"><span class="id" title="definition">remove_min</span></a> <span class="id" title="var">l2</span> <span class="id" title="var">x2</span> <span class="id" title="var">r2</span> <span class="id" title="tactic">in</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2'"><span class="id" title="variable">s2'</span></a><br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab344"></a><h2 class="section">Deletion</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.remove"><span class="id" title="definition">remove</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l</span> <span class="id" title="var">y</span> <span class="id" title="var">r</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#X.compare"><span class="id" title="axiom">X.compare</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Lt"><span class="id" title="constructor">Lt</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#remove"><span class="id" title="definition">remove</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">l</span>) <span class="id" title="var">y</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Eq"><span class="id" title="constructor">Eq</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.merge"><span class="id" title="definition">merge</span></a> <span class="id" title="var">l</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Gt"><span class="id" title="constructor">Gt</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">l</span> <span class="id" title="var">y</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#remove"><span class="id" title="definition">remove</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">r</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab345"></a><h2 class="section">Concatenation</h2>
+
+
+<div class="paragraph"> </div>
+
+    Same as <span class="inlinecode"><span class="id" title="var">merge</span></span> but does not assume anything about heights.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="Ops.concat"><span class="id" title="definition">concat</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>, <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l2</span> <span class="id" title="var">x2</span> <span class="id" title="var">r2</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">s2'</span>,<span class="id" title="var">m</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.remove_min"><span class="id" title="definition">remove_min</span></a> <span class="id" title="var">l2</span> <span class="id" title="var">x2</span> <span class="id" title="var">r2</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2'"><span class="id" title="variable">s2'</span></a><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab346"></a><h2 class="section">Splitting</h2>
+
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode"><span class="id" title="tactic">split</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">s</span></span> returns a triple <span class="inlinecode">(<span class="id" title="var">l</span>,</span> <span class="inlinecode"><span class="id" title="var">present</span>,</span> <span class="inlinecode"><span class="id" title="var">r</span>)</span> where
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">l</span></span> is the set of elements of <span class="inlinecode"><span class="id" title="var">s</span></span> that are <span class="inlinecode">&lt;</span> <span class="inlinecode"><span class="id" title="var">x</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">r</span></span> is the set of elements of <span class="inlinecode"><span class="id" title="var">s</span></span> that are <span class="inlinecode">&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">present</span></span> is <span class="inlinecode"><span class="id" title="var">true</span></span> if and only if <span class="inlinecode"><span class="id" title="var">s</span></span> contains  <span class="inlinecode"><span class="id" title="var">x</span></span>.
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Record</span> <a name="Ops.triple"><span class="id" title="record">triple</span></a> := <a name="Ops.mktriple"><span class="id" title="constructor">mktriple</span></a> { <a name="Ops.t_left"><span class="id" title="projection">t_left</span></a>:<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a>; <a name="Ops.t_in"><span class="id" title="projection">t_in</span></a>:<a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>; <a name="Ops.t_right"><span class="id" title="projection">t_right</span></a>:<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a> }.<br/>
+<span class="id" title="keyword">Notation</span> <a name="f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&quot;</span></a>&lt;&lt; l , b , r &gt;&gt;" := (<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.mktriple"><span class="id" title="constructor">mktriple</span></a> <span class="id" title="var">l</span> <span class="id" title="var">b</span> <span class="id" title="var">r</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.triple"><span class="id" title="record">triple</span></a> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&lt;&lt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&gt;&gt;</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l</span> <span class="id" title="var">y</span> <span class="id" title="var">r</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#X.compare"><span class="id" title="axiom">X.compare</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Lt"><span class="id" title="constructor">Lt</span></a> =&gt; <span class="id" title="keyword">let</span> (<span class="id" title="var">ll</span>,<span class="id" title="var">b</span>,<span class="id" title="var">rl</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&lt;&lt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#ll"><span class="id" title="variable">ll</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#b"><span class="id" title="variable">b</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#rl"><span class="id" title="variable">rl</span></a> <span class="id" title="var">y</span> <span class="id" title="var">r</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&gt;&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Eq"><span class="id" title="constructor">Eq</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&lt;&lt;</span></a> <span class="id" title="var">l</span><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <span class="id" title="var">r</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&gt;&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#Gt"><span class="id" title="constructor">Gt</span></a> =&gt; <span class="id" title="keyword">let</span> (<span class="id" title="var">rl</span>,<span class="id" title="var">b</span>,<span class="id" title="var">rr</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">r</span> <span class="id" title="tactic">in</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&lt;&lt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <span class="id" title="var">l</span> <span class="id" title="var">y</span> <a class="idref" href="Coq.MSets.MSetAVL.html#rl"><span class="id" title="variable">rl</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#b"><span class="id" title="variable">b</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#rr"><span class="id" title="variable">rr</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&gt;&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab347"></a><h2 class="section">Intersection</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.inter"><span class="id" title="definition">inter</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>, <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l1</span> <span class="id" title="var">x1</span> <span class="id" title="var">r1</span>, <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">l2'</span>,<span class="id" title="var">pres</span>,<span class="id" title="var">r2'</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.MSets.MSetAVL.html#pres"><span class="id" title="variable">pres</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#inter"><span class="id" title="definition">inter</span></a> <span class="id" title="var">l1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l2'"><span class="id" title="variable">l2'</span></a>) <span class="id" title="var">x1</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#inter"><span class="id" title="definition">inter</span></a> <span class="id" title="var">r1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2'"><span class="id" title="variable">r2'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.concat"><span class="id" title="definition">concat</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#inter"><span class="id" title="definition">inter</span></a> <span class="id" title="var">l1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l2'"><span class="id" title="variable">l2'</span></a>) (<a class="idref" href="Coq.MSets.MSetAVL.html#inter"><span class="id" title="definition">inter</span></a> <span class="id" title="var">r1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2'"><span class="id" title="variable">r2'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab348"></a><h2 class="section">Difference</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.diff"><span class="id" title="definition">diff</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>, <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a><br/>
+&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l1</span> <span class="id" title="var">x1</span> <span class="id" title="var">r1</span>, <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">l2'</span>,<span class="id" title="var">pres</span>,<span class="id" title="var">r2'</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.MSets.MSetAVL.html#pres"><span class="id" title="variable">pres</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.concat"><span class="id" title="definition">concat</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#diff"><span class="id" title="definition">diff</span></a> <span class="id" title="var">l1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l2'"><span class="id" title="variable">l2'</span></a>) (<a class="idref" href="Coq.MSets.MSetAVL.html#diff"><span class="id" title="definition">diff</span></a> <span class="id" title="var">r1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2'"><span class="id" title="variable">r2'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#diff"><span class="id" title="definition">diff</span></a> <span class="id" title="var">l1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l2'"><span class="id" title="variable">l2'</span></a>) <span class="id" title="var">x1</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#diff"><span class="id" title="definition">diff</span></a> <span class="id" title="var">r1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2'"><span class="id" title="variable">r2'</span></a>)<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab349"></a><h2 class="section">Union</h2>
+
+<div class="paragraph"> </div>
+
+ In ocaml, heights of <span class="inlinecode"><span class="id" title="var">s1</span></span> and <span class="inlinecode"><span class="id" title="var">s2</span></span> are compared each time in order
+   to recursively perform the split on the smaller set.
+   Unfortunately, this leads to a non-structural algorithm. The
+   following code is a simplification of the ocaml version: no
+   comparison of heights. It might be slightly slower, but
+   experimentally all the tests I've made in ocaml have shown this
+   potential slowdown to be non-significant. Anyway, the exact code
+   of ocaml has also been formalized thanks to Function+measure, see
+   <span class="inlinecode"><span class="id" title="var">ocaml_union</span></span> in <span class="inlinecode"><span class="id" title="var">MSetFullAVL</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.union"><span class="id" title="definition">union</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a>, <span class="id" title="var">_</span> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l1</span> <span class="id" title="var">x1</span> <span class="id" title="var">r1</span>, <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">l2'</span>,<span class="id" title="var">_</span>,<span class="id" title="var">r2'</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#union"><span class="id" title="definition">union</span></a> <span class="id" title="var">l1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#l2'"><span class="id" title="variable">l2'</span></a>) <span class="id" title="var">x1</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#union"><span class="id" title="definition">union</span></a> <span class="id" title="var">r1</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2'"><span class="id" title="variable">r2'</span></a>)<br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab350"></a><h2 class="section">Filter</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.filter"><span class="id" title="definition">filter</span></a> (<span class="id" title="var">f</span>:<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.elt"><span class="id" title="definition">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) <span class="id" title="var">s</span> := <span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">l'</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">r'</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">r</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l'"><span class="id" title="variable">l'</span></a> <span class="id" title="var">x</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r'"><span class="id" title="variable">r'</span></a> <span class="id" title="keyword">else</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.concat"><span class="id" title="definition">concat</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l'"><span class="id" title="variable">l'</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r'"><span class="id" title="variable">r'</span></a><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab351"></a><h2 class="section">Partition</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="Ops.partition"><span class="id" title="definition">partition</span></a> (<span class="id" title="var">f</span>:<a class="idref" href="Coq.MSets.MSetAVL.html#Ops.elt"><span class="id" title="definition">elt</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>)(<span class="id" title="var">s</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a><a class="idref" href="Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.t"><span class="id" title="definition">t</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Leaf"><span class="id" title="constructor">Leaf</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">_</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">l1</span>,<span class="id" title="var">l2</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r1</span>,<span class="id" title="var">r2</span>) := <a class="idref" href="Coq.MSets.MSetAVL.html#partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">r</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l1"><span class="id" title="variable">l1</span></a> <span class="id" title="var">x</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r1"><span class="id" title="variable">r1</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.concat"><span class="id" title="definition">concat</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l2"><span class="id" title="variable">l2</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r2"><span class="id" title="variable">r2</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#Ops.concat"><span class="id" title="definition">concat</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l1"><span class="id" title="variable">l1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r1"><span class="id" title="variable">r1</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l2"><span class="id" title="variable">l2</span></a> <span class="id" title="var">x</span> <a class="idref" href="Coq.MSets.MSetAVL.html#r2"><span class="id" title="variable">r2</span></a><a class="idref" href="Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops"><span class="id" title="module">Ops</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab352"></a><h1 class="section">MakeRaw</h1>
+
+
+<div class="paragraph"> </div>
+
+   Functor of pure functions + a posteriori proofs of invariant
+   preservation 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="MakeRaw"><span class="id" title="module">MakeRaw</span></a> (<span class="id" title="keyword">Import</span> <span class="id" title="var">I</span>:<a class="idref" href="Coq.ZArith.Int.html#Int"><span class="id" title="module">Int</span></a>)(<span class="id" title="var">X</span>:<a class="idref" href="Coq.Structures.Orders.html#OrderedType"><span class="id" title="module">OrderedType</span></a>) &lt;: <a class="idref" href="Coq.MSets.MSetInterface.html#RawSets"><span class="id" title="module">RawSets</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>.<br/>
+<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.MSets.MSetAVL.html#Ops"><span class="id" title="module">Ops</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#I"><span class="id" title="module">I</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Generic definition of binary-search-trees and proofs of
+    specifications for generic functions such as mem or fold. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.MSets.MSetGenTree.html#Props"><span class="id" title="module">MSetGenTree.Props</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#I"><span class="id" title="module">I</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Automation and dedicated tactics 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Local Hint Immediate</span> <span class="id" title="var">MX.eq_sym</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Unfold</span> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.In"><span class="id" title="definition">In</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.lt_tree"><span class="id" title="definition">lt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.gt_tree"><span class="id" title="definition">gt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Constructors</span> <a class="idref" href="Coq.MSets.MSetAVL.html#InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#bst"><span class="id" title="inductive">bst</span></a> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Resolve</span> <span class="id" title="var">MX.eq_refl</span> <span class="id" title="var">MX.eq_trans</span> <span class="id" title="var">MX.lt_trans</span> <span class="id" title="var">ok</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Resolve</span> <span class="id" title="var">lt_leaf</span> <span class="id" title="var">gt_leaf</span> <span class="id" title="var">lt_tree_node</span> <span class="id" title="var">gt_tree_node</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Resolve</span> <span class="id" title="var">lt_tree_not_in</span> <span class="id" title="var">lt_tree_trans</span> <span class="id" title="var">gt_tree_not_in</span> <span class="id" title="var">gt_tree_trans</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Local Hint Resolve</span> <span class="id" title="var">elements_spec2</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "factornode" <span class="id" title="var">ident</span>(<span class="id" title="var">s</span>) :=<br/>
+&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">clear</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> ?<span class="id" title="var">l</span> ?<span class="id" title="var">x</span> ?<span class="id" title="var">r</span> ?<span class="id" title="var">h</span>] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">set</span> (<span class="id" title="var">s</span>:=<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">h</span>) <span class="id" title="tactic">in</span> *; <span class="id" title="var">clearbody</span> <span class="id" title="var">s</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">h</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> : <span class="id" title="keyword">context</span> [<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> ?<span class="id" title="var">l</span> ?<span class="id" title="var">x</span> ?<span class="id" title="var">r</span> ?<span class="id" title="var">h</span>] |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">set</span> (<span class="id" title="var">s</span>:=<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">h</span>) <span class="id" title="tactic">in</span> *; <span class="id" title="var">clearbody</span> <span class="id" title="var">s</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">h</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Inductions principles for some of the set operators 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">bal_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">bal</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">remove_min_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">remove_min</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">merge_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">merge</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">concat_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">concat</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">inter_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">inter</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">diff_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">diff</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Functional Scheme</span> <span class="id" title="var">union_ind</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">union</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Notations and helper lemma about pairs and triples 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="749f967ae54538deabde455bc16f8841"><span class="id" title="notation">&quot;</span></a>s #1" := (<a class="idref" href="Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> <span class="id" title="var">s</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9, <span class="id" title="var">format</span> "s '#1'") : <span class="id" title="var">pair_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">&quot;</span></a>s #2" := (<a class="idref" href="Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a> <span class="id" title="var">s</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9, <span class="id" title="var">format</span> "s '#2'") : <span class="id" title="var">pair_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">&quot;</span></a>t #l" := (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.t_left"><span class="id" title="projection">t_left</span></a> <span class="id" title="var">t</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9, <span class="id" title="var">format</span> "t '#l'") : <span class="id" title="var">pair_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">&quot;</span></a>t #b" := (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.t_in"><span class="id" title="projection">t_in</span></a> <span class="id" title="var">t</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9, <span class="id" title="var">format</span> "t '#b'") : <span class="id" title="var">pair_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">&quot;</span></a>t #r" := (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.t_right"><span class="id" title="projection">t_right</span></a> <span class="id" title="var">t</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 9, <span class="id" title="var">format</span> "t '#r'") : <span class="id" title="var">pair_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">pair_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab353"></a><h2 class="section">Singleton set</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.singleton_spec"><span class="id" title="lemma">singleton_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.singleton"><span class="id" title="definition">singleton</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.singleton_ok"><span class="id" title="instance">singleton_ok</span></a> <span class="id" title="var">x</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.singleton"><span class="id" title="definition">singleton</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab354"></a><h2 class="section">Helper functions</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.create_spec"><span class="id" title="lemma">create_spec</span></a> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">y</span>,  <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.create_ok"><span class="id" title="instance">create_ok</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.lt_tree"><span class="id" title="definition">lt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.gt_tree"><span class="id" title="definition">gt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) :<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.create"><span class="id" title="definition">create</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.bal_spec"><span class="id" title="lemma">bal_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.bal_ok"><span class="id" title="instance">bal_ok</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.lt_tree"><span class="id" title="definition">lt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.gt_tree"><span class="id" title="definition">gt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) :<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab355"></a><h2 class="section">Insertion</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.add_spec'"><span class="id" title="lemma">add_spec'</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.add_spec"><span class="id" title="lemma">add_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>},<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.add_ok"><span class="id" title="instance">add_ok</span></a> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.add"><span class="id" title="definition">add</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Int_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab356"></a><h2 class="section">Join</h2>
+
+<div class="paragraph"> </div>
+
+ Function/Functional Scheme can't deal with internal fix.
+    Let's do its job by hand: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">join_tac</span> :=<br/>
+&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">l</span> := <span class="id" title="tactic">fresh</span> "l" <span class="id" title="tactic">in</span><br/>
+&nbsp;<span class="id" title="tactic">intro</span> <span class="id" title="var">l</span>; <span class="id" title="tactic">induction</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> [| <span class="id" title="var">lh</span> <span class="id" title="var">ll</span> <span class="id" title="var">_</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span> <span class="id" title="var">Hlr</span>];<br/>
+&nbsp;&nbsp;&nbsp;[ | <span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span>; <span class="id" title="tactic">induction</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> [| <span class="id" title="var">rh</span> <span class="id" title="var">rl</span> <span class="id" title="var">Hrl</span> <span class="id" title="var">rx</span> <span class="id" title="var">rr</span> <span class="id" title="var">_</span>]; <span class="id" title="tactic">unfold</span> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.join"><span class="id" title="definition">join</span></a>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ | <span class="id" title="tactic">destruct</span> (<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><span class="id" title="var">rh</span><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <span class="id" title="var">lh</span>) <span class="id" title="var">eqn</span>:<span class="id" title="var">LT</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> |- <span class="id" title="keyword">context</span> <span class="id" title="var">b</span> [ <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span> ?<span class="id" title="var">c</span>] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">replace</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.join"><span class="id" title="definition">join</span></a> <span class="id" title="var">lr</span> <span class="id" title="var">x</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">rh</span> <span class="id" title="var">rl</span> <span class="id" title="var">rx</span> <span class="id" title="var">rr</span>))); [ | <span class="id" title="tactic">auto</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">destruct</span> (<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">(</span></a><span class="id" title="var">lh</span><a class="idref" href="Coq.ZArith.Int.html#004c359642fbe9dbd252a6335642f93a"><span class="id" title="notation">+</span></a>2<a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.ZArith.Int.html#47c9f2ba1df6e1f4ba802291f555d67a"><span class="id" title="notation">&lt;?</span></a> <span class="id" title="var">rh</span>) <span class="id" title="var">eqn</span>:<span class="id" title="var">LT'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> |- <span class="id" title="keyword">context</span> <span class="id" title="var">b</span> [ <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span> ?<span class="id" title="var">c</span>] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">replace</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.bal"><span class="id" title="definition">bal</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.join"><span class="id" title="definition">join</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <span class="id" title="var">lh</span> <span class="id" title="var">ll</span> <span class="id" title="var">lx</span> <span class="id" title="var">lr</span>) <span class="id" title="var">x</span> <span class="id" title="var">rl</span>) <span class="id" title="var">rx</span> <span class="id" title="var">rr</span>); [ | <span class="id" title="tactic">auto</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ] ] ] ]; <span class="id" title="tactic">intros</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.join_spec"><span class="id" title="lemma">join_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.join_ok"><span class="id" title="instance">join_ok</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.lt_tree"><span class="id" title="definition">lt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.gt_tree"><span class="id" title="definition">gt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>),<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.join"><span class="id" title="definition">join</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab357"></a><h2 class="section">Extraction of minimum element</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.remove_min_spec"><span class="id" title="lemma">remove_min_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">y</span> <span class="id" title="var">h</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#h"><span class="id" title="variable">h</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove_min"><span class="id" title="definition">remove_min</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">)#2</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove_min"><span class="id" title="definition">remove_min</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.remove_min_ok"><span class="id" title="instance">remove_min_ok</span></a> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">h</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#h"><span class="id" title="variable">h</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>)),<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove_min"><span class="id" title="definition">remove_min</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.remove_min_gt_tree"><span class="id" title="lemma">remove_min_gt_tree</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">r</span> <span class="id" title="var">h</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Node"><span class="id" title="constructor">Node</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#h"><span class="id" title="variable">h</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a>)},<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.gt_tree"><span class="id" title="definition">gt_tree</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove_min"><span class="id" title="definition">remove_min</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">)#2</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove_min"><span class="id" title="definition">remove_min</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#r"><span class="id" title="variable">r</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a>.<br/>
+<span class="id" title="keyword">Local Hint Resolve</span> <span class="id" title="var">remove_min_gt_tree</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab358"></a><h2 class="section">Merging two trees</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.merge_spec"><span class="id" title="lemma">merge_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.merge"><span class="id" title="definition">merge</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.merge_ok"><span class="id" title="instance">merge_ok</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> : <span class="id" title="keyword">forall</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>)<br/>
+&nbsp;`(<span class="id" title="keyword">forall</span> <span class="id" title="var">y1</span> <span class="id" title="var">y2</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.elt"><span class="id" title="definition">elt</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y1"><span class="id" title="variable">y1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y2"><span class="id" title="variable">y2</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.lt"><span class="id" title="axiom">X.lt</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y1"><span class="id" title="variable">y1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y2"><span class="id" title="variable">y2</span></a>),<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.merge"><span class="id" title="definition">merge</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab359"></a><h2 class="section">Deletion</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.remove_spec"><span class="id" title="lemma">remove_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove"><span class="id" title="definition">remove</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.remove_ok"><span class="id" title="instance">remove_ok</span></a> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.remove"><span class="id" title="definition">remove</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab360"></a><h2 class="section">Concatenation</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.concat_spec"><span class="id" title="lemma">concat_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.concat"><span class="id" title="definition">concat</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.concat_ok"><span class="id" title="instance">concat_ok</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> : <span class="id" title="keyword">forall</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>)<br/>
+&nbsp;`(<span class="id" title="keyword">forall</span> <span class="id" title="var">y1</span> <span class="id" title="var">y2</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.elt"><span class="id" title="definition">elt</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y1"><span class="id" title="variable">y1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y2"><span class="id" title="variable">y2</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.lt"><span class="id" title="axiom">X.lt</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y1"><span class="id" title="variable">y1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y2"><span class="id" title="variable">y2</span></a>),<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.concat"><span class="id" title="definition">concat</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab361"></a><h2 class="section">Splitting</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.split_spec1"><span class="id" title="lemma">split_spec1</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">l</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.lt"><span class="id" title="axiom">X.lt</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.split_spec2"><span class="id" title="lemma">split_spec2</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">r</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X.lt"><span class="id" title="axiom">X.lt</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.split_spec3"><span class="id" title="lemma">split_spec3</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.split_ok"><span class="id" title="lemma">split_ok</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>}, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">l</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">r</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.split_ok1"><span class="id" title="instance">split_ok1</span></a> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">l</span></a>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.split_ok2"><span class="id" title="instance">split_ok2</span></a> <span class="id" title="var">s</span> <span class="id" title="var">x</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">r</span></a>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab362"></a><h2 class="section">Intersection</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">destruct_split</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;| <span class="id" title="var">H</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> ?<span class="id" title="var">x</span> ?<span class="id" title="var">s</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&lt;&lt;</span></a> ?<span class="id" title="var">u</span><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> ?<span class="id" title="var">v</span><a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">,</span></a> ?<span class="id" title="var">w</span> <a class="idref" href="Coq.MSets.MSetAVL.html#f5dcf8e320d6af40d668e212d6c803f4"><span class="id" title="notation">&gt;&gt;</span></a> |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#aeab3b24f34bf892f709c96525e41521"><span class="id" title="notation">l</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">u</span>) <span class="id" title="tactic">by</span> (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">auto</span>);<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span><a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#5e86a26d0dde2db888bc464f35b9b39b"><span class="id" title="notation">b</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">v</span>) <span class="id" title="tactic">by</span> (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">auto</span>);<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.split"><span class="id" title="definition">split</span></a> <span class="id" title="var">x</span> <span class="id" title="var">s</span><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">)#</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#0dc45eb1694d847875975d65cd9c4ca9"><span class="id" title="notation">r</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">w</span>) <span class="id" title="tactic">by</span> (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">auto</span>);<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">subst</span> <span class="id" title="var">u</span> <span class="id" title="var">w</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.inter_spec_ok"><span class="id" title="lemma">inter_spec_ok</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>},<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.inter"><span class="id" title="definition">inter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.inter"><span class="id" title="definition">inter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a><a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.inter_spec"><span class="id" title="lemma">inter_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.inter"><span class="id" title="definition">inter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.inter_ok"><span class="id" title="instance">inter_ok</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.inter"><span class="id" title="definition">inter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab363"></a><h2 class="section">Difference</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.diff_spec_ok"><span class="id" title="lemma">diff_spec_ok</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>},<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.diff"><span class="id" title="definition">diff</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.diff"><span class="id" title="definition">diff</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a><a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.diff_spec"><span class="id" title="lemma">diff_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.diff"><span class="id" title="definition">diff</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.diff_ok"><span class="id" title="instance">diff_ok</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.diff"><span class="id" title="definition">diff</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab364"></a><h2 class="section">Union</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.union_spec"><span class="id" title="lemma">union_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">y</span> `{<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>},<br/>
+&nbsp;(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.union"><span class="id" title="definition">union</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.union_ok"><span class="id" title="instance">union_ok</span></a> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> : <span class="id" title="keyword">forall</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a>, <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>), <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.union"><span class="id" title="definition">union</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s1"><span class="id" title="variable">s1</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s2"><span class="id" title="variable">s2</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab365"></a><h1 class="section">Filter</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.filter_spec"><span class="id" title="lemma">filter_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;<a class="idref" href="Coq.Classes.Morphisms.html#Proper"><span class="id" title="class">Proper</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a><a class="idref" href="Coq.Classes.Morphisms.html#8dc5652698a6e16f72dd37bd17d3b973"><span class="id" title="notation">==&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#eq"><span class="id" title="inductive">Logic.eq</span></a>) <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;<a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) <a class="idref" href="Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">&lt;-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.filter_weak_spec"><span class="id" title="lemma">filter_weak_spec</span></a> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.InT"><span class="id" title="inductive">InT</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.filter_ok"><span class="id" title="instance">filter_ok</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> `(<span class="id" title="var">H</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab366"></a><h1 class="section">Partition</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.partition_spec1'"><span class="id" title="lemma">partition_spec1'</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> : <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.partition_spec2'"><span class="id" title="lemma">partition_spec2'</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">)#2</span></a> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>)) <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.partition_spec1"><span class="id" title="lemma">partition_spec1</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;<a class="idref" href="Coq.Classes.Morphisms.html#Proper"><span class="id" title="class">Proper</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a><a class="idref" href="Coq.Classes.Morphisms.html#8dc5652698a6e16f72dd37bd17d3b973"><span class="id" title="notation">==&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#eq"><span class="id" title="inductive">Logic.eq</span></a>) <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Equal"><span class="id" title="definition">Equal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="MakeRaw.partition_spec2"><span class="id" title="lemma">partition_spec2</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;<a class="idref" href="Coq.Classes.Morphisms.html#Proper"><span class="id" title="class">Proper</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#X.eq"><span class="id" title="axiom">X.eq</span></a><a class="idref" href="Coq.Classes.Morphisms.html#8dc5652698a6e16f72dd37bd17d3b973"><span class="id" title="notation">==&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#eq"><span class="id" title="inductive">Logic.eq</span></a>) <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Equal"><span class="id" title="definition">Equal</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">)#2</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.filter"><span class="id" title="definition">filter</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <a class="idref" href="Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> (<a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#x"><span class="id" title="variable">x</span></a>)) <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.partition_ok1"><span class="id" title="instance">partition_ok1</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#749f967ae54538deabde455bc16f8841"><span class="id" title="notation">)#1</span></a>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="MakeRaw.partition_ok2"><span class="id" title="instance">partition_ok2</span></a> <span class="id" title="var">s</span> <span class="id" title="var">f</span> `(<a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a>) : <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.Ok"><span class="id" title="class">Ok</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">(</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw.partition"><span class="id" title="definition">partition</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#s"><span class="id" title="variable">s</span></a><a class="idref" href="Coq.MSets.MSetAVL.html#9fd5a952a1a09e7487e9f3a03198f63e"><span class="id" title="notation">)#2</span></a>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw"><span class="id" title="module">MakeRaw</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab367"></a><h1 class="section">Encapsulation</h1>
+
+
+<div class="paragraph"> </div>
+
+   Now, in order to really provide a functor implementing <span class="inlinecode"><span class="id" title="var">S</span></span>, we
+   need to encapsulate everything into a type of binary search trees.
+   They also happen to be well-balanced, but this has no influence
+   on the correctness of operations, so we won't state this here,
+   see <span class="inlinecode"><span class="id" title="var">MSetFullAVL</span></span> if you need more than just the MSet interface.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="IntMake"><span class="id" title="module">IntMake</span></a> (<span class="id" title="var">I</span>:<a class="idref" href="Coq.ZArith.Int.html#Int"><span class="id" title="module">Int</span></a>)(<span class="id" title="var">X</span>: <a class="idref" href="Coq.Structures.Orders.html#OrderedType"><span class="id" title="module">OrderedType</span></a>) &lt;: <a class="idref" href="Coq.MSets.MSetInterface.html#S"><span class="id" title="module">S</span></a> <span class="id" title="keyword">with</span> <span class="id" title="keyword">Module</span> <span class="id" title="var">E</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>.<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <a name="IntMake.Raw"><span class="id" title="module">Raw</span></a> := <a class="idref" href="Coq.MSets.MSetAVL.html#MakeRaw"><span class="id" title="module">MakeRaw</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#I"><span class="id" title="module">I</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <a class="idref" href="Coq.MSets.MSetInterface.html#Raw2Sets"><span class="id" title="module">Raw2Sets</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a> <a class="idref" href="Coq.MSets.MSetAVL.html#IntMake.Raw"><span class="id" title="module">Raw</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.MSets.MSetAVL.html#IntMake"><span class="id" title="module">IntMake</span></a>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="Make"><span class="id" title="module">Make</span></a> (<span class="id" title="var">X</span>: <a class="idref" href="Coq.Structures.Orders.html#OrderedType"><span class="id" title="module">OrderedType</span></a>) &lt;: <a class="idref" href="Coq.MSets.MSetInterface.html#S"><span class="id" title="module">S</span></a> <span class="id" title="keyword">with</span> <span class="id" title="keyword">Module</span> <span class="id" title="var">E</span> := <a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a><br/>
+&nbsp;:=<a class="idref" href="Coq.MSets.MSetAVL.html#IntMake"><span class="id" title="module">IntMake</span></a>(<a class="idref" href="Coq.ZArith.Int.html#Z_as_Int"><span class="id" title="module">Z_as_Int</span></a>)(<a class="idref" href="Coq.MSets.MSetAVL.html#X"><span class="id" title="module">X</span></a>).<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
