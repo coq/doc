@@ -46,93 +46,7 @@
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.micromega.ZifyClasses.html#"><span class="id" title="library">ZifyClasses</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="Coq.micromega.ZifyInst.html#"><span class="id" title="library">ZifyInst</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.setoid_ring.InitialRing.html#"><span class="id" title="library">InitialRing</span></a>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-From PreOmega 
-<div class="paragraph"> </div>
-
- I) translation of Z.max, Z.min, Z.abs, Z.sgn into recognized equations 
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_unop_core</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span> :=<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">thm</span> <span class="id" title="var">a</span>);<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">z</span> := <span class="id" title="tactic">fresh</span> "z" <span class="id" title="tactic">in</span> <span class="id" title="tactic">set</span> (<span class="id" title="var">z</span>:=<span class="id" title="var">t</span> <span class="id" title="var">a</span>) <span class="id" title="tactic">in</span> *; <span class="id" title="var">clearbody</span> <span class="id" title="var">z</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_unop_var_or_term</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span> :=<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">za</span> := <span class="id" title="tactic">fresh</span> "z" <span class="id" title="tactic">in</span><br/>
-&nbsp;(<span class="id" title="tactic">rename</span> <span class="id" title="var">a</span> <span class="id" title="var">into</span> <span class="id" title="var">za</span>; <span class="id" title="tactic">rename</span> <span class="id" title="var">za</span> <span class="id" title="var">into</span> <span class="id" title="var">a</span>; <span class="id" title="var">zify_unop_core</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span>) ||<br/>
-&nbsp;<br/>
-&nbsp;(<span class="id" title="var">remember</span> <span class="id" title="var">a</span> <span class="id" title="keyword">as</span> <span class="id" title="var">za</span>; <span class="id" title="var">zify_unop_core</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">za</span>).<br/>
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_unop</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span> :=<br/>
-&nbsp;<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">isz</span> := <span class="id" title="var">isZcst</span> <span class="id" title="var">a</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">isz</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">u</span> := <span class="id" title="tactic">eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> (<span class="id" title="var">t</span> <span class="id" title="var">a</span>) <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">change</span> (<span class="id" title="var">t</span> <span class="id" title="var">a</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">u</span> <span class="id" title="tactic">in</span> *<br/>
-&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_unop_var_or_term</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span><br/>
-&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_unop_nored</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span> :=<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">isz</span> := <span class="id" title="var">isZcst</span> <span class="id" title="var">a</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">isz</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> =&gt; <span class="id" title="var">zify_unop_core</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_unop_var_or_term</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span><br/>
-&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_binop</span> <span class="id" title="var">t</span> <span class="id" title="var">thm</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>:=<br/>
-&nbsp;<br/>
-&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">isza</span> := <span class="id" title="var">isZcst</span> <span class="id" title="var">a</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">isza</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> =&gt; <span class="id" title="var">zify_unop</span> (<span class="id" title="var">t</span> <span class="id" title="var">a</span>) (<span class="id" title="var">thm</span> <span class="id" title="var">a</span>) <span class="id" title="var">b</span><br/>
-&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">za</span> := <span class="id" title="tactic">fresh</span> "z" <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">rename</span> <span class="id" title="var">a</span> <span class="id" title="var">into</span> <span class="id" title="var">za</span>; <span class="id" title="tactic">rename</span> <span class="id" title="var">za</span> <span class="id" title="var">into</span> <span class="id" title="var">a</span>; <span class="id" title="var">zify_unop_nored</span> (<span class="id" title="var">t</span> <span class="id" title="var">a</span>) (<span class="id" title="var">thm</span> <span class="id" title="var">a</span>) <span class="id" title="var">b</span>) ||<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">remember</span> <span class="id" title="var">a</span> <span class="id" title="keyword">as</span> <span class="id" title="var">za</span>; <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">za</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">b</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_unop_nored</span> (<span class="id" title="var">t</span> <span class="id" title="var">za</span>) (<span class="id" title="var">thm</span> <span class="id" title="var">za</span>) <span class="id" title="var">za</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_unop_nored</span> (<span class="id" title="var">t</span> <span class="id" title="var">za</span>) (<span class="id" title="var">thm</span> <span class="id" title="var">za</span>) <span class="id" title="var">b</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)<br/>
-&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">applySpec</span> <span class="id" title="var">S</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">t</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">S</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">t</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| @<a class="idref" href="Coq.micromega.ZifyClasses.html#BinOpSpec"><span class="id" title="class">BinOpSpec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">Op</span> <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Spec</span> := (<span class="id" title="tactic">eval</span> <span class="id" title="tactic">unfold</span> <span class="id" title="var">S</span>, <span class="id" title="var">BSpec</span> <span class="id" title="tactic">in</span> (@<a class="idref" href="Coq.micromega.ZifyClasses.html#BSpec"><span class="id" title="projection">BSpec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">Op</span> <span class="id" title="var">_</span> <span class="id" title="var">S</span>)) <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="keyword">context</span>[<span class="id" title="var">Op</span> ?<span class="id" title="var">X</span> ?<span class="id" title="var">Y</span>] |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_binop</span> <span class="id" title="var">Op</span> <span class="id" title="var">Spec</span> <span class="id" title="var">X</span> <span class="id" title="var">Y</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span>[<span class="id" title="var">Op</span> ?<span class="id" title="var">X</span> ?<span class="id" title="var">Y</span>]       =&gt; <span class="id" title="var">zify_binop</span> <span class="id" title="var">Op</span> <span class="id" title="var">Spec</span> <span class="id" title="var">X</span> <span class="id" title="var">Y</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
-&nbsp;&nbsp;| @<a class="idref" href="Coq.micromega.ZifyClasses.html#UnOpSpec"><span class="id" title="class">UnOpSpec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">Op</span> <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Spec</span> := (<span class="id" title="tactic">eval</span> <span class="id" title="tactic">unfold</span> <span class="id" title="var">S</span>, <span class="id" title="var">USpec</span> <span class="id" title="tactic">in</span> (@<a class="idref" href="Coq.micromega.ZifyClasses.html#USpec"><span class="id" title="projection">USpec</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">Op</span> <span class="id" title="var">_</span> <span class="id" title="var">S</span>)) <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="keyword">context</span>[<span class="id" title="var">Op</span> ?<span class="id" title="var">X</span>] |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">zify_unop</span> <span class="id" title="var">Op</span> <span class="id" title="var">Spec</span> <span class="id" title="var">X</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span>[<span class="id" title="var">Op</span> ?<span class="id" title="var">X</span> ]       =&gt; <span class="id" title="var">zify_unop</span> <span class="id" title="var">Op</span> <span class="id" title="var">Spec</span> <span class="id" title="var">X</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.micromega.ZifyClasses.html#"><span class="id" title="library">ZifyClasses</span></a> <a class="idref" href="Coq.micromega.ZifyInst.html#"><span class="id" title="library">ZifyInst</span></a>.<br/>
 
 <br/>
 </div>
@@ -144,7 +58,14 @@ From PreOmega
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify_post_hook</span> := <span class="id" title="tactic">idtac</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify</span> := <span class="id" title="var">zify_op</span> ; (<span class="id" title="var">zify_iter_specs</span> <span class="id" title="var">applySpec</span>) ; <span class="id" title="var">zify_post_hook</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">iter_specs</span> := <span class="id" title="var">zify_iter_specs</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">zify</span> := <span class="id" title="tactic">intros</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">zify_elim_let</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">zify_op</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">zify_iter_specs</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">zify_saturate</span> ; <span class="id" title="var">zify_post_hook</span>.<br/>
 </div>
     <div id="sidebarWrapper">
       <div id="sidebar">
