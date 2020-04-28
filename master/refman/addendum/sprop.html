@@ -1200,53 +1200,75 @@
 <span id="sprop"></span><h1>SProp (proof irrelevant propositions)<a class="headerlink" href="#sprop-proof-irrelevant-propositions" title="Permalink to this headline">¶</a></h1>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">The status of strict propositions is experimental.</p>
+<p>The status of strict propositions is experimental.</p>
+<p class="last">In particular, conversion checking through bytecode or native code
+compilation currently does not understand proof irrelevance.</p>
 </div>
 <p>This section describes the extension of <span class="smallcaps">Coq</span> with definitionally
 proof irrelevant propositions (types in the sort <span class="math notranslate nohighlight">\(\SProp\)</span>, also
 known as strict propositions) as described in
 <a class="reference internal" href="../zebibliography.html#gilbert-popl2019" id="id1">[GCST19]</a>.</p>
-<p>Using <span class="math notranslate nohighlight">\(\SProp\)</span> may be prevented by passing <code class="docutils literal notranslate"><span class="pre">-disallow-sprop</span></code>
-to the <span class="smallcaps">Coq</span> program or using <a class="reference internal" href="#coq:flag.allow-strictprop" title="Allow StrictProp"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Allow</span> <span class="pre">StrictProp</span></code></a>.</p>
+<p>Use of <span class="math notranslate nohighlight">\(\SProp\)</span> may be disabled by passing <code class="docutils literal notranslate"><span class="pre">-disallow-sprop</span></code> to the
+<span class="smallcaps">Coq</span> program or by turning the <a class="reference internal" href="#coq:flag.allow-strictprop" title="Allow StrictProp"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Allow</span> <span class="pre">StrictProp</span></code></a> flag off.</p>
 <dl class="flag">
 <dt id="coq:flag.allow-strictprop">
 <em class="property"><span class="sigannot">Flag</span></em> <code class="descname"><span class="notation"><span><span>Allow</span></span> <span><span>StrictProp</span></span></span></code><a class="headerlink" href="#coq:flag.allow-strictprop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Allows using <span class="math notranslate nohighlight">\(\SProp\)</span> when set and forbids it when unset. The
-initial value depends on whether you used the command line
-<code class="docutils literal notranslate"><span class="pre">-disallow-sprop</span></code> and <code class="docutils literal notranslate"><span class="pre">-allow-sprop</span></code>.</p>
-</dd></dl>
-
+<dd><p>Enables or disables the use of <span class="math notranslate nohighlight">\(\SProp\)</span>.  It is enabled by default.
+The command-line flag <code class="docutils literal notranslate"><span class="pre">-disallow-sprop</span></code> disables <span class="math notranslate nohighlight">\(\SProp\)</span> at
+startup.</p>
 <dl class="exn">
-<dt id="coq:exn.sprop-not-allowed-you-need-to-set-allow-strictprop-or-to-use-the-allow-sprop-command-line-flag">
-<em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><span><span>SProp</span></span> <span><span>not</span></span> <span><span>allowed,</span></span> <span><span>you</span></span> <span><span>need</span></span> <span><span>to</span></span> <span><span>Set</span></span> <span><span>Allow</span></span> <span><span>StrictProp</span></span> <span><span>or</span></span> <span><span>to</span></span> <span><span>use</span></span> <span><span>the</span></span> <span><span>-allow-sprop</span></span> <span><span>command-line-flag.</span></span></span></code><a class="headerlink" href="#coq:exn.sprop-not-allowed-you-need-to-set-allow-strictprop-or-to-use-the-allow-sprop-command-line-flag" title="Permalink to this definition">¶</a></dt>
+<dt id="coq:exn.sprop-is-disallowed-because-the-allow-strictprop-flag-is-off">
+<em class="property"><span class="sigannot">Error</span></em> <code class="descname"><span class="notation"><span><span>SProp</span></span> <span><span>is</span></span> <span><span>disallowed</span></span> <span><span>because</span></span> <span><span>the</span></span> <span><span>&quot;Allow</span></span> <span><span>StrictProp&quot;</span></span> <span><span>flag</span></span> <span><span>is</span></span> <span><span>off.</span></span></span></code><a class="headerlink" href="#coq:exn.sprop-is-disallowed-because-the-allow-strictprop-flag-is-off" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<div class="coqtop literal-block coqtop-hidden docutils container">
-<span></span><dl class="docutils">
-<dt class="coqtop-hidden"><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Allow</span><span> </span><span class="coqdoc-var">StrictProp</span><span>.</span></dt>
-<dd class="coqtop-hidden"></dd>
-</dl>
-</div>
+</dd></dl>
+
 <p>Some of the definitions described in this document are available
 through <code class="docutils literal notranslate"><span class="pre">Coq.Logic.StrictProp</span></code>, which see.</p>
 <div class="section" id="basic-constructs">
 <h2>Basic constructs<a class="headerlink" href="#basic-constructs" title="Permalink to this headline">¶</a></h2>
 <p>The purpose of <span class="math notranslate nohighlight">\(\SProp\)</span> is to provide types where all elements
 are convertible:</p>
-<div class="coqdoc literal-block docutils container">
-<span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">irrelevance</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-var">SProp</span><span>) (</span><span class="coqdoc-var">P</span><span>:</span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-keyword">Prop</span><span>) (</span><span class="coqdoc-var">x</span><span>:</span><span class="coqdoc-var">A</span><span>) (</span><span class="coqdoc-var">v</span><span>:</span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">x</span><span>) (</span><span class="coqdoc-var">y</span><span>:</span><span class="coqdoc-var">A</span><span>) : </span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">y</span><span> := </span><span class="coqdoc-var">v</span><span>.</span></span></div>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Theorem</span><span> </span><span class="coqdoc-var">irrelevance</span><span> (</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">SProp</span><span>) (</span><span class="coqdoc-var">P</span><span> : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-keyword">Prop</span><span>) : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">A</span><span>, </span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">x</span><span> -&gt; </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">y</span><span> : </span><span class="coqdoc-var">A</span><span>, </span><span class="coqdoc-var">P</span><span> </span><span class="coqdoc-var">y</span><span>.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  A : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>
+  P : A</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Prop</span><span>
+  ============================
+  </span><span class="ansi-bold">forall</span><span> x : A, P x</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-bold">forall</span><span class="last"> y : A, P y</span></dd>
+<dt><span class="coqdoc-keyword">Proof</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-tactic">intros</span><span> * </span><span class="coqdoc-var">Hx</span><span> *.</span></dt>
+<dd><span class="first">1 subgoal
+  
+  A : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>
+  P : A</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Prop</span><span class="last">
+  x : A
+  Hx : P x
+  y : A
+  ============================
+  P y</span></dd>
+<dt><span class="coqdoc-tactic">exact</span><span> </span><span class="coqdoc-var">Hx</span><span>.</span></dt>
+<dd><span class="first last">No more subgoals.</span></dd>
+<dt><span class="coqdoc-keyword">Qed</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+</dl>
+</div>
 <p>Since we have definitional <a class="reference internal" href="../language/cic.html#eta-expansion"><span class="std std-ref">η-expansion</span></a> for
 functions, the property of being a type of definitionally irrelevant
 values is impredicative, and so is <span class="math notranslate nohighlight">\(\SProp\)</span>:</p>
-<div class="coqdoc literal-block docutils container">
-<span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-keyword">fun</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">B</span><span>:</span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">SProp</span><span>) =&gt; (</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span>:</span><span class="coqdoc-var">A</span><span>, </span><span class="coqdoc-var">B</span><span> </span><span class="coqdoc-var">x</span><span>) : </span><span class="coqdoc-var">SProp</span><span>.</span></span></div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Conversion checking through bytecode or native code compilation
-currently does not understand proof irrelevance.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl class="docutils">
+<dt><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-keyword">fun</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-keyword">Type</span><span>) (</span><span class="coqdoc-var">B</span><span>:</span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">SProp</span><span>) =&gt; (</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span>:</span><span class="coqdoc-var">A</span><span>, </span><span class="coqdoc-var">B</span><span> </span><span class="coqdoc-var">x</span><span>) : </span><span class="coqdoc-var">SProp</span><span>.</span></dt>
+<dd><span class="ansi-bold first">fun</span><span> (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>) (B : A</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>) =&gt; (</span><span class="ansi-bold">forall</span><span> x : A, B x) : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>
+     : </span><span class="ansi-bold">forall</span><span> A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>, (A</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>)</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold last">SProp</span></dd>
+</dl>
 </div>
 <p>In order to keep conversion tractable, cumulativity for <span class="math notranslate nohighlight">\(\SProp\)</span>
-is forbidden:</p>
+is forbidden, unless the <a class="reference internal" href="#coq:flag.cumulative-strictprop" title="Cumulative StrictProp"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Cumulative</span> <span class="pre">StrictProp</span></code></a> flag is turned
+on:</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl class="docutils">
 <dt><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-var">SProp</span><span>) =&gt; </span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-keyword">Type</span><span>).</span></dt>
@@ -1254,6 +1276,15 @@ is forbidden:</p>
 In environment
 A : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>
 The term &quot;A&quot; has type &quot;</span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>&quot; while it is expected to have type &quot;</span><span class="ansi-fg-yellow ansi-bold">Type</span><span class="last">&quot;.</span></dd>
+<dt><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-var">StrictProp</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
+<dt><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> (</span><span class="coqdoc-var">A</span><span>:</span><span class="coqdoc-var">SProp</span><span>) =&gt; </span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-keyword">Type</span><span>).</span></dt>
+<dd><span class="ansi-bold first">fun</span><span> A : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span> =&gt; A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>
+     : </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span class="ansi-fg-white"> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold last">Type</span></dd>
+</dl>
+<span></span><dl class="docutils">
+<dt class="coqtop-hidden"><span class="coqdoc-keyword">Unset</span><span> </span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-var">StrictProp</span><span>.</span></dt>
+<dd class="coqtop-hidden"></dd>
 </dl>
 </div>
 <p>We can explicitly lift strict propositions into the relevant world by
