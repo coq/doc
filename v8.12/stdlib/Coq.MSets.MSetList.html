@@ -1,0 +1,721 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.MSets.MSetList</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab287"></a><h1 class="section">Finite sets library</h1>
+
+<div class="paragraph"> </div>
+
+ This file proposes an implementation of the non-dependent
+    interface <span class="inlinecode"><span class="id" title="var">MSetInterface.S</span></span> using strictly ordered list. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">MSetInterface</span> <span class="id" title="var">OrdersFacts</span> <span class="id" title="var">OrdersLists</span>.<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab288"></a><h1 class="section">Functions over lists</h1>
+
+
+<div class="paragraph"> </div>
+
+   First, we provide sets as lists which are not necessarily sorted.
+   The specs are proved under the additional condition of being sorted.
+   And the functions returning sets are proved to preserve this invariant. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">Ops</span> (<span class="id" title="var">X</span>:<span class="id" title="var">OrderedType</span>) &lt;: <span class="id" title="var">WOps</span> <span class="id" title="var">X</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">elt</span> := <span class="id" title="var">X.t</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">t</span> := <span class="id" title="var">list</span> <span class="id" title="var">elt</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">empty</span> : <span class="id" title="var">t</span> := <span class="id" title="var">nil</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">is_empty</span> (<span class="id" title="var">l</span> : <span class="id" title="var">t</span>) := <span class="id" title="keyword">if</span> <span class="id" title="var">l</span> <span class="id" title="keyword">then</span> <span class="id" title="var">true</span> <span class="id" title="keyword">else</span> <span class="id" title="var">false</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab289"></a><h2 class="section">The set operations.</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">mem</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">y</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">mem</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">add</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">y</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">y</span> :: <span class="id" title="var">add</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">singleton</span> (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) := <span class="id" title="var">x</span> :: <span class="id" title="var">nil</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">remove</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> : <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">y</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">y</span> :: <span class="id" title="var">remove</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">union</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">s'</span> =&gt; <span class="id" title="var">s'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fix</span> <span class="id" title="var">union_aux</span> (<span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x'</span> :: <span class="id" title="var">l'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">union</span> <span class="id" title="var">l</span> <span class="id" title="var">s'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">union</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">x'</span> :: <span class="id" title="var">union_aux</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">inter</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fix</span> <span class="id" title="var">inter_aux</span> (<span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x'</span> :: <span class="id" title="var">l'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">inter</span> <span class="id" title="var">l</span> <span class="id" title="var">s'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">inter</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">inter_aux</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">diff</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fix</span> <span class="id" title="var">diff_aux</span> (<span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x'</span> :: <span class="id" title="var">l'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">x</span> :: <span class="id" title="var">diff</span> <span class="id" title="var">l</span> <span class="id" title="var">s'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">diff</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">diff_aux</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">equal</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span>, <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span>, <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span>, <span class="id" title="var">x'</span> :: <span class="id" title="var">l'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">equal</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">subset</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span>, <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span>, <span class="id" title="var">_</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span>, <span class="id" title="var">x'</span> :: <span class="id" title="var">l'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">subset</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">subset</span> <span class="id" title="var">s</span> <span class="id" title="var">l'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="tactic">fold</span> (<span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">i</span> : <span class="id" title="var">B</span>) : <span class="id" title="var">B</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fold_left</span> (<span class="id" title="var">flip</span> <span class="id" title="var">f</span>) <span class="id" title="var">s</span> <span class="id" title="var">i</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">filter</span> (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <span class="id" title="var">x</span> :: <span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="keyword">else</span> <span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">for_all</span> (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <span class="id" title="var">for_all</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="keyword">else</span> <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">exists_</span> (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <span class="id" title="var">true</span> <span class="id" title="keyword">else</span> <span class="id" title="var">exists_</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">partition</span> (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">t</span> * <span class="id" title="var">t</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; (<span class="id" title="var">nil</span>, <span class="id" title="var">nil</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">s1</span>, <span class="id" title="var">s2</span>) := <span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> (<span class="id" title="var">x</span> :: <span class="id" title="var">s1</span>, <span class="id" title="var">s2</span>) <span class="id" title="keyword">else</span> (<span class="id" title="var">s1</span>, <span class="id" title="var">x</span> :: <span class="id" title="var">s2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cardinal</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">nat</span> := <span class="id" title="var">length</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">elements</span> (<span class="id" title="var">x</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">list</span> <span class="id" title="var">elt</span> := <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min_elt</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">option</span> <span class="id" title="var">elt</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Some</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">max_elt</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) : <span class="id" title="var">option</span> <span class="id" title="var">elt</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">Some</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> :: <span class="id" title="var">l</span> =&gt; <span class="id" title="var">max_elt</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">choose</span> := <span class="id" title="var">min_elt</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">compare</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">s</span>, <span class="id" title="var">s'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span>, <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">Eq</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span>, <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Lt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>, <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">Gt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">s</span>, <span class="id" title="var">x'</span>::<span class="id" title="var">s'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Eq</span> =&gt; <span class="id" title="var">compare</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">Lt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">Gt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Ops</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MakeRaw</span> (<span class="id" title="var">X</span>: <span class="id" title="var">OrderedType</span>) &lt;: <span class="id" title="var">RawSets</span> <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MX</span> := <span class="id" title="var">OrderedTypeFacts</span> <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ML</span> := <span class="id" title="var">OrderedTypeLists</span> <span class="id" title="var">X</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">Ops</span> <span class="id" title="var">X</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab290"></a><h2 class="section">Proofs of set operation specifications.</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <span class="id" title="var">ForNotations</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">inf</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">y</span>::<span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">match</span> <span class="id" title="var">X.compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">true</span> | <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span> <span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">isok</span> <span class="id" title="var">l</span> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">l</span> =&gt; <span class="id" title="var">inf</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &amp;&amp; <span class="id" title="var">isok</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="keyword">Sort</span> <span class="id" title="var">l</span> := (<span class="id" title="var">isok</span> <span class="id" title="var">l</span> = <span class="id" title="var">true</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">Inf</span> := (<span class="id" title="var">lelistA</span> <span class="id" title="var">X.lt</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">In</span> := (<span class="id" title="var">InA</span> <span class="id" title="var">X.eq</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Extern</span> 20 =&gt; <span class="id" title="tactic">solve</span> [<span class="id" title="var">order</span>] : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">IsOk</span> <span class="id" title="var">s</span> := <span class="id" title="keyword">Sort</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Class</span> <span class="id" title="var">Ok</span> (<span class="id" title="var">s</span>:<span class="id" title="var">t</span>) : <span class="id" title="keyword">Prop</span> := <span class="id" title="var">ok</span> : <span class="id" title="keyword">Sort</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">ok</span> : <span class="id" title="var">core</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">Ok</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Instance</span> <span class="id" title="var">Sort_Ok</span> <span class="id" title="var">s</span> `(<span class="id" title="var">Hs</span> : <span class="id" title="keyword">Sort</span> <span class="id" title="var">s</span>) : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span> := { <span class="id" title="var">ok</span> := <span class="id" title="var">Hs</span> }.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inf_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>, <span class="id" title="var">Inf</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="var">inf</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">isok_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">sort</span> <span class="id" title="var">X.lt</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="var">Ok</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">Ok</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">isok_iff</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inv_ok</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>:<span class="id" title="var">sort</span> <span class="id" title="var">X.lt</span> (<span class="id" title="var">_</span> :: <span class="id" title="var">_</span>) |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">inversion_clear</span> <span class="id" title="var">H</span>; <span class="id" title="var">inv_ok</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>:<span class="id" title="var">sort</span> <span class="id" title="var">X.lt</span> <span class="id" title="var">nil</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="var">inv_ok</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>:<span class="id" title="var">sort</span> <span class="id" title="var">X.lt</span> ?<span class="id" title="var">l</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">change</span> (<span class="id" title="var">Ok</span> <span class="id" title="var">l</span>) <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>; <span class="id" title="var">inv_ok</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>:<span class="id" title="var">Ok</span> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">isok_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>; <span class="id" title="var">inv_ok</span><br/>
+&nbsp;&nbsp;&nbsp;| |- <span class="id" title="var">Ok</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">isok_iff</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">idtac</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inv</span> := <span class="id" title="var">invlist</span> <span class="id" title="var">InA</span>; <span class="id" title="var">inv_ok</span>; <span class="id" title="var">invlist</span> <span class="id" title="var">lelistA</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">constructors</span> := <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">constructor</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">sort_inf_in</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span>:<span class="id" title="var">Inf</span> ?<span class="id" title="var">x</span> ?<span class="id" title="var">l</span>, <span class="id" title="var">H'</span>:<span class="id" title="var">In</span> ?<span class="id" title="var">y</span> ?<span class="id" title="var">l</span> |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">cut</span> (<span class="id" title="var">X.lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>); [ <span class="id" title="tactic">intro</span> | <span class="id" title="tactic">apply</span> <span class="id" title="var">Sort_Inf_In</span> <span class="id" title="keyword">with</span> <span class="id" title="var">l</span>; <span class="id" title="tactic">auto</span>]<br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">fail</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">isok_Ok</span> <span class="id" title="var">s</span> `(<span class="id" title="var">isok</span> <span class="id" title="var">s</span> = <span class="id" title="var">true</span>) : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span> | 10.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Equal</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> : <span class="id" title="var">elt</span>, <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">s'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Subset</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> : <span class="id" title="var">elt</span>, <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">s'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Empty</span> <span class="id" title="var">s</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> : <span class="id" title="var">elt</span>, ~ <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">For_all</span> (<span class="id" title="var">P</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="keyword">Prop</span>) <span class="id" title="var">s</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Exists</span> (<span class="id" title="var">P</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) := <span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> /\ <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">mem_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">mem</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">add_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">a</span> : <span class="id" title="var">elt</span>), <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">X.lt</span> <span class="id" title="var">a</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> (<span class="id" title="var">add</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">add_inf</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">add_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">add</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">add_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">y</span> (<span class="id" title="var">add</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>) &lt;-&gt; <span class="id" title="var">X.eq</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span> \/ <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">remove_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">a</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> (<span class="id" title="var">remove</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">remove_inf</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">remove_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">remove</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">remove_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">y</span> (<span class="id" title="var">remove</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">s</span> /\ ~<span class="id" title="var">X.eq</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">singleton_ok</span> <span class="id" title="var">x</span> : <span class="id" title="var">Ok</span> (<span class="id" title="var">singleton</span> <span class="id" title="var">x</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">singleton_spec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">elt</span>, <span class="id" title="var">In</span> <span class="id" title="var">y</span> (<span class="id" title="var">singleton</span> <span class="id" title="var">x</span>) &lt;-&gt; <span class="id" title="var">X.eq</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">induction2</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simple</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">auto</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [ <span class="id" title="tactic">intros</span>; <span class="id" title="var">inv</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> <span class="id" title="var">Hrec</span>; <span class="id" title="tactic">simple</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">s'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">auto</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [ <span class="id" title="tactic">intros</span>; <span class="id" title="var">inv</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">intros</span> <span class="id" title="var">x'</span> <span class="id" title="var">l'</span> <span class="id" title="var">Hrec'</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="var">elim_compare</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">inv</span>; <span class="id" title="tactic">auto</span> ]].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">union_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">a</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> (<span class="id" title="var">union</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">union_inf</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">union_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">union</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">union_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">union</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> \/ <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inter_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">a</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> (<span class="id" title="var">inter</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">inter_inf</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">inter_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">inter</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inter_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">inter</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> /\ <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">diff_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>) (<span class="id" title="var">a</span> : <span class="id" title="var">elt</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">a</span> (<span class="id" title="var">diff</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">diff_inf</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">diff_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">diff</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">diff_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">diff</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> /\ ~<span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equal_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">equal</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">Equal</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">subset_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> <span class="id" title="var">s'</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>) (<span class="id" title="var">Hs'</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">subset</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">Subset</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">empty_ok</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">empty</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">empty_spec</span> : <span class="id" title="var">Empty</span> <span class="id" title="var">empty</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">is_empty_spec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> : <span class="id" title="var">t</span>, <span class="id" title="var">is_empty</span> <span class="id" title="var">s</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">Empty</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">elements_spec1</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>), <span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">elements</span> <span class="id" title="var">s</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">elements_spec2</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">sort</span> <span class="id" title="var">X.lt</span> (<span class="id" title="var">elements</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">elements_spec2w</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">NoDupA</span> <span class="id" title="var">X.eq</span> (<span class="id" title="var">elements</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_elt_spec1</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>), <span class="id" title="var">min_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_elt_spec2</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">min_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">s</span> -&gt; ~ <span class="id" title="var">X.lt</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_elt_spec3</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> : <span class="id" title="var">t</span>, <span class="id" title="var">min_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">None</span> -&gt; <span class="id" title="var">Empty</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_elt_spec1</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>), <span class="id" title="var">max_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_elt_spec2</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">max_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">s</span> -&gt; ~ <span class="id" title="var">X.lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_elt_spec3</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> : <span class="id" title="var">t</span>, <span class="id" title="var">max_elt</span> <span class="id" title="var">s</span> = <span class="id" title="var">None</span> -&gt; <span class="id" title="var">Empty</span> <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">choose_spec1</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>), <span class="id" title="var">choose</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> := <span class="id" title="var">min_elt_spec1</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">choose_spec2</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> : <span class="id" title="var">t</span>, <span class="id" title="var">choose</span> <span class="id" title="var">s</span> = <span class="id" title="var">None</span> -&gt; <span class="id" title="var">Empty</span> <span class="id" title="var">s</span> := <span class="id" title="var">min_elt_spec3</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">choose_spec3</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">choose</span> <span class="id" title="var">s</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">choose</span> <span class="id" title="var">s'</span> = <span class="id" title="var">Some</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">Equal</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">X.eq</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">i</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">fold</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span> <span class="id" title="var">i</span> = <span class="id" title="var">fold_left</span> (<span class="id" title="var">flip</span> <span class="id" title="var">f</span>) (<span class="id" title="var">elements</span> <span class="id" title="var">s</span>) <span class="id" title="var">i</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">cardinal_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">cardinal</span> <span class="id" title="var">s</span> = <span class="id" title="var">length</span> (<span class="id" title="var">elements</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_inf</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">x</span> (<span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">filter_ok</span> <span class="id" title="var">s</span> <span class="id" title="var">f</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>) &lt;-&gt; <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">for_all_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="var">for_all</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">For_all</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>) <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">exists_spec</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="var">exists_</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">Exists</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>) <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">partition_inf1</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">x</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">partition_inf2</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">elt</span>) (<span class="id" title="var">Hs</span> : <span class="id" title="var">Ok</span> <span class="id" title="var">s</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Inf</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Inf</span> <span class="id" title="var">x</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">partition_ok1</span> <span class="id" title="var">s</span> <span class="id" title="var">f</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">partition_ok2</span> <span class="id" title="var">s</span> <span class="id" title="var">f</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Ok</span> <span class="id" title="var">s</span>), <span class="id" title="var">Ok</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">partition_spec1</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt; <span class="id" title="var">Equal</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)) (<span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">partition_spec2</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">s</span> : <span class="id" title="var">t</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">elt</span> -&gt; <span class="id" title="var">bool</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Equal</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">partition</span> <span class="id" title="var">f</span> <span class="id" title="var">s</span>)) (<span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">negb</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)) <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">ForNotations</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">In</span> := <span class="id" title="var">InA</span> <span class="id" title="var">X.eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Instance</span> <span class="id" title="var">In_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">X.eq</span>==&gt;<span class="id" title="var">eq</span>==&gt; <span class="id" title="var">iff</span>) <span class="id" title="var">In</span>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">L</span> := <span class="id" title="var">MakeListOrdering</span> <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eq</span> := <span class="id" title="var">L.eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eq_equiv</span> := <span class="id" title="var">L.eq_equiv</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">lt</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">l1'</span> <span class="id" title="var">l2'</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">l1'</span> /\ <span class="id" title="var">Ok</span> <span class="id" title="var">l2'</span> /\ <span class="id" title="var">eq</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span> /\ <span class="id" title="var">eq</span> <span class="id" title="var">l2</span> <span class="id" title="var">l2'</span> /\ <span class="id" title="var">L.lt</span> <span class="id" title="var">l1'</span> <span class="id" title="var">l2'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Instance</span> <span class="id" title="var">lt_strorder</span> : <span class="id" title="var">StrictOrder</span> <span class="id" title="var">lt</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Instance</span> <span class="id" title="var">lt_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">lt</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">compare_spec_aux</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">CompSpec</span> <span class="id" title="var">eq</span> <span class="id" title="var">L.lt</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> (<span class="id" title="var">compare</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">compare_spec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">Ok</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">Ok</span> <span class="id" title="var">s'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">CompSpec</span> <span class="id" title="var">eq</span> <span class="id" title="var">lt</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> (<span class="id" title="var">compare</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MakeRaw</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab291"></a><h1 class="section">Encapsulation</h1>
+
+
+<div class="paragraph"> </div>
+
+   Now, in order to really provide a functor implementing <span class="inlinecode"><span class="id" title="var">S</span></span>, we
+   need to encapsulate everything into a type of strictly ordered lists. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">Make</span> (<span class="id" title="var">X</span>: <span class="id" title="var">OrderedType</span>) &lt;: <span class="id" title="var">S</span> <span class="id" title="keyword">with</span> <span class="id" title="keyword">Module</span> <span class="id" title="var">E</span> := <span class="id" title="var">X</span>.<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Raw</span> := <span class="id" title="var">MakeRaw</span> <span class="id" title="var">X</span>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">Raw2Sets</span> <span class="id" title="var">X</span> <span class="id" title="var">Raw</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Make</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For this specific implementation, eq coincides with Leibniz equality 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Eqdep_dec</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <span class="id" title="var">OrderedTypeWithLeibniz</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">OrderedType</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">eq_leibniz</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">eq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">x</span> = <span class="id" title="var">y</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">OrderedTypeWithLeibniz</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <span class="id" title="var">SWithLeibniz</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Declare Module</span> <span class="id" title="var">E</span> : <span class="id" title="var">OrderedTypeWithLeibniz</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">SetsOn</span> <span class="id" title="var">E</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">eq_leibniz</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">eq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">x</span> = <span class="id" title="var">y</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">SWithLeibniz</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MakeWithLeibniz</span> (<span class="id" title="var">X</span>: <span class="id" title="var">OrderedTypeWithLeibniz</span>) &lt;: <span class="id" title="var">SWithLeibniz</span> <span class="id" title="keyword">with</span> <span class="id" title="keyword">Module</span> <span class="id" title="var">E</span> := <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">E</span> := <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Raw</span> := <span class="id" title="var">MakeRaw</span> <span class="id" title="var">X</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">Raw2SetsOn</span> <span class="id" title="var">X</span> <span class="id" title="var">Raw</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_leibniz_list</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">xs</span> <span class="id" title="var">ys</span>, <span class="id" title="var">eqlistA</span> <span class="id" title="var">X.eq</span> <span class="id" title="var">xs</span> <span class="id" title="var">ys</span> -&gt; <span class="id" title="var">xs</span> = <span class="id" title="var">ys</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_leibniz</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">eq</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">s</span> = <span class="id" title="var">s'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MakeWithLeibniz</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

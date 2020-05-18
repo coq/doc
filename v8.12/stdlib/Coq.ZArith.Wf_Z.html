@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.ZArith.Wf_Z</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BinInt</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Zcompare</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Zorder</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Znat</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Zmisc</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Wf_nat</span>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Our purpose is to write an induction shema for {0,1,2,...}
+  similar to the <span class="inlinecode"><span class="id" title="var">nat</span></span> schema (Theorem <span class="inlinecode"><span class="id" title="var">Natlike_rec</span></span>). For that the
+  following implications will be used :
+<pre>
+ ∀n:nat, Q n == ∀n:nat, P (Z.of_nat n) ===&gt; ∀x:Z, x &lt;= 0 -&gt; P x
+
+       	     /\
+             ||
+             ||
+
+ (Q O) ∧ (∀n:nat, Q n -&gt; Q (S n)) &lt;=== (P 0) ∧ (∀x:Z, P x -&gt; P (Z.succ x))
+
+				  &lt;=== (Z.of_nat (S n) = Z.succ (Z.of_nat n))
+
+				  &lt;=== Z_of_nat_complete
+</pre>
+  Then the  diagram will be closed and the theorem proved. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_of_nat_complete</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Z</span>) :<br/>
+&nbsp;0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>, <span class="id" title="var">x</span> = <span class="id" title="var">Z.of_nat</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_of_nat_complete_inf</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Z</span>) :<br/>
+&nbsp;0 &lt;= <span class="id" title="var">x</span> -&gt; {<span class="id" title="var">n</span> : <span class="id" title="var">nat</span> | <span class="id" title="var">x</span> = <span class="id" title="var">Z.of_nat</span> <span class="id" title="var">n</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_of_nat_prop</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>:<span class="id" title="var">nat</span>, <span class="id" title="var">P</span> (<span class="id" title="var">Z.of_nat</span> <span class="id" title="var">n</span>)) -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_of_nat_set</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Set</span>,<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>:<span class="id" title="var">nat</span>, <span class="id" title="var">P</span> (<span class="id" title="var">Z.of_nat</span> <span class="id" title="var">n</span>)) -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">natlike_ind</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">P</span> 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">Z.succ</span> <span class="id" title="var">x</span>)) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">natlike_rec</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Set</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">P</span> 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">Z.succ</span> <span class="id" title="var">x</span>)) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Efficient_Rec</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">natlike_rec2</span></span> is the same as <span class="inlinecode"><span class="id" title="var">natlike_rec</span></span>, but with a different proof, designed
+      to give a better extracted term. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <span class="id" title="var">R</span> (<span class="id" title="var">a</span> <span class="id" title="var">b</span>:<span class="id" title="var">Z</span>) := 0 &lt;= <span class="id" title="var">a</span> /\ <span class="id" title="var">a</span> &lt; <span class="id" title="var">b</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <span class="id" title="var">R_wf</span> : <span class="id" title="var">well_founded</span> <span class="id" title="var">R</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">natlike_rec2</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">P</span> 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">z</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">z</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">Z.succ</span> <span class="id" title="var">z</span>)) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">z</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">z</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A variant of the previous using <span class="inlinecode"><span class="id" title="var">Z.pred</span></span> instead of <span class="inlinecode"><span class="id" title="var">Z.succ</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">natlike_rec3</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">P</span> 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>, 0 &lt; <span class="id" title="var">z</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">Z.pred</span> <span class="id" title="var">z</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">z</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">z</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">z</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A more general induction principle on non-negative numbers using <span class="inlinecode"><span class="id" title="var">Z.lt</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zlt_0_rec</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zlt_0_ind</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Obsolete version of <span class="inlinecode"><span class="id" title="var">Z.lt</span></span> induction principle on non-negative numbers 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_lt_rec</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_lt_induction</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, 0 &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An even more general induction principle using <span class="inlinecode"><span class="id" title="var">Z.lt</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zlt_lower_bound_rec</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Type</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, <span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">z</span> &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, <span class="id" title="var">z</span> &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zlt_lower_bound_ind</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">z</span>:<span class="id" title="var">Z</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>:<span class="id" title="var">Z</span>, <span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">z</span> &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">Z</span>, <span class="id" title="var">z</span> &lt;= <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Efficient_Rec</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
