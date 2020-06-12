@@ -1,0 +1,827 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Lists.SetoidList</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">List</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Sorted</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Setoid</span> <span class="id" title="var">Basics</span> <span class="id" title="var">Morphisms</span>.<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+</div>
+
+<div class="doc">
+<a id="lab211"></a><h1 class="section">Logical relations over lists with respect to a setoid equality</h1>
+
+      or ordering. 
+<div class="paragraph"> </div>
+
+ This can be seen as a complement of predicate <span class="inlinecode"><span class="id" title="var">lelistA</span></span> and <span class="inlinecode"><span class="id" title="var">sort</span></span>
+    found in <span class="inlinecode"><span class="id" title="var">Sorting</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Type_with_equality</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqA</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Being in a list modulo an equality relation over type <span class="inlinecode"><span class="id" title="var">A</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">InA</span> (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) : <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">InA_cons_hd</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span> :: <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">InA_cons_tl</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span> :: <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">InA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+TODO: it would be nice to have a generic definition instead
+    of the previous one. Having <span class="inlinecode"><span class="id" title="var">InA</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Exists</span></span> <span class="inlinecode"><span class="id" title="var">eqA</span></span> raises too
+    many compatibility issues. For now, we only state the equivalence: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_altdef</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="var">Exists</span> (<span class="id" title="var">eqA</span> <span class="id" title="var">x</span>) <span class="id" title="var">l</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_cons</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span>::<span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> \/ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_nil</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">nil</span> &lt;-&gt; <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An alternative definition of <span class="inlinecode"><span class="id" title="var">InA</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_alt</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> /\ <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A list without redundancy modulo the equality over <span class="inlinecode"><span class="id" title="var">A</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">NoDupA</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">NoDupA_nil</span> : <span class="id" title="var">NoDupA</span> <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">NoDupA_cons</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>, ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">NoDupA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An alternative definition of <span class="inlinecode"><span class="id" title="var">NoDupA</span></span> based on <span class="inlinecode"><span class="id" title="var">ForallOrdPairs</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_altdef</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;<span class="id" title="var">NoDupA</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="var">ForallOrdPairs</span> (<span class="id" title="var">complement</span> <span class="id" title="var">eqA</span>) <span class="id" title="var">l</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+lists with same elements modulo <span class="inlinecode"><span class="id" title="var">eqA</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">inclA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l'</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">equivlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">incl_nil</span> <span class="id" title="var">l</span> : <span class="id" title="var">inclA</span> <span class="id" title="var">nil</span> <span class="id" title="var">l</span>.<br/>
+ <span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">incl_nil</span> : <span class="id" title="var">list</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+lists with same elements modulo <span class="inlinecode"><span class="id" title="var">eqA</span></span> at the same place 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">eqlistA</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">eqlistA_nil</span> : <span class="id" title="var">eqlistA</span> <span class="id" title="var">nil</span> <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">eqlistA_cons</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">eqlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">eqlistA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">l</span>) (<span class="id" title="var">x'</span>::<span class="id" title="var">l'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">eqlistA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We could also have written <span class="inlinecode"><span class="id" title="var">eqlistA</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">Forall2</span></span> <span class="inlinecode"><span class="id" title="var">eqA</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eqlistA_altdef</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>, <span class="id" title="var">eqlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> &lt;-&gt; <span class="id" title="var">Forall2</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Results concerning lists modulo <span class="inlinecode"><span class="id" title="var">eqA</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqA</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eqarefl</span> := (@<span class="id" title="var">Equivalence_Reflexive</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_equiv</span>).<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eqatrans</span> := (@<span class="id" title="var">Equivalence_Transitive</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_equiv</span>).<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eqasym</span> := (@<span class="id" title="var">Equivalence_Symmetric</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_equiv</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">eqarefl</span> <span class="id" title="var">eqatrans</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Hint Immediate</span> <span class="id" title="var">eqasym</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inv</span> := <span class="id" title="var">invlist</span> <span class="id" title="var">InA</span>; <span class="id" title="var">invlist</span> <span class="id" title="var">sort</span>; <span class="id" title="var">invlist</span> <span class="id" title="var">lelistA</span>; <span class="id" title="var">invlist</span> <span class="id" title="var">NoDupA</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+First, the two notions <span class="inlinecode"><span class="id" title="var">equivlistA</span></span> and <span class="inlinecode"><span class="id" title="var">eqlistA</span></span> are indeed equivlances 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">equivlist_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">equivlistA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">eqlistA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqlistA</span>.<br/>
+</div>
+
+<div class="doc">
+Moreover, <span class="inlinecode"><span class="id" title="var">eqlistA</span></span> implies <span class="inlinecode"><span class="id" title="var">equivlistA</span></span>. A reverse result
+    will be proved later for sorted list without duplicates. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">eqlistA_equivlistA</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">eqlistA</span> <span class="id" title="var">equivlistA</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+InA is compatible with eqA (for its first arg) and with
+    equivlistA (and hence eqlistA) for its second arg 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">InA_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">equivlistA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">InA</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For compatibility, an immediate consequence of <span class="inlinecode"><span class="id" title="var">InA_compat</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_eqA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span>.<br/>
+<span class="id" title="keyword">Hint Immediate</span> <span class="id" title="var">InA_eqA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">In_InA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">In_InA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_split</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt;<br/>
+&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">l1</span> <span class="id" title="var">y</span> <span class="id" title="var">l2</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> /\ <span class="id" title="var">l</span> = <span class="id" title="var">l1</span>++<span class="id" title="var">y</span>::<span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_app</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;<span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l1</span> \/ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_app_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;<span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l1</span> \/ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_rev</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">m</span>,<br/>
+&nbsp;<span class="id" title="var">InA</span> <span class="id" title="var">p</span> (<span class="id" title="var">rev</span> <span class="id" title="var">m</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">p</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Some more facts about InA 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_singleton</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span>::<span class="id" title="var">nil</span>) &lt;-&gt; <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_double_head</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> :<br/>
+&nbsp;<span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span> :: <span class="id" title="var">y</span> :: <span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span> :: <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_permute_heads</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> <span class="id" title="var">l</span> :<br/>
+&nbsp;<span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">y</span> :: <span class="id" title="var">z</span> :: <span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">z</span> :: <span class="id" title="var">y</span> :: <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_app_idem</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> : <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">l</span> ++ <span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">NoDupA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_app</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">l'</span> -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">False</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">NoDupA</span> (<span class="id" title="var">l</span>++<span class="id" title="var">l'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_rev</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> (<span class="id" title="var">rev</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_split</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> (<span class="id" title="var">l</span>++<span class="id" title="var">x</span>::<span class="id" title="var">l'</span>) -&gt; <span class="id" title="var">NoDupA</span> (<span class="id" title="var">l</span>++<span class="id" title="var">l'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_swap</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> (<span class="id" title="var">l</span>++<span class="id" title="var">x</span>::<span class="id" title="var">l'</span>) -&gt; <span class="id" title="var">NoDupA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">l</span>++<span class="id" title="var">l'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_singleton</span> <span class="id" title="var">x</span> : <span class="id" title="var">NoDupA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">nil</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">NoDupA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">EquivlistA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">equivlistA_cons_proper</span>:<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span> ==&gt; <span class="id" title="var">equivlistA</span> ==&gt; <span class="id" title="var">equivlistA</span>) (@<span class="id" title="var">cons</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">equivlistA_app_proper</span>:<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">equivlistA</span> ==&gt; <span class="id" title="var">equivlistA</span> ==&gt; <span class="id" title="var">equivlistA</span>) (@<span class="id" title="var">app</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_cons_nil</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> : ~ <span class="id" title="var">equivlistA</span> (<span class="id" title="var">x</span> :: <span class="id" title="var">l</span>) <span class="id" title="var">nil</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_nil_eq</span> <span class="id" title="var">l</span> : <span class="id" title="var">equivlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">nil</span> -&gt; <span class="id" title="var">l</span> = <span class="id" title="var">nil</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_double_head</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> : <span class="id" title="var">equivlistA</span> (<span class="id" title="var">x</span> :: <span class="id" title="var">x</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">x</span> :: <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_permute_heads</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> :<br/>
+&nbsp;<span class="id" title="var">equivlistA</span> (<span class="id" title="var">x</span> :: <span class="id" title="var">y</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">y</span> :: <span class="id" title="var">x</span> :: <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_app_idem</span> <span class="id" title="var">l</span> : <span class="id" title="var">equivlistA</span> (<span class="id" title="var">l</span> ++ <span class="id" title="var">l</span>) <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equivlistA_NoDupA_split</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt;<br/>
+&nbsp;<span class="id" title="var">NoDupA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">l</span>) -&gt; <span class="id" title="var">NoDupA</span> (<span class="id" title="var">l1</span>++<span class="id" title="var">y</span>::<span class="id" title="var">l2</span>) -&gt;<br/>
+&nbsp;<span class="id" title="var">equivlistA</span> (<span class="id" title="var">x</span>::<span class="id" title="var">l</span>) (<span class="id" title="var">l1</span>++<span class="id" title="var">y</span>::<span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">equivlistA</span> <span class="id" title="var">l</span> (<span class="id" title="var">l1</span>++<span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">EquivlistA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Fold</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqB</span>:<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">st</span>:<span class="id" title="var">Equivalence</span> <span class="id" title="var">eqB</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">f</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">i</span>:<span class="id" title="var">B</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Comp</span>:<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqB</span>==&gt;<span class="id" title="var">eqB</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_eqlistA</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">eqlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Fold with restricted <span class="inlinecode"><span class="id" title="var">transpose</span></span> hypothesis. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Fold_With_Restriction</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">R_sym</span> : <span class="id" title="var">Symmetric</span> <span class="id" title="var">R</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">R_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">R</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Compatibility of <span class="inlinecode"><span class="id" title="var">ForallOrdPairs</span></span> with respect to <span class="inlinecode"><span class="id" title="var">inclA</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ForallOrdPairs_inclA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>,<br/>
+&nbsp;<span class="id" title="var">NoDupA</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">inclA</span> <span class="id" title="var">l'</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Two-argument functions that allow to reorder their arguments. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">transpose</span> (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">z</span> : <span class="id" title="var">B</span>), <span class="id" title="var">eqB</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">y</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A version of transpose with restriction on where it should hold 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">transpose_restr</span> (<span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>)(<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">z</span> : <span class="id" title="var">B</span>), <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">y</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">TraR</span> :<span class="id" title="var">transpose_restr</span> <span class="id" title="var">R</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_commutes_restr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">x</span>, <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">s2</span>))).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_equivlistA_restr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_add_restr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s'</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">s'</span> -&gt; ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s'</span> (<span class="id" title="var">x</span>::<span class="id" title="var">s</span>) -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Fold_With_Restriction</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+we now state similar results, but without restriction on transpose. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Tra</span> :<span class="id" title="var">transpose</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_commutes</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">s2</span>))).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_equivlistA</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_add</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s'</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s'</span> (<span class="id" title="var">x</span>::<span class="id" title="var">s</span>) -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Fold</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Fold2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqB</span>:<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">st</span>:<span class="id" title="var">Equivalence</span> <span class="id" title="var">eqB</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">f</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Comp</span>:<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqB</span>==&gt;<span class="id" title="var">eqB</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_eqlistA2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> (<span class="id" title="var">i</span> <span class="id" title="var">j</span>:<span class="id" title="var">B</span>) (<span class="id" title="var">heqij</span>: <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>) (<span class="id" title="var">heqss'</span>: <span class="id" title="var">eqlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Fold2_With_Restriction</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">R_sym</span> : <span class="id" title="var">Symmetric</span> <span class="id" title="var">R</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">R_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Two-argument functions that allow to reorder their arguments. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">transpose2</span> (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">z</span> <span class="id" title="var">z'</span>: <span class="id" title="var">B</span>), <span class="id" title="var">eqB</span> <span class="id" title="var">z</span> <span class="id" title="var">z'</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">y</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="var">z'</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A version of transpose with restriction on where it should hold 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">transpose_restr2</span> (<span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>)(<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">z</span> <span class="id" title="var">z'</span>: <span class="id" title="var">B</span>), <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">eqB</span> <span class="id" title="var">z</span> <span class="id" title="var">z'</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">y</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="var">z'</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">TraR</span> :<span class="id" title="var">transpose_restr2</span> <span class="id" title="var">R</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_commutes_restr2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">x</span> (<span class="id" title="var">i</span> <span class="id" title="var">j</span>:<span class="id" title="var">B</span>) (<span class="id" title="var">heqij</span>: <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>), <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">s2</span>))).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_equivlistA_restr2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_add_restr2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s'</span> <span class="id" title="var">s</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> -&gt; <span class="id" title="var">ForallOrdPairs</span> <span class="id" title="var">R</span> <span class="id" title="var">s'</span> -&gt; ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s'</span> (<span class="id" title="var">x</span>::<span class="id" title="var">s</span>) -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Fold2_With_Restriction</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Tra</span> :<span class="id" title="var">transpose2</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_commutes2</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">i</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">x</span>::<span class="id" title="var">s2</span>)) (<span class="id" title="var">f</span> <span class="id" title="var">x'</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> (<span class="id" title="var">s1</span>++<span class="id" title="var">s2</span>))).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_equivlistA2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s</span>) (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> <span class="id" title="var">s'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fold_right_add2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s'</span> <span class="id" title="var">s</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">s'</span> -&gt; <span class="id" title="var">eqB</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span> -&gt; ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">s'</span> (<span class="id" title="var">x</span>::<span class="id" title="var">s</span>) -&gt; <span class="id" title="var">eqB</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">i</span> <span class="id" title="var">s'</span>) (<span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">fold_right</span> <span class="id" title="var">f</span> <span class="id" title="var">j</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Fold2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Remove</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>, {<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>}+{~(<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>)}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>, { <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> } + { ~ <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> }.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">removeA</span> (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) : <span class="id" title="var">list</span> <span class="id" title="var">A</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">y</span>::<span class="id" title="var">tl</span> =&gt; <span class="id" title="keyword">if</span> (<span class="id" title="var">eqA_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) <span class="id" title="keyword">then</span> <span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">tl</span> <span class="id" title="keyword">else</span> <span class="id" title="var">y</span>::(<span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">tl</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">removeA_filter</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> = <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">then</span> <span class="id" title="var">false</span> <span class="id" title="keyword">else</span> <span class="id" title="var">true</span>) <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">removeA_InA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">InA</span> <span class="id" title="var">y</span> (<span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> /\ ~<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">removeA_NoDupA</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">s</span> <span class="id" title="var">x</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">s</span> -&gt;  <span class="id" title="var">NoDupA</span> (<span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">removeA_equivlistA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;~<span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">equivlistA</span> (<span class="id" title="var">x</span> :: <span class="id" title="var">l</span>) <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">equivlistA</span> <span class="id" title="var">l</span> (<span class="id" title="var">removeA</span> <span class="id" title="var">x</span> <span class="id" title="var">l'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Remove</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Results concerning lists modulo <span class="inlinecode"><span class="id" title="var">eqA</span></span> and <span class="inlinecode"><span class="id" title="var">ltA</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">ltA</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">ltA_strorder</span> : <span class="id" title="var">StrictOrder</span> <span class="id" title="var">ltA</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">ltA_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">ltA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Let</span> <span class="id" title="var">sotrans</span> := (@<span class="id" title="var">StrictOrder_Transitive</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">ltA_strorder</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">sotrans</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">InfA</span>:=(<span class="id" title="var">lelistA</span> <span class="id" title="var">ltA</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">SortA</span>:=(<span class="id" title="var">sort</span> <span class="id" title="var">ltA</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">lelistA</span> <span class="id" title="var">sort</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InfA_ltA</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">InfA_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqlistA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">InfA</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For compatibility, can be deduced from <span class="inlinecode"><span class="id" title="var">InfA_compat</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InfA_eqA</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+<span class="id" title="keyword">Hint Immediate</span> <span class="id" title="var">InfA_ltA</span> <span class="id" title="var">InfA_eqA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">SortA_InfA_InA</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">a</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">a</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">In_InfA</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InA_InfA</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <span class="id" title="var">InA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InfA_alt</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; (<span class="id" title="var">InfA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> &lt;-&gt; (<span class="id" title="keyword">forall</span> <span class="id" title="var">y</span>, <span class="id" title="var">InA</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">InfA_app</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">a</span>, <span class="id" title="var">InfA</span> <span class="id" title="var">a</span> <span class="id" title="var">l1</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">a</span> <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">InfA</span> <span class="id" title="var">a</span> (<span class="id" title="var">l1</span>++<span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">SortA_app</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l1</span> -&gt; <span class="id" title="var">SortA</span> <span class="id" title="var">l2</span> -&gt;<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l1</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">y</span> <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;<span class="id" title="var">SortA</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">SortA_NoDupA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Some results about <span class="inlinecode"><span class="id" title="var">eqlistA</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">EqlistA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eqlistA_length</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>, <span class="id" title="var">eqlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">length</span> <span class="id" title="var">l</span> = <span class="id" title="var">length</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">app_eqlistA_compat</span> :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqlistA</span>==&gt;<span class="id" title="var">eqlistA</span>==&gt;<span class="id" title="var">eqlistA</span>) (@<span class="id" title="var">app</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For compatibility, can be deduced from app_eqlistA_compat 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eqlistA_app</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span> <span class="id" title="var">l2</span> <span class="id" title="var">l2'</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqlistA</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span> -&gt; <span class="id" title="var">eqlistA</span> <span class="id" title="var">l2</span> <span class="id" title="var">l2'</span> -&gt; <span class="id" title="var">eqlistA</span> (<span class="id" title="var">l1</span>++<span class="id" title="var">l2</span>) (<span class="id" title="var">l1'</span>++<span class="id" title="var">l2'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eqlistA_rev_app</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqlistA</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">l2</span> <span class="id" title="var">l2'</span>, <span class="id" title="var">eqlistA</span> <span class="id" title="var">l2</span> <span class="id" title="var">l2'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqlistA</span> ((<span class="id" title="var">rev</span> <span class="id" title="var">l1</span>)++<span class="id" title="var">l2</span>) ((<span class="id" title="var">rev</span> <span class="id" title="var">l1'</span>)++<span class="id" title="var">l2'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">rev_eqlistA_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eqlistA</span>==&gt;<span class="id" title="var">eqlistA</span>) (@<span class="id" title="var">rev</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eqlistA_rev</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqlistA</span> <span class="id" title="var">l1</span> <span class="id" title="var">l1'</span> -&gt; <span class="id" title="var">eqlistA</span> (<span class="id" title="var">rev</span> <span class="id" title="var">l1</span>) (<span class="id" title="var">rev</span> <span class="id" title="var">l1'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">SortA_equivlistA_eqlistA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>,<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">SortA</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">equivlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">eqlistA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">EqlistA</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A few things about <span class="inlinecode"><span class="id" title="var">filter</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Filter</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_sort</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">SortA</span> (<span class="id" title="var">List.filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_InA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">f</span>, <span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>, <span class="id" title="var">InA</span> <span class="id" title="var">x</span> (<span class="id" title="var">List.filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span>) &lt;-&gt; <span class="id" title="var">InA</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_split</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">f</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">f</span> <span class="id" title="var">y</span> = <span class="id" title="var">false</span> -&gt; <span class="id" title="var">ltA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">SortA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">l</span> = <span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> ++ <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span>=&gt;<span class="id" title="var">negb</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)) <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Filter</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Type_with_equality</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">InA</span> <span class="id" title="var">eqlistA</span> <span class="id" title="var">NoDupA</span> <span class="id" title="var">sort</span> <span class="id" title="var">lelistA</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Find</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqA</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqA</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>, {<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>}+{~(<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>)}.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">findA</span> (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">bool</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> (<span class="id" title="var">A</span>*<span class="id" title="var">B</span>)) : <span class="id" title="var">option</span> <span class="id" title="var">B</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;| (<span class="id" title="var">a</span>,<span class="id" title="var">b</span>)::<span class="id" title="var">l</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="keyword">then</span> <span class="id" title="var">Some</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">findA</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">findA_NoDupA</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;<span class="id" title="var">NoDupA</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">p</span> <span class="id" title="var">p'</span> =&gt; <span class="id" title="var">eqA</span> (<span class="id" title="var">fst</span> <span class="id" title="var">p</span>) (<span class="id" title="var">fst</span> <span class="id" title="var">p'</span>)) <span class="id" title="var">l</span> -&gt;<br/>
+&nbsp;(<span class="id" title="var">InA</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">p</span> <span class="id" title="var">p'</span> =&gt; <span class="id" title="var">eqA</span> (<span class="id" title="var">fst</span> <span class="id" title="var">p</span>) (<span class="id" title="var">fst</span> <span class="id" title="var">p'</span>) /\ <span class="id" title="var">snd</span> <span class="id" title="var">p</span> = <span class="id" title="var">snd</span> <span class="id" title="var">p'</span>) (<span class="id" title="var">a</span>,<span class="id" title="var">b</span>) <span class="id" title="var">l</span> &lt;-&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">findA</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">a'</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="keyword">then</span> <span class="id" title="var">true</span> <span class="id" title="keyword">else</span> <span class="id" title="var">false</span>) <span class="id" title="var">l</span> = <span class="id" title="var">Some</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Find</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Compatibility aliases. <span class="inlinecode"><span class="id" title="var">Proper</span></span> is rather to be used directly now.
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">compat_bool</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">eqA</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>)(<span class="id" title="var">f</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">bool</span>) :=<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">Logic.eq</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">compat_nat</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">eqA</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>)(<span class="id" title="var">f</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">nat</span>) :=<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">Logic.eq</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">compat_P</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">eqA</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>)(<span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>) :=<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">impl</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">compat_op</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span>} (<span class="id" title="var">eqA</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>)(<span class="id" title="var">eqB</span>:<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>)(<span class="id" title="var">f</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>) :=<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqB</span>==&gt;<span class="id" title="var">eqB</span>) <span class="id" title="var">f</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

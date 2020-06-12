@@ -1,0 +1,603 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Vectors.VectorDef</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Definitions of Vectors and functions to use them
+
+<div class="paragraph"> </div>
+
+   Author: Pierre Boutillier
+   Institution: PPS, INRIA 12/2010
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Names should be "caml name in list.ml" if exists and order of arguments
+have to be the same. complain if you see mistakes ... 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith_base</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Vectors.Fin</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">EqNotations</span>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">nat_scope</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A vector is a list of size n whose elements belong to a set A. 
+</div>
+<div class="code">
+
+<br/>
+#[<span class="id" title="var">universes</span>(<span class="id" title="var">template</span>)]<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">t</span> <span class="id" title="var">A</span> : <span class="id" title="var">nat</span> -&gt; <span class="id" title="keyword">Type</span> :=<br/>
+&nbsp;&nbsp;|<span class="id" title="var">nil</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> 0<br/>
+&nbsp;&nbsp;|<span class="id" title="var">cons</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">h</span>:<span class="id" title="var">A</span>) (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>), <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>).<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">SCHEMES</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An induction scheme for non-empty vectors 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">rectS</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">P</span>:<span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) -&gt; <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;(<span class="id" title="var">bas</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>: <span class="id" title="var">A</span>, <span class="id" title="var">P</span> (<span class="id" title="var">a</span> :: []))<br/>
+&nbsp;(<span class="id" title="var">rect</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)), <span class="id" title="var">P</span> <span class="id" title="var">v</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">v</span>)) :=<br/>
+&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">rectS_fix</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)) : <span class="id" title="var">P</span> <span class="id" title="var">v</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;|@<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">a</span> 0 <span class="id" title="var">v</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<span class="id" title="var">nil</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">bas</span> <span class="id" title="var">a</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">devil</span> =&gt; <span class="id" title="var">False_ind</span> (@<span class="id" title="var">IDProp</span>) <span class="id" title="var">devil</span> <br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;|@<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">a</span> (<span class="id" title="var">S</span> <span class="id" title="var">nn'</span>) <span class="id" title="var">v</span> =&gt; <span class="id" title="var">rect</span> <span class="id" title="var">a</span> <span class="id" title="var">v</span> (<span class="id" title="var">rectS_fix</span> <span class="id" title="var">v</span>)<br/>
+&nbsp;|<span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">devil</span> =&gt; <span class="id" title="var">False_ind</span> (@<span class="id" title="var">IDProp</span>) <span class="id" title="var">devil</span> <br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A vector of length <span class="inlinecode">0</span> is <span class="inlinecode"><span class="id" title="var">nil</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">case0</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">P</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> 0 -&gt; <span class="id" title="keyword">Type</span>) (<span class="id" title="var">H</span>:<span class="id" title="var">P</span> (<span class="id" title="var">nil</span> <span class="id" title="var">A</span>)) <span class="id" title="var">v</span>:<span class="id" title="var">P</span> <span class="id" title="var">v</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|[] =&gt; <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;|<span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">devil</span> =&gt; <span class="id" title="var">False_ind</span> (@<span class="id" title="var">IDProp</span>) <span class="id" title="var">devil</span> <br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A vector of length <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> is <span class="inlinecode"><span class="id" title="var">cons</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">caseS</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">P</span> : <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) -&gt; <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">H</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">h</span> {<span class="id" title="var">n</span>} <span class="id" title="var">t</span>, @<span class="id" title="var">P</span> <span class="id" title="var">n</span> (<span class="id" title="var">h</span> :: <span class="id" title="var">t</span>)) {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)) : <span class="id" title="var">P</span> <span class="id" title="var">v</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|<span class="id" title="var">h</span> :: <span class="id" title="var">t</span> =&gt; <span class="id" title="var">H</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;|<span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">devil</span> =&gt; <span class="id" title="var">False_ind</span> (@<span class="id" title="var">IDProp</span>) <span class="id" title="var">devil</span> <br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">caseS'</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)) : <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) -&gt; <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">H</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span>, <span class="id" title="var">P</span> (<span class="id" title="var">h</span> :: <span class="id" title="var">t</span>)), <span class="id" title="var">P</span> <span class="id" title="var">v</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">h</span> :: <span class="id" title="var">t</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">P</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">H</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">devil</span> =&gt; <span class="id" title="var">False_rect</span> (@<span class="id" title="var">IDProp</span>) <span class="id" title="var">devil</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An induction scheme for 2 vectors of same length 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">rect2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span>} (<span class="id" title="var">P</span>:<span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">bas</span> : <span class="id" title="var">P</span> [] []) (<span class="id" title="var">rect</span> : <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>}, <span class="id" title="var">P</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <span class="id" title="var">P</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">v1</span>) (<span class="id" title="var">b</span> :: <span class="id" title="var">v2</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">rect2_fix</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v1</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="keyword">forall</span> <span class="id" title="var">v2</span> : <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span>, <span class="id" title="var">P</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v1</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v2</span> =&gt; <span class="id" title="var">case0</span> <span class="id" title="var">_</span> <span class="id" title="var">bas</span> <span class="id" title="var">v2</span><br/>
+&nbsp;&nbsp;| @<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">h1</span> <span class="id" title="var">n'</span> <span class="id" title="var">t1</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v2</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">caseS'</span> <span class="id" title="var">v2</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">v2'</span> =&gt; <span class="id" title="var">P</span> (<span class="id" title="var">h1</span>::<span class="id" title="var">t1</span>) <span class="id" title="var">v2'</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h2</span> <span class="id" title="var">t2</span> =&gt; <span class="id" title="var">rect</span> (<span class="id" title="var">rect2_fix</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>) <span class="id" title="var">h1</span> <span class="id" title="var">h2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">SCHEMES</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">BASES</span>.<br/>
+</div>
+
+<div class="doc">
+The first element of a non empty vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">hd</span> {<span class="id" title="var">A</span>} := @<span class="id" title="var">caseS</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">v</span> =&gt; <span class="id" title="var">A</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The last element of an non empty vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">last</span> {<span class="id" title="var">A</span>} := @<span class="id" title="var">rectS</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">A</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> =&gt; <span class="id" title="var">a</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Build a vector of n{^ th} <span class="inlinecode"><span class="id" title="var">a</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">const</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">a</span>:<span class="id" title="var">A</span>) := <span class="id" title="var">nat_rect</span> <span class="id" title="var">_</span> [] (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">a</span> <span class="id" title="var">n</span> <span class="id" title="var">x</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The <span class="inlinecode"><span class="id" title="var">p</span></span>{^ th} element of a vector of length <span class="inlinecode"><span class="id" title="var">m</span></span>.
+
+<div class="paragraph"> </div>
+
+Computational behavior of this function should be the same as
+ocaml function. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">nth</span> {<span class="id" title="var">A</span>} :=<br/>
+<span class="id" title="keyword">fix</span> <span class="id" title="var">nth_fix</span> {<span class="id" title="var">m</span>} (<span class="id" title="var">v'</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>) (<span class="id" title="var">p</span> : <span class="id" title="var">Fin.t</span> <span class="id" title="var">m</span>) {<span class="id" title="keyword">struct</span> <span class="id" title="var">v'</span>} : <span class="id" title="var">A</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="tactic">in</span> <span class="id" title="var">Fin.t</span> <span class="id" title="var">m'</span> <span class="id" title="keyword">return</span> <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m'</span> -&gt; <span class="id" title="var">A</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;|<span class="id" title="var">Fin.F1</span> =&gt; <span class="id" title="var">caseS</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">v'</span> =&gt; <span class="id" title="var">A</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span>)<br/>
+&nbsp;|<span class="id" title="var">Fin.FS</span> <span class="id" title="var">p'</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v</span> =&gt; (<span class="id" title="var">caseS</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">v'</span> =&gt; <span class="id" title="var">Fin.t</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">A</span>)<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span> <span class="id" title="var">p0</span> =&gt; <span class="id" title="var">nth_fix</span> <span class="id" title="var">t</span> <span class="id" title="var">p0</span>) <span class="id" title="var">v</span>) <span class="id" title="var">p'</span><br/>
+<span class="id" title="keyword">end</span> <span class="id" title="var">v'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An equivalent definition of <span class="inlinecode"><span class="id" title="var">nth</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">nth_order</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) {<span class="id" title="var">p</span>} (<span class="id" title="var">H</span>: <span class="id" title="var">p</span> &lt; <span class="id" title="var">n</span>) :=<br/>
+(<span class="id" title="var">nth</span> <span class="id" title="var">v</span> (<span class="id" title="var">Fin.of_nat_lt</span> <span class="id" title="var">H</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Put <span class="inlinecode"><span class="id" title="var">a</span></span> at the p{^ th} place of <span class="inlinecode"><span class="id" title="var">v</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="tactic">replace</span> {<span class="id" title="var">A</span> <span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="var">p</span>: <span class="id" title="var">Fin.t</span> <span class="id" title="var">n</span>) (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) {<span class="id" title="keyword">struct</span> <span class="id" title="var">p</span>}: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| @<span class="id" title="var">Fin.F1</span> <span class="id" title="var">k</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v'</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">k</span>) =&gt; <span class="id" title="var">caseS'</span> <span class="id" title="var">v'</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">a</span> :: <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;| @<span class="id" title="var">Fin.FS</span> <span class="id" title="var">k</span> <span class="id" title="var">p'</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v'</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">k</span>) =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">caseS'</span> <span class="id" title="var">v'</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">k</span>)) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span> :: (<span class="id" title="tactic">replace</span> <span class="id" title="var">t</span> <span class="id" title="var">p'</span> <span class="id" title="var">a</span>)))<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">v</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Version of replace with <span class="inlinecode"><span class="id" title="var">lt</span></span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">replace_order</span> {<span class="id" title="var">A</span> <span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) {<span class="id" title="var">p</span>} (<span class="id" title="var">H</span>: <span class="id" title="var">p</span> &lt; <span class="id" title="var">n</span>) :=<br/>
+<span class="id" title="tactic">replace</span> <span class="id" title="var">v</span> (<span class="id" title="var">Fin.of_nat_lt</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remove the first element of a non empty vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">tl</span> {<span class="id" title="var">A</span>} := @<span class="id" title="var">caseS</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">v</span> =&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">t</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Destruct a non empty vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">uncons</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)) : <span class="id" title="var">A</span> * <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> := (<span class="id" title="var">hd</span> <span class="id" title="var">v</span>, <span class="id" title="var">tl</span> <span class="id" title="var">v</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remove last element of a non-empty vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">shiftout</span> {<span class="id" title="var">A</span>} := @<span class="id" title="var">rectS</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> =&gt; [])<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">h</span> :: <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Add an element at the end of a vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">shiftin</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>} (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">v</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|[] =&gt; <span class="id" title="var">a</span> :: []<br/>
+&nbsp;&nbsp;|<span class="id" title="var">h</span> :: <span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span> :: (<span class="id" title="var">shiftin</span> <span class="id" title="var">a</span> <span class="id" title="var">t</span>)<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Copy last element of a vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">shiftrepeat</span> {<span class="id" title="var">A</span>} := @<span class="id" title="var">rectS</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>)))<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> =&gt;  <span class="id" title="var">h</span> :: <span class="id" title="var">h</span> :: []) (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">h</span> :: <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Take first <span class="inlinecode"><span class="id" title="var">p</span></span> elements of a vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">take</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span>} (<span class="id" title="var">p</span>:<span class="id" title="var">nat</span>) (<span class="id" title="var">le</span>:<span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span>) (<span class="id" title="var">v</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">p</span> := <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">as</span> <span class="id" title="var">p</span> <span class="id" title="keyword">return</span> <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;| 0 =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; [] <br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">p'</span> =&gt; <span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="tactic">in</span> <span class="id" title="var">t</span> <span class="id" title="var">_</span> <span class="id" title="var">n</span> <span class="id" title="keyword">return</span> <span class="id" title="var">S</span> <span class="id" title="var">p'</span> &lt;= <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">S</span> <span class="id" title="var">p'</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| []=&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">le</span> =&gt; <span class="id" title="var">False_rect</span> <span class="id" title="var">_</span> (<span class="id" title="var">Nat.nle_succ_0</span> <span class="id" title="var">p'</span> <span class="id" title="var">le</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">xs</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">le</span> =&gt; <span class="id" title="var">x</span>::<span class="id" title="var">take</span> <span class="id" title="var">p'</span> (<span class="id" title="var">le_S_n</span> <span class="id" title="var">p'</span> <span class="id" title="var">_</span> <span class="id" title="var">le</span>) <span class="id" title="var">xs</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">le</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remove <span class="inlinecode"><span class="id" title="var">p</span></span> last elements of a vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trunc</span> : <span class="id" title="keyword">forall</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">n</span>} (<span class="id" title="var">p</span>:<span class="id" title="var">nat</span>), <span class="id" title="var">n</span> &gt; <span class="id" title="var">p</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span><br/>
+&nbsp;&nbsp;-&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">n</span> - <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Concatenation of two vectors 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">append</span> {<span class="id" title="var">A</span>}{<span class="id" title="var">n</span>}{<span class="id" title="var">p</span>} (<span class="id" title="var">v</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="var">w</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">p</span>):<span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">n</span>+<span class="id" title="var">p</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">v'</span> =&gt; <span class="id" title="var">a</span> :: (<span class="id" title="var">append</span> <span class="id" title="var">v'</span> <span class="id" title="var">w</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Infix</span> &quot;++" := <span class="id" title="var">append</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Split a vector into two parts 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">splitat</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">nat</span>) {<span class="id" title="var">r</span> : <span class="id" title="var">nat</span>} :<br/>
+&nbsp;&nbsp;<span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">l</span> + <span class="id" title="var">r</span>) -&gt; <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">l</span> * <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v</span> =&gt; ([], <span class="id" title="var">v</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">l'</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">v</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">v1</span>, <span class="id" title="var">v2</span>) := <span class="id" title="var">splitat</span> <span class="id" title="var">l'</span> (<span class="id" title="var">tl</span> <span class="id" title="var">v</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">hd</span> <span class="id" title="var">v</span>::<span class="id" title="var">v1</span>, <span class="id" title="var">v2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Two definitions of the tail recursive function that appends two lists but
+reverses the first one 
+<div class="paragraph"> </div>
+
+ This one has the exact expected computational behavior 
+</div>
+<div class="code">
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">rev_append_tail</span> {<span class="id" title="var">A</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="var">w</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;: <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">tail_plus</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">v'</span> =&gt; <span class="id" title="var">rev_append_tail</span> <span class="id" title="var">v'</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">w</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">EqdepFacts</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This one has a better type 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">rev_append</span> {<span class="id" title="var">A</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="var">w</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;:<span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">n</span> + <span class="id" title="var">p</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">rew</span> &lt;- (<span class="id" title="var">plus_tail_plus</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>) <span class="id" title="tactic">in</span> (<span class="id" title="var">rev_append_tail</span> <span class="id" title="var">v</span> <span class="id" title="var">w</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+rev <span class="inlinecode"><span class="id" title="var">a₁</span></span> <span class="inlinecode">;</span> <span class="inlinecode"><span class="id" title="var">a₂</span></span> <span class="inlinecode">;</span> <span class="inlinecode">..</span> <span class="inlinecode">;</span> <span class="inlinecode"><span class="id" title="var">an</span></span> is <span class="inlinecode"><span class="id" title="var">an</span></span> <span class="inlinecode">;</span> <span class="inlinecode"><span class="id" title="var">a</span>{<span class="id" title="var">n</span>-1}</span> <span class="inlinecode">;</span> <span class="inlinecode">..</span> <span class="inlinecode">;</span> <span class="inlinecode"><span class="id" title="var">a₁</span></span>
+
+<div class="paragraph"> </div>
+
+Caution : There is a lot of rewrite garbage in this definition 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">rev</span> {<span class="id" title="var">A</span> <span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> :=<br/>
+&nbsp;<span class="id" title="var">rew</span> &lt;- (<span class="id" title="var">plus_n_O</span> <span class="id" title="var">_</span>) <span class="id" title="tactic">in</span> (<span class="id" title="var">rev_append</span> <span class="id" title="var">v</span> []).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">BASES</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">ITERATORS</span>.<br/>
+</div>
+
+<div class="doc">
+<a id="lab551"></a><h1 class="section">Here are special non dependent useful instantiation of induction schemes</h1>
+
+<div class="paragraph"> </div>
+
+ Uniform application on the arguments of the vector 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">map</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">B</span>} (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>) : <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>), <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">map_fix</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; []<br/>
+&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">v'</span> =&gt; (<span class="id" title="var">f</span> <span class="id" title="var">a</span>) :: (<span class="id" title="var">map_fix</span> <span class="id" title="var">v'</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+map2 g <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode"><span class="id" title="var">y1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">yn</span></span> = <span class="inlinecode">(<span class="id" title="var">g</span></span> <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode"><span class="id" title="var">y1</span>)</span> <span class="inlinecode">..</span> <span class="inlinecode">(<span class="id" title="var">g</span></span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode"><span class="id" title="var">yn</span>)</span> 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">map2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>} (<span class="id" title="var">g</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">C</span>) :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>), <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">C</span> <span class="id" title="var">n</span> :=<br/>
+@<span class="id" title="var">rect2</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">t</span> <span class="id" title="var">C</span> <span class="id" title="var">n</span>) (<span class="id" title="var">nil</span> <span class="id" title="var">C</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> =&gt; (<span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) :: <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+fold_left f b <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> = f .. (f (f b x1) x2) .. xn 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fold_left</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>} (<span class="id" title="var">f</span>:<span class="id" title="var">B</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>): <span class="id" title="keyword">forall</span> (<span class="id" title="var">b</span>:<span class="id" title="var">B</span>) {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>), <span class="id" title="var">B</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">fold_left_fix</span> (<span class="id" title="var">b</span>:<span class="id" title="var">B</span>) {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">B</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">w</span> =&gt; (<span class="id" title="var">fold_left_fix</span> (<span class="id" title="var">f</span> <span class="id" title="var">b</span> <span class="id" title="var">a</span>) <span class="id" title="var">w</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+fold_right f <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> b = f x1 (f x2 .. (f xn b) .. ) 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fold_right</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">fold_right_fix</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) (<span class="id" title="var">b</span>:<span class="id" title="var">B</span>)<br/>
+&nbsp;&nbsp;{<span class="id" title="keyword">struct</span> <span class="id" title="var">v</span>} : <span class="id" title="var">B</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">w</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">a</span> (<span class="id" title="var">fold_right_fix</span> <span class="id" title="var">w</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+fold_right2 g c <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode"><span class="id" title="var">y1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">yn</span></span> = g x1 y1 (g x2 y2 .. (g xn yn c) .. )
+    c is before the vectors to be compliant with "refolding". 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fold_right2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>} (<span class="id" title="var">g</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">C</span> -&gt; <span class="id" title="var">C</span>) (<span class="id" title="var">c</span>: <span class="id" title="var">C</span>) :=<br/>
+@<span class="id" title="var">rect2</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">C</span>) <span class="id" title="var">c</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+fold_left2 f b <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode"><span class="id" title="var">y1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">yn</span></span> = g .. (g (g a x1 y1) x2 y2) .. xn yn 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fold_left2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span>: <span class="id" title="keyword">Type</span>} (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">C</span> -&gt; <span class="id" title="var">A</span>) :=<br/>
+<span class="id" title="keyword">fix</span> <span class="id" title="var">fold_left2_fix</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span>) : <span class="id" title="var">t</span> <span class="id" title="var">C</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">A</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">v</span> <span class="id" title="tactic">in</span> <span class="id" title="var">t</span> <span class="id" title="var">_</span> <span class="id" title="var">n0</span> <span class="id" title="keyword">return</span> <span class="id" title="var">t</span> <span class="id" title="var">C</span> <span class="id" title="var">n0</span> -&gt; <span class="id" title="var">A</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|[] =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">w</span> =&gt; <span class="id" title="var">case0</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">A</span>) <span class="id" title="var">a</span> <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;|@<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">vh</span> <span class="id" title="var">vn</span> <span class="id" title="var">vt</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">w</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">caseS'</span> <span class="id" title="var">w</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">A</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">wh</span> <span class="id" title="var">wt</span> =&gt; <span class="id" title="var">fold_left2_fix</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">vh</span> <span class="id" title="var">wh</span>) <span class="id" title="var">vt</span> <span class="id" title="var">wt</span>)<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">ITERATORS</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">SCANNING</span>.<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Forall</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">P</span>: <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>): <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>), <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;|<span class="id" title="var">Forall_nil</span>: <span class="id" title="var">Forall</span> <span class="id" title="var">P</span> []<br/>
+&nbsp;|<span class="id" title="var">Forall_cons</span> {<span class="id" title="var">n</span>} <span class="id" title="var">x</span> (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>): <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">Forall</span> <span class="id" title="var">P</span> <span class="id" title="var">v</span> -&gt; <span class="id" title="var">Forall</span> <span class="id" title="var">P</span> (<span class="id" title="var">x</span>::<span class="id" title="var">v</span>).<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">Forall</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Exists</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>): <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;|<span class="id" title="var">Exists_cons_hd</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x</span> (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>): <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">Exists</span> <span class="id" title="var">P</span> (<span class="id" title="var">x</span>::<span class="id" title="var">v</span>)<br/>
+&nbsp;|<span class="id" title="var">Exists_cons_tl</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x</span> (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>): <span class="id" title="var">Exists</span> <span class="id" title="var">P</span> <span class="id" title="var">v</span> -&gt; <span class="id" title="var">Exists</span> <span class="id" title="var">P</span> (<span class="id" title="var">x</span>::<span class="id" title="var">v</span>).<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">Exists</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">In</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">a</span>:<span class="id" title="var">A</span>): <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;|<span class="id" title="var">In_cons_hd</span> {<span class="id" title="var">m</span>} (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>): <span class="id" title="var">In</span> <span class="id" title="var">a</span> (<span class="id" title="var">a</span>::<span class="id" title="var">v</span>)<br/>
+&nbsp;|<span class="id" title="var">In_cons_tl</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x</span> (<span class="id" title="var">v</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>): <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">v</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">a</span> (<span class="id" title="var">x</span>::<span class="id" title="var">v</span>).<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">In</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Forall2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span>} (<span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>): <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;|<span class="id" title="var">Forall2_nil</span>: <span class="id" title="var">Forall2</span> <span class="id" title="var">P</span> [] []<br/>
+&nbsp;|<span class="id" title="var">Forall2_cons</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x1</span> <span class="id" title="var">x2</span> (<span class="id" title="var">v1</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>) <span class="id" title="var">v2</span>: <span class="id" title="var">P</span> <span class="id" title="var">x1</span> <span class="id" title="var">x2</span> -&gt; <span class="id" title="var">Forall2</span> <span class="id" title="var">P</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forall2</span> <span class="id" title="var">P</span> (<span class="id" title="var">x1</span>::<span class="id" title="var">v1</span>) (<span class="id" title="var">x2</span>::<span class="id" title="var">v2</span>).<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">Forall2</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Exists2</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span>} (<span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>): <span class="id" title="keyword">forall</span> {<span class="id" title="var">n</span>}, <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;|<span class="id" title="var">Exists2_cons_hd</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x1</span> <span class="id" title="var">x2</span> (<span class="id" title="var">v1</span>: <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>) (<span class="id" title="var">v2</span>: <span class="id" title="var">t</span> <span class="id" title="var">B</span> <span class="id" title="var">m</span>): <span class="id" title="var">P</span> <span class="id" title="var">x1</span> <span class="id" title="var">x2</span> -&gt; <span class="id" title="var">Exists2</span> <span class="id" title="var">P</span> (<span class="id" title="var">x1</span>::<span class="id" title="var">v1</span>) (<span class="id" title="var">x2</span>::<span class="id" title="var">v2</span>)<br/>
+&nbsp;|<span class="id" title="var">Exists2_cons_tl</span> {<span class="id" title="var">m</span>} <span class="id" title="var">x1</span> <span class="id" title="var">x2</span> (<span class="id" title="var">v1</span>:<span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">m</span>) <span class="id" title="var">v2</span>: <span class="id" title="var">Exists2</span> <span class="id" title="var">P</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> -&gt; <span class="id" title="var">Exists2</span> <span class="id" title="var">P</span> (<span class="id" title="var">x1</span>::<span class="id" title="var">v1</span>) (<span class="id" title="var">x2</span>::<span class="id" title="var">v2</span>).<br/>
+<span class="id" title="keyword">Hint Constructors</span> <span class="id" title="var">Exists2</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">SCANNING</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">VECTORLIST</span>.<br/>
+</div>
+
+<div class="doc">
+<a id="lab552"></a><h1 class="section">vector &lt;=&gt; list functions</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">of_list</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) : <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">length</span> <span class="id" title="var">l</span>) :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> <span class="id" title="var">t</span> <span class="id" title="var">A</span> (<span class="id" title="var">length</span> <span class="id" title="var">l'</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|<span class="id" title="var">Datatypes.nil</span> =&gt; []<br/>
+&nbsp;&nbsp;|(<span class="id" title="var">h</span> :: <span class="id" title="var">tail</span>)%<span class="id" title="var">list</span> =&gt; (<span class="id" title="var">h</span> :: (<span class="id" title="var">of_list</span> <span class="id" title="var">tail</span>))<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">to_list</span> {<span class="id" title="var">A</span>}{<span class="id" title="var">n</span>} (<span class="id" title="var">v</span> : <span class="id" title="var">t</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span>) : <span class="id" title="var">list</span> <span class="id" title="var">A</span> :=<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">cbv</span> <span class="id" title="keyword">delta</span> <span class="id" title="keyword">beta</span> <span class="id" title="tactic">in</span> <span class="id" title="var">fold_right</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">h</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">Datatypes.cons</span> <span class="id" title="var">h</span> <span class="id" title="var">H</span>) <span class="id" title="var">v</span> <span class="id" title="var">Datatypes.nil</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">VECTORLIST</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">VectorNotations</span>.<br/>
+<span class="id" title="keyword">Delimit</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">vector_scope</span> <span class="id" title="keyword">with</span> <span class="id" title="var">vector</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;[ ]" := [] (<span class="id" title="var">format</span> "[ ]") : <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;h :: t" := (<span class="id" title="var">h</span> :: <span class="id" title="var">t</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>)<br/>
+&nbsp;&nbsp;: <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;[ x ]" := (<span class="id" title="var">x</span> :: []) : <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;[ x ; y ; .. ; z ]" := (<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">x</span> <span class="id" title="var">_</span> (<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">y</span> <span class="id" title="var">_</span> .. (<span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">z</span> <span class="id" title="var">_</span> (<span class="id" title="var">nil</span> <span class="id" title="var">_</span>)) ..)) : <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;v [@ p ]" := (<span class="id" title="var">nth</span> <span class="id" title="var">v</span> <span class="id" title="var">p</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 1, <span class="id" title="var">format</span> "v [@ p ]") : <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;++" := <span class="id" title="var">append</span> : <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">vector_scope</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">VectorNotations</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

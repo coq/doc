@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Sorting.PermutSetoid</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span> <span class="id" title="var">Relations</span> <span class="id" title="var">Multiset</span> <span class="id" title="var">SetoidList</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This file is deprecated, use <span class="inlinecode"><span class="id" title="var">Permutation.v</span></span> instead.
+
+<div class="paragraph"> </div>
+
+    Indeed, this file defines a notion of permutation based on
+    multisets (there exists a permutation between two lists iff every
+    elements have the same multiplicity in the two lists) which
+    requires a more complex apparatus (the equipment of the domain
+    with a decidable equality) than <span class="inlinecode"><span class="id" title="var">Permutation</span></span> in <span class="inlinecode"><span class="id" title="var">Permutation.v</span></span>.
+
+<div class="paragraph"> </div>
+
+    The relation between the two relations are in lemma
+    <span class="inlinecode"><span class="id" title="var">permutation_Permutation</span></span>.
+
+<div class="paragraph"> </div>
+
+    File <span class="inlinecode"><span class="id" title="var">Permutation</span></span> concerns Leibniz equality : it shows in particular
+    that <span class="inlinecode"><span class="id" title="var">List.Permutation</span></span> and <span class="inlinecode"><span class="id" title="var">permutation</span></span> are equivalent in this context.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Permut</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab175"></a><h1 class="section">From lists to multisets</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqA</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqA</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">A</span>, {<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>} + {~ <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Let</span> <span class="id" title="var">emptyBag</span> := <span class="id" title="var">EmptyBag</span> <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Let</span> <span class="id" title="var">singletonBag</span> := <span class="id" title="var">SingletonBag</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_dec</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+contents of a list 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">list_contents</span> (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) : <span class="id" title="var">multiset</span> <span class="id" title="var">A</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">emptyBag</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">a</span> :: <span class="id" title="var">l</span> =&gt; <span class="id" title="var">munion</span> (<span class="id" title="var">singletonBag</span> <span class="id" title="var">a</span>) (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">list_contents_app</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">meq</span> (<span class="id" title="var">list_contents</span> (<span class="id" title="var">l</span> ++ <span class="id" title="var">m</span>)) (<span class="id" title="var">munion</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) (<span class="id" title="var">list_contents</span> <span class="id" title="var">m</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab176"></a><h1 class="section"><span class="inlinecode"><span class="id" title="var">permutation</span></span>: definition and basic properties</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">permutation</span> (<span class="id" title="var">l</span> <span class="id" title="var">m</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) := <span class="id" title="var">meq</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) (<span class="id" title="var">list_contents</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_refl</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_sym</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l2</span> <span class="id" title="var">l1</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_trans</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_cons_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> -&gt; <span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">a'</span> :: <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_cons</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>:<span class="id" title="var">A</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">a</span> :: <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_app</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> <span class="id" title="var">m</span> <span class="id" title="var">m'</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">m</span> <span class="id" title="var">m'</span> -&gt; <span class="id" title="var">permutation</span> (<span class="id" title="var">l</span> ++ <span class="id" title="var">m</span>) (<span class="id" title="var">l'</span> ++ <span class="id" title="var">m'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_add_inside_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">l3</span> <span class="id" title="var">l4</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) (<span class="id" title="var">l3</span> ++ <span class="id" title="var">l4</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">l2</span>) (<span class="id" title="var">l3</span> ++ <span class="id" title="var">a'</span> :: <span class="id" title="var">l4</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_add_inside</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">l3</span> <span class="id" title="var">l4</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) (<span class="id" title="var">l3</span> ++ <span class="id" title="var">l4</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">l2</span>) (<span class="id" title="var">l3</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">l4</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_add_cons_inside_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">l</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">l1</span> ++ <span class="id" title="var">a'</span> :: <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_add_cons_inside</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">l</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">l1</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_middle</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">l</span> <span class="id" title="var">m</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">A</span>), <span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span> ++ <span class="id" title="var">m</span>) (<span class="id" title="var">l</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_sym_app</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) (<span class="id" title="var">l2</span> ++ <span class="id" title="var">l1</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_rev</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> (<span class="id" title="var">rev</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab177"></a><h1 class="section">Some inversion results.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_conv_inv</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">e</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">e</span> :: <span class="id" title="var">l1</span>) (<span class="id" title="var">e</span> :: <span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_app_inv1</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l</span>) (<span class="id" title="var">l2</span> ++ <span class="id" title="var">l</span>) -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+we can use <span class="inlinecode"><span class="id" title="var">multiplicity</span></span> to define <span class="inlinecode"><span class="id" title="var">InA</span></span> and <span class="inlinecode"><span class="id" title="var">NoDupA</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fact</span> <span class="id" title="var">if_eqA_then</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>),<br/>
+&nbsp;<span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> -&gt; (<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>) = <span class="id" title="var">b</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_app_inv2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">l</span> ++ <span class="id" title="var">l1</span>) (<span class="id" title="var">l</span> ++ <span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_remove_hd_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">l1</span> ++ <span class="id" title="var">b</span> :: <span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_remove_hd</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">a</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">l</span>) (<span class="id" title="var">l1</span> ++ <span class="id" title="var">a</span> :: <span class="id" title="var">l2</span>) -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fact</span> <span class="id" title="var">if_eqA_else</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>),<br/>
+&nbsp;~<span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> -&gt; (<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>) = <span class="id" title="var">b'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fact</span> <span class="id" title="var">if_eqA_refl</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>),<br/>
+&nbsp;(<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">a</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>) = <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+PL: Inutilisable dans un rewrite sans un change prealable. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">if_eqA</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>) :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;@<span class="id" title="var">eq</span> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fact</span> <span class="id" title="var">if_eqA_rewrite_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a1</span> <span class="id" title="var">a1'</span> <span class="id" title="var">a2</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>),<br/>
+&nbsp;<span class="id" title="var">eqA</span> <span class="id" title="var">a1</span> <span class="id" title="var">a1'</span> -&gt; (<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a1</span> <span class="id" title="var">a2</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>) =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a1'</span> <span class="id" title="var">a2</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fact</span> <span class="id" title="var">if_eqA_rewrite_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a1</span> <span class="id" title="var">a2</span> <span class="id" title="var">a2'</span> (<span class="id" title="var">B</span>:<span class="id" title="keyword">Type</span>)(<span class="id" title="var">b</span> <span class="id" title="var">b'</span>:<span class="id" title="var">B</span>),<br/>
+&nbsp;<span class="id" title="var">eqA</span> <span class="id" title="var">a2</span> <span class="id" title="var">a2'</span> -&gt; (<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a1</span> <span class="id" title="var">a2</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>) =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">if</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">a1</span> <span class="id" title="var">a2'</span> <span class="id" title="keyword">then</span> <span class="id" title="var">b</span> <span class="id" title="keyword">else</span> <span class="id" title="var">b'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">multiplicity_eqA</span> (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;@<span class="id" title="var">eq</span> <span class="id" title="var">_</span>) (<span class="id" title="var">multiplicity</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">multiplicity_InA</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span>, <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> &lt;-&gt; 0 &lt; <span class="id" title="var">multiplicity</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) <span class="id" title="var">a</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">multiplicity_InA_O</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span>, ~ <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">multiplicity</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) <span class="id" title="var">a</span> = 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">multiplicity_InA_S</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span>, <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">multiplicity</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) <span class="id" title="var">a</span> &gt;= 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">multiplicity_NoDupA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">NoDupA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l</span> &lt;-&gt; (<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, <span class="id" title="var">multiplicity</span> (<span class="id" title="var">list_contents</span> <span class="id" title="var">l</span>) <span class="id" title="var">a</span> &lt;= 1).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Permutation is compatible with InA. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_InA_InA</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">e</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">e</span> <span class="id" title="var">l1</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">e</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_cons_InA</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">e</span>, <span class="id" title="var">permutation</span> (<span class="id" title="var">e</span> :: <span class="id" title="var">l1</span>) <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">InA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">e</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Permutation of an empty list. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_nil</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> [] -&gt; <span class="id" title="var">l</span> = [].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Permutation for short lists. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_length_1</span>:<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <span class="id" title="var">permutation</span> [<span class="id" title="var">a</span>] [<span class="id" title="var">b</span>] -&gt; <span class="id" title="var">eqA</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_length_2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">a1</span> <span class="id" title="var">b1</span> <span class="id" title="var">a2</span> <span class="id" title="var">b2</span>, <span class="id" title="var">permutation</span> [<span class="id" title="var">a1</span>; <span class="id" title="var">b1</span>] [<span class="id" title="var">a2</span>; <span class="id" title="var">b2</span>] -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">eqA</span> <span class="id" title="var">a1</span> <span class="id" title="var">a2</span>) /\ (<span class="id" title="var">eqA</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>) \/ (<span class="id" title="var">eqA</span> <span class="id" title="var">a1</span> <span class="id" title="var">b2</span>) /\ (<span class="id" title="var">eqA</span> <span class="id" title="var">a2</span> <span class="id" title="var">b1</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Permutation is compatible with length. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_length</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> -&gt; <span class="id" title="var">length</span> <span class="id" title="var">l1</span> = <span class="id" title="var">length</span> <span class="id" title="var">l2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDupA_equivlistA_permut</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>, <span class="id" title="var">NoDupA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l</span> -&gt; <span class="id" title="var">NoDupA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">equivlistA</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Permut</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Permut_map</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variables</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqA</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">A</span>, {<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>} + {~ <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>}.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqB</span> : <span class="id" title="var">B</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqB_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">B</span>, { <span class="id" title="var">eqB</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> }+{ ~<span class="id" title="var">eqB</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> }.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqB_trans</span> : <span class="id" title="var">Transitive</span> <span class="id" title="var">eqB</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Permutation is compatible with map. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_map</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqB</span>) <span class="id" title="var">f</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span>, <span class="id" title="var">permutation</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">_</span> <span class="id" title="var">eqB_dec</span> (<span class="id" title="var">map</span> <span class="id" title="var">f</span> <span class="id" title="var">l1</span>) (<span class="id" title="var">map</span> <span class="id" title="var">f</span> <span class="id" title="var">l2</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Permut_map</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Permutation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Permut_permut</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">eqA</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">A</span>, {<span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>} + {~ <span class="id" title="var">eqA</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>}.<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">eqA_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">eqA</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Permutation_impl_permutation</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permut_eqA</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>, <span class="id" title="var">Forall2</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> -&gt; <span class="id" title="var">permutation</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">permutation_Permutation</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">permutation</span> <span class="id" title="var">_</span> <span class="id" title="var">eqA_dec</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> &lt;-&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">l''</span>, <span class="id" title="var">Permutation</span> <span class="id" title="var">l</span> <span class="id" title="var">l''</span> /\ <span class="id" title="var">Forall2</span> <span class="id" title="var">eqA</span> <span class="id" title="var">l''</span> <span class="id" title="var">l'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Permut_permut</span>.<br/>
+
+<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

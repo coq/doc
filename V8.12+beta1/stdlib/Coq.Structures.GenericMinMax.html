@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Structures.GenericMinMax</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Orders</span> <span class="id" title="var">OrdersTac</span> <span class="id" title="var">OrdersFacts</span> <span class="id" title="var">Setoid</span> <span class="id" title="var">Morphisms</span> <span class="id" title="var">Basics</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1134"></a><h1 class="section">A Generic construction of min and max</h1>
+
+<div class="paragraph"> </div>
+
+<a id="lab1135"></a><h2 class="section">First, an interface for types with <span class="inlinecode"><span class="id" title="var">max</span></span> and/or <span class="inlinecode"><span class="id" title="var">min</span></span></h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <span class="id" title="var">HasMax</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">E</span>:<span class="id" title="var">EqLe'</span>).<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="keyword">Inline</span> <span class="id" title="var">max</span> : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span>.<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">max_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">max_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">y</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">HasMax</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <span class="id" title="var">HasMin</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">E</span>:<span class="id" title="var">EqLe'</span>).<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="keyword">Inline</span> <span class="id" title="var">min</span> : <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span> -&gt; <span class="id" title="var">t</span>.<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">min_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">min_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">y</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">HasMin</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Type</span> <span class="id" title="var">HasMinMax</span> (<span class="id" title="var">E</span>:<span class="id" title="var">EqLe</span>) := <span class="id" title="var">HasMax</span> <span class="id" title="var">E</span> &lt;+ <span class="id" title="var">HasMin</span> <span class="id" title="var">E</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1136"></a><h2 class="section">Any <span class="inlinecode"><span class="id" title="var">OrderedTypeFull</span></span> can be equipped by <span class="inlinecode"><span class="id" title="var">max</span></span> and <span class="inlinecode"><span class="id" title="var">min</span></span></h2>
+
+    based on the compare function. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">gmax</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">cmp</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="var">comparison</span>) <span class="id" title="var">x</span> <span class="id" title="var">y</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">cmp</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Lt</span> =&gt; <span class="id" title="var">y</span> | <span class="id" title="var">_</span> =&gt; <span class="id" title="var">x</span> <span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">gmin</span> {<span class="id" title="var">A</span>} (<span class="id" title="var">cmp</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="var">comparison</span>) <span class="id" title="var">x</span> <span class="id" title="var">y</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">cmp</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Gt</span> =&gt; <span class="id" title="var">y</span> | <span class="id" title="var">_</span> =&gt; <span class="id" title="var">x</span> <span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">GenericMinMax</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">OrderedTypeFull'</span>) &lt;: <span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">max</span> := <span class="id" title="var">gmax</span> <span class="id" title="var">O.compare</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min</span> := <span class="id" title="var">gmin</span> <span class="id" title="var">O.compare</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ge_not_lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; <span class="id" title="var">False</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_r</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_l</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_r</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">GenericMinMax</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1137"></a><h2 class="section">Consequences of the minimalist interface: facts about <span class="inlinecode"><span class="id" title="var">max</span></span> and <span class="inlinecode"><span class="id" title="var">min</span></span>.</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MinMaxLogicalProperties</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">TotalOrder'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Private_Tac</span> := !<span class="id" title="var">MakeOrderTac</span> <span class="id" title="var">O</span> <span class="id" title="var">O</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An alternative characterisation of <span class="inlinecode"><span class="id" title="var">max</span></span>, equivalent to
+    <span class="inlinecode"><span class="id" title="var">max_l</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">max_r</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_spec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A more symmetric version of <span class="inlinecode"><span class="id" title="var">max_spec</span></span>, based only on <span class="inlinecode"><span class="id" title="var">le</span></span>.
+    Beware that left and right alternatives overlap. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_spec_le</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> :<br/>
+&nbsp;(<span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> /\ <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">le</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">max_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">max</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A function satisfying the same specification is equal to <span class="inlinecode"><span class="id" title="var">max</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_unicity</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;((<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">p</span> == <span class="id" title="var">m</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">p</span> == <span class="id" title="var">n</span>)) -&gt; <span class="id" title="var">p</span> == <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_unicity_ext</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, (<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>)) -&gt;<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">max</span></span> commutes with monotone functions. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_mono</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;(<span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span> ==&gt; <span class="id" title="var">eq</span>) <span class="id" title="var">f</span>) -&gt;<br/>
+&nbsp;(<span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">le</span>) <span class="id" title="var">f</span>) -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">max</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) == <span class="id" title="var">f</span> (<span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1138"></a><h3 class="section">Semi-lattice algebraic properties of <span class="inlinecode"><span class="id" title="var">max</span></span></h3>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_id</span> <span class="id" title="var">n</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">n</span> == <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">max_idempotent</span> := <span class="id" title="var">max_id</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_assoc</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> : <span class="id" title="var">max</span> <span class="id" title="var">m</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>) == <span class="id" title="var">max</span> (<span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span>) <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_comm</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_max</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> |- <span class="id" title="keyword">context</span> [<span class="id" title="var">max</span> ?<span class="id" title="var">n</span> ?<span class="id" title="var">m</span>] =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="var">max_spec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>); <span class="id" title="tactic">intuition</span>; <span class="id" title="var">order</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1139"></a><h3 class="section">Least-upper bound properties of <span class="inlinecode"><span class="id" title="var">max</span></span></h3>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_max_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_max_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">m</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_l_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span> &lt;-&gt; <span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_r_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_le</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span> \/ <span class="id" title="var">p</span> &lt;= <span class="id" title="var">m</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_le_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span> \/ <span class="id" title="var">p</span> &lt;= <span class="id" title="var">m</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lt_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt; <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">p</span> &lt; <span class="id" title="var">n</span> \/ <span class="id" title="var">p</span> &lt; <span class="id" title="var">m</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> -&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> -&gt; <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">p</span> -&gt; <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> &lt;-&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">p</span> /\ <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt; <span class="id" title="var">p</span> -&gt; <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_lub_lt_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span> &lt;-&gt; <span class="id" title="var">n</span> &lt; <span class="id" title="var">p</span> /\ <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_le_compat_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">p</span> <span class="id" title="var">n</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">p</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_le_compat_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_le_compat</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">q</span> -&gt; <span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> &lt;= <span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Properties of <span class="inlinecode"><span class="id" title="var">min</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_spec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> :<br/>
+&nbsp;(<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_spec_le</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> :<br/>
+&nbsp;(<span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> /\ <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">min_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">min</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_unicity</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;((<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">p</span> == <span class="id" title="var">n</span>) \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">p</span> == <span class="id" title="var">m</span>)) -&gt;  <span class="id" title="var">p</span> == <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_unicity_ext</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, (<span class="id" title="var">n</span> &lt; <span class="id" title="var">m</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>)  \/ (<span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>)) -&gt;<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_mono</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;(<span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span> ==&gt; <span class="id" title="var">eq</span>) <span class="id" title="var">f</span>) -&gt;<br/>
+&nbsp;(<span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">le</span>) <span class="id" title="var">f</span>) -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">min</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) == <span class="id" title="var">f</span> (<span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_id</span> <span class="id" title="var">n</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">n</span> == <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">min_idempotent</span> := <span class="id" title="var">min_id</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_assoc</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> : <span class="id" title="var">min</span> <span class="id" title="var">m</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>) == <span class="id" title="var">min</span> (<span class="id" title="var">min</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span>) <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_comm</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">min</span> <span class="id" title="var">m</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_min</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> |- <span class="id" title="keyword">context</span> [<span class="id" title="var">min</span> ?<span class="id" title="var">n</span> ?<span class="id" title="var">m</span>] =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="var">min_spec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>); <span class="id" title="tactic">intuition</span>; <span class="id" title="var">order</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_min_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_min_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_l_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span> &lt;-&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_r_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">m</span> &lt;= <span class="id" title="var">n</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_le</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> -&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">p</span> \/ <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_le_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span> &lt;-&gt; <span class="id" title="var">n</span> &lt;= <span class="id" title="var">p</span> \/ <span class="id" title="var">m</span> &lt;= <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_lt_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span> &lt;-&gt; <span class="id" title="var">n</span> &lt; <span class="id" title="var">p</span> \/ <span class="id" title="var">m</span> &lt; <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">n</span> /\ <span class="id" title="var">p</span> &lt;= <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt; <span class="id" title="var">n</span> -&gt; <span class="id" title="var">p</span> &lt; <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt; <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_glb_lt_iff</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">p</span> &lt; <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> &lt;-&gt; <span class="id" title="var">p</span> &lt; <span class="id" title="var">n</span> /\ <span class="id" title="var">p</span> &lt; <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_le_compat_l</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">p</span> <span class="id" title="var">n</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">p</span> <span class="id" title="var">m</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_le_compat_r</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_le_compat</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : <span class="id" title="var">n</span> &lt;= <span class="id" title="var">m</span> -&gt; <span class="id" title="var">p</span> &lt;= <span class="id" title="var">q</span> -&gt;<br/>
+&nbsp;<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> &lt;= <span class="id" title="var">min</span> <span class="id" title="var">m</span> <span class="id" title="var">q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1140"></a><h3 class="section">Combined properties of min and max</h3>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_max_absorption</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">max</span> <span class="id" title="var">n</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) == <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_absorption</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="var">min</span> <span class="id" title="var">n</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) == <span class="id" title="var">n</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Distributivity 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_distr</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;<span class="id" title="var">max</span> <span class="id" title="var">n</span> (<span class="id" title="var">min</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>) == <span class="id" title="var">min</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_max_distr</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;<span class="id" title="var">min</span> <span class="id" title="var">n</span> (<span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>) == <span class="id" title="var">max</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Modularity 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_modular</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;<span class="id" title="var">max</span> <span class="id" title="var">n</span> (<span class="id" title="var">min</span> <span class="id" title="var">m</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>)) == <span class="id" title="var">min</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_max_modular</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;<span class="id" title="var">min</span> <span class="id" title="var">n</span> (<span class="id" title="var">max</span> <span class="id" title="var">m</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>)) == <span class="id" title="var">max</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Disassociativity 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_disassoc</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span> :<br/>
+&nbsp;<span class="id" title="var">min</span> <span class="id" title="var">n</span> (<span class="id" title="var">max</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>) &lt;= <span class="id" title="var">max</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) <span class="id" title="var">p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Anti-monotonicity swaps the role of <span class="inlinecode"><span class="id" title="var">min</span></span> and <span class="inlinecode"><span class="id" title="var">max</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_antimono</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">le</span>==&gt;<span class="id" title="var">flip</span> <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">max</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) == <span class="id" title="var">f</span> (<span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_max_antimono</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">le</span>==&gt;<span class="id" title="var">flip</span> <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">min</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) == <span class="id" title="var">f</span> (<span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MinMaxLogicalProperties</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1141"></a><h2 class="section">Properties requiring a decidable order</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MinMaxDecProperties</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">OrderedTypeFull'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Induction principles for <span class="inlinecode"><span class="id" title="var">max</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_case_strong</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">t</span> -&gt; <span class="id" title="keyword">Type</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>==<span class="id" title="var">y</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="var">m</span>&lt;=<span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">n</span>) -&gt; (<span class="id" title="var">n</span>&lt;=<span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span>) -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_case</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">t</span> -&gt; <span class="id" title="keyword">Type</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">max</span></span> returns one of its arguments. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_dec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : {<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>} + {<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>}.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Idem for <span class="inlinecode"><span class="id" title="var">min</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_case_strong</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">O.t</span> -&gt; <span class="id" title="keyword">Type</span>) :<br/>
+&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;(<span class="id" title="var">n</span>&lt;=<span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">n</span>) -&gt; (<span class="id" title="var">m</span>&lt;=<span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span>) -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_case</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">O.t</span> -&gt; <span class="id" title="keyword">Type</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_dec</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : {<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">n</span>} + {<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> == <span class="id" title="var">m</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MinMaxDecProperties</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MinMaxProperties</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">OrderedTypeFull'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">OT</span> := <span class="id" title="var">OTF_to_TotalOrder</span> <span class="id" title="var">O</span>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">MinMaxLogicalProperties</span> <span class="id" title="var">OT</span> <span class="id" title="var">M</span>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">MinMaxDecProperties</span> <span class="id" title="var">O</span> <span class="id" title="var">M</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">max_l</span> := <span class="id" title="var">max_l</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">max_r</span> := <span class="id" title="var">max_r</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min_l</span> := <span class="id" title="var">min_l</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min_r</span> := <span class="id" title="var">min_r</span>.<br/>
+&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">max_monotone</span> := <span class="id" title="var">max_mono</span>.<br/>
+&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">min_monotone</span> := <span class="id" title="var">min_mono</span>.<br/>
+&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">max_min_antimonotone</span> := <span class="id" title="var">max_min_antimono</span>.<br/>
+&nbsp;<span class="id" title="keyword">Notation</span> <span class="id" title="var">min_max_antimonotone</span> := <span class="id" title="var">min_max_antimono</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MinMaxProperties</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1142"></a><h2 class="section">When the equality is Leibniz, we can skip a few <span class="inlinecode"><span class="id" title="var">Proper</span></span> precondition.</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">UsualMinMaxLogicalProperties</span><br/>
+&nbsp;(<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">UsualTotalOrder'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">MinMaxLogicalProperties</span> <span class="id" title="var">O</span> <span class="id" title="var">M</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_monotone</span> <span class="id" title="var">f</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">max</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) = <span class="id" title="var">f</span> (<span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_monotone</span> <span class="id" title="var">f</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">min</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) = <span class="id" title="var">f</span> (<span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_max_antimonotone</span> <span class="id" title="var">f</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">flip</span> <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">min</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) = <span class="id" title="var">f</span> (<span class="id" title="var">max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_min_antimonotone</span> <span class="id" title="var">f</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">le</span> ==&gt; <span class="id" title="var">flip</span> <span class="id" title="var">le</span>) <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">max</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">y</span>) = <span class="id" title="var">f</span> (<span class="id" title="var">min</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">UsualMinMaxLogicalProperties</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">UsualMinMaxDecProperties</span><br/>
+&nbsp;(<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">UsualOrderedTypeFull'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Private_Dec</span> := <span class="id" title="var">MinMaxDecProperties</span> <span class="id" title="var">O</span> <span class="id" title="var">M</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_case_strong</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">t</span> -&gt; <span class="id" title="keyword">Type</span>),<br/>
+&nbsp;&nbsp;(<span class="id" title="var">m</span>&lt;=<span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">n</span>) -&gt; (<span class="id" title="var">n</span>&lt;=<span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span>) -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_case</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">t</span> -&gt; <span class="id" title="keyword">Type</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, {<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> = <span class="id" title="var">n</span>} + {<span class="id" title="var">max</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> = <span class="id" title="var">m</span>}.<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_case_strong</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">O.t</span> -&gt; <span class="id" title="keyword">Type</span>),<br/>
+&nbsp;&nbsp;(<span class="id" title="var">n</span>&lt;=<span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">n</span>) -&gt; (<span class="id" title="var">m</span>&lt;=<span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span>) -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_case</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> (<span class="id" title="var">P</span>:<span class="id" title="var">O.t</span> -&gt; <span class="id" title="keyword">Type</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> <span class="id" title="var">n</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">m</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>).<br/>
+ 
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">min_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, {<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> = <span class="id" title="var">n</span>} + {<span class="id" title="var">min</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> = <span class="id" title="var">m</span>}.<br/>
+ 
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">UsualMinMaxDecProperties</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">UsualMinMaxProperties</span><br/>
+&nbsp;(<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">UsualOrderedTypeFull'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMinMax</span> <span class="id" title="var">O</span>).<br/>
+&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">OT</span> := <span class="id" title="var">OTF_to_TotalOrder</span> <span class="id" title="var">O</span>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">UsualMinMaxLogicalProperties</span> <span class="id" title="var">OT</span> <span class="id" title="var">M</span>.<br/>
+&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">UsualMinMaxDecProperties</span> <span class="id" title="var">O</span> <span class="id" title="var">M</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">max_l</span> := <span class="id" title="var">max_l</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">max_r</span> := <span class="id" title="var">max_r</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min_l</span> := <span class="id" title="var">min_l</span>.<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">min_r</span> := <span class="id" title="var">min_r</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">UsualMinMaxProperties</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+From <span class="inlinecode"><span class="id" title="var">TotalOrder</span></span> and <span class="inlinecode"><span class="id" title="var">HasMax</span></span> and <span class="inlinecode"><span class="id" title="var">HasEqDec</span></span>, we can prove
+    that the order is decidable and build an <span class="inlinecode"><span class="id" title="var">OrderedTypeFull</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">TOMaxEqDec_to_Compare</span><br/>
+&nbsp;(<span class="id" title="keyword">Import</span> <span class="id" title="var">O</span>:<span class="id" title="var">TotalOrder'</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">M</span>:<span class="id" title="var">HasMax</span> <span class="id" title="var">O</span>)(<span class="id" title="keyword">Import</span> <span class="id" title="var">E</span>:<span class="id" title="var">HasEqDec</span> <span class="id" title="var">O</span>) &lt;: <span class="id" title="var">HasCompare</span> <span class="id" title="var">O</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">eq_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="keyword">then</span> <span class="id" title="var">Eq</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="keyword">if</span> <span class="id" title="var">eq_dec</span> (<span class="id" title="var">M.max</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) <span class="id" title="var">y</span> <span class="id" title="keyword">then</span> <span class="id" title="var">Lt</span> <span class="id" title="keyword">else</span> <span class="id" title="var">Gt</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">compare_spec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">CompSpec</span> <span class="id" title="var">eq</span> <span class="id" title="var">lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> (<span class="id" title="var">compare</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">TOMaxEqDec_to_Compare</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">TOMaxEqDec_to_OTF</span> (<span class="id" title="var">O</span>:<span class="id" title="var">TotalOrder</span>)(<span class="id" title="var">M</span>:<span class="id" title="var">HasMax</span> <span class="id" title="var">O</span>)(<span class="id" title="var">E</span>:<span class="id" title="var">HasEqDec</span> <span class="id" title="var">O</span>)<br/>
+&nbsp;&lt;: <span class="id" title="var">OrderedTypeFull</span><br/>
+&nbsp;:= <span class="id" title="var">O</span> &lt;+ <span class="id" title="var">E</span> &lt;+ <span class="id" title="var">TOMaxEqDec_to_Compare</span> <span class="id" title="var">O</span> <span class="id" title="var">M</span> <span class="id" title="var">E</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+TODO: Some Remaining questions...
+--&gt; Compare with a type-classes version ?
+--&gt; Is max_unicity and max_unicity_ext really convenient to express
+    that any possible definition of max will in fact be equivalent ?
+--&gt; Is it possible to avoid copy-paste about min even more ?
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

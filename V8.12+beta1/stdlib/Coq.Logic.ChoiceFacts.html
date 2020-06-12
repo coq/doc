@@ -1,0 +1,1368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Logic.ChoiceFacts</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Some facts and definitions concerning choice and description in
+       intuitionistic logic. <a id="lab975"></a><h1 class="section">References:</h1>
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode">[<span class="id" title="var">Bell</span>]</span> John L. Bell, Choice principles in intuitionistic set theory,
+unpublished.
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode">[<span class="id" title="var">Bell93</span>]</span> John L. Bell, Hilbert's Epsilon Operator in Intuitionistic
+Type Theories, Mathematical Logic Quarterly, volume 39, 1993.
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode">[<span class="id" title="var">Carlström04</span>]</span> Jesper Carlström, EM + Ext + AC_int is equivalent to
+AC_ext, Mathematical Logic Quaterly, vol 50(3), pp 236-240, 2004.
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode">[<span class="id" title="var">Carlström05</span>]</span> Jesper Carlström, Interpreting descriptions in
+intentional type theory, Journal of Symbolic Logic 70(2):488-514, 2005.
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode">[<span class="id" title="var">Werner97</span>]</span> Benjamin Werner, Sets in Types, Types in Sets, TACS, 1997.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">RelationClasses</span> <span class="id" title="var">Logic</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab976"></a><h1 class="section">Definitions</h1>
+
+<div class="paragraph"> </div>
+
+ Choice, reification and description schemes 
+<div class="paragraph"> </div>
+
+ We make them all polymorphic. Most of them have existentials as conclusion
+    so they require polymorphism otherwise their first application (e.g. to an
+    existential in <span class="inlinecode"><span class="id" title="keyword">Set</span></span>) will fix the level of <span class="inlinecode"><span class="id" title="var">A</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">ChoiceSchemes</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variables</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> :<span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab977"></a><h2 class="section">Constructive choice and description</h2>
+
+<div class="paragraph"> </div>
+
+ AC_rel = relational form of the (non extensional) axiom of choice
+             (a "set-theoretic" axiom of choice) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">RelationalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">R'</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>, <span class="id" title="var">subrelation</span> <span class="id" title="var">R'</span> <span class="id" title="var">R</span> /\ <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span>, <span class="id" title="var">R'</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun = functional form of the (non extensional) axiom of choice
+             (a "type-theoretic" axiom of choice) 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">FunctionalChoice_on_rel</span> (<span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>) :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>, (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">FunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun_dep = functional form of the (non extensional) axiom of
+                 choice, with dependent functions 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">DependentFunctionalChoice_on</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">B</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Type</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">B</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span> <span class="id" title="var">x</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">B</span> <span class="id" title="var">x</span>), <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_trunc = axiom of choice for propositional truncations
+               (truncation and quantification commute) 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">InhabitedForallCommute_on</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">B</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Type</span>) :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">inhabited</span> (<span class="id" title="var">B</span> <span class="id" title="var">x</span>)) -&gt; <span class="id" title="var">inhabited</span> (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">B</span> <span class="id" title="var">x</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+DC_fun = functional form of the dependent axiom of choice 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">FunctionalDependentChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">x0</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">nat</span> -&gt; <span class="id" title="var">A</span>, <span class="id" title="var">f</span> 0 = <span class="id" title="var">x0</span> /\ <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <span class="id" title="var">R</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>))).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+ACw_fun = functional form of the countable axiom of choice 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">FunctionalCountableChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">R</span>:<span class="id" title="var">nat</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="var">R</span> <span class="id" title="var">n</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">nat</span> -&gt; <span class="id" title="var">A</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <span class="id" title="var">R</span> <span class="id" title="var">n</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC! = functional relation reification
+          (known as axiom of unique choice in topos theory,
+           sometimes called principle of definite description in
+           the context of constructive type theory, sometimes
+           called axiom of no choice) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">FunctionalRelReification_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_dep! = functional relation reification, with dependent functions
+              see AC! 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">DependentFunctionalRelReification_on</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">B</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Type</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">R</span>:<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">B</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span> : <span class="id" title="var">B</span> <span class="id" title="var">x</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">B</span> <span class="id" title="var">x</span>), <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>:<span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun_repr = functional choice of a representative in an equivalence class 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">RepresentativeFunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Equivalence</span> <span class="id" title="var">R</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">A</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, (<span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)) /\ <span class="id" title="keyword">forall</span> <span class="id" title="var">x'</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">f</span> <span class="id" title="var">x'</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun_setoid = functional form of the (so-called extensional) axiom of
+                    choice from setoids 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">SetoidFunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Equivalence</span> <span class="id" title="var">R</span> -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="var">y</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">T</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">T</span> <span class="id" title="var">x'</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="var">T</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">T</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) /\ (<span class="id" title="keyword">forall</span> <span class="id" title="var">x'</span> : <span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">f</span> <span class="id" title="var">x'</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun_setoid_gen = functional form of the general form of the (so-called
+                        extensional) axiom of choice over setoids 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">GeneralizedSetoidFunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">S</span> : <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Equivalence</span> <span class="id" title="var">R</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">Equivalence</span> <span class="id" title="var">S</span> -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> <span class="id" title="var">y</span> <span class="id" title="var">y'</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">S</span> <span class="id" title="var">y</span> <span class="id" title="var">y'</span> -&gt; <span class="id" title="var">T</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">T</span> <span class="id" title="var">x'</span> <span class="id" title="var">y'</span>) -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="var">T</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">T</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) /\ (<span class="id" title="keyword">forall</span> <span class="id" title="var">x'</span> : <span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">S</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">f</span> <span class="id" title="var">x'</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun_setoid_simple = functional form of the (so-called extensional) axiom of
+                           choice from setoids on locally compatible relations 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">SimpleSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Equivalence</span> <span class="id" title="var">R</span> -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x'</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">T</span> <span class="id" title="var">x'</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">T</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) /\ (<span class="id" title="keyword">forall</span> <span class="id" title="var">x'</span> : <span class="id" title="var">A</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">x'</span> -&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> = <span class="id" title="var">f</span> <span class="id" title="var">x'</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+ID_epsilon = constructive version of indefinite description;
+                 combined with proof-irrelevance, it may be connected to
+                 Carlström's type theory with a constructive indefinite description
+                 operator 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ConstructiveIndefiniteDescription_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; { <span class="id" title="var">x</span>:<span class="id" title="var">A</span> | <span class="id" title="var">P</span> <span class="id" title="var">x</span> }.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+ID_iota = constructive version of definite description;
+              combined with proof-irrelevance, it may be connected to
+              Carlström's and Stenlund's type theory with a
+              constructive definite description operator) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ConstructiveDefiniteDescription_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span>! <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; { <span class="id" title="var">x</span>:<span class="id" title="var">A</span> | <span class="id" title="var">P</span> <span class="id" title="var">x</span> }.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab978"></a><h2 class="section">Weakly classical choice and description</h2>
+
+<div class="paragraph"> </div>
+
+ GAC_rel = guarded relational form of the (non extensional) axiom of choice 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">GuardedRelationalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">R'</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">subrelation</span> <span class="id" title="var">R'</span> <span class="id" title="var">R</span> /\ <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span>, <span class="id" title="var">R'</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+GAC_fun = guarded functional form of the (non extensional) axiom of choice 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">GuardedFunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">B</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+GAC! = guarded functional relation reification 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">GuardedFunctionalRelReification_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">B</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+OAC_rel = "omniscient" relational form of the (non extensional) axiom of choice 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">OmniscientRelationalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">R'</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">subrelation</span> <span class="id" title="var">R'</span> <span class="id" title="var">R</span> /\ <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, (<span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="tactic">exists</span>! <span class="id" title="var">y</span>, <span class="id" title="var">R'</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+OAC_fun = "omniscient" functional form of the (non extensional) axiom of choice
+              (called AC* in Bell <span class="inlinecode">[<span class="id" title="var">Bell</span>]</span>) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">OmniscientFunctionalChoice_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">B</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">f</span> : <span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, (<span class="id" title="tactic">exists</span> <span class="id" title="var">y</span> : <span class="id" title="var">B</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) -&gt; <span class="id" title="var">R</span> <span class="id" title="var">x</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+D_epsilon = (weakly classical) indefinite description principle 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">EpsilonStatement_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">A</span> -&gt; { <span class="id" title="var">x</span>:<span class="id" title="var">A</span> | (<span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> }.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+D_iota = (weakly classical) definite description principle 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">IotaStatement_on</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">A</span> -&gt; { <span class="id" title="var">x</span>:<span class="id" title="var">A</span> | (<span class="id" title="tactic">exists</span>! <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span> }.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">ChoiceSchemes</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Generalized schemes 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">RelationalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">DependentFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> (<span class="id" title="var">B</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Type</span>), <span class="id" title="var">DependentFunctionalChoice_on</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">InhabitedForallCommute</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> (<span class="id" title="var">B</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Type</span>), <span class="id" title="var">InhabitedForallCommute_on</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunctionalDependentChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalDependentChoice_on</span> <span class="id" title="var">A</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunctionalCountableChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalCountableChoice_on</span> <span class="id" title="var">A</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunctionalChoiceOnInhabitedSet</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">inhabited</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunctionalRelReification</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">DependentFunctionalRelReification</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> (<span class="id" title="var">B</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="keyword">Type</span>), <span class="id" title="var">DependentFunctionalRelReification_on</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">RepresentativeFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">RepresentativeFunctionalChoice_on</span> <span class="id" title="var">A</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">SetoidFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>  <span class="id" title="var">B</span>: <span class="id" title="keyword">Type</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">GeneralizedSetoidFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">GeneralizedSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">SimpleSetoidFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">SimpleSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">GuardedRelationalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">GuardedRelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">GuardedFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">GuardedFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">GuardedFunctionalRelReification</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">GuardedFunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">OmniscientRelationalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">OmniscientRelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">OmniscientFunctionalChoice</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">OmniscientFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">ConstructiveDefiniteDescription</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">ConstructiveDefiniteDescription_on</span> <span class="id" title="var">A</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">ConstructiveIndefiniteDescription</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">ConstructiveIndefiniteDescription_on</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">IotaStatement</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">IotaStatement_on</span> <span class="id" title="var">A</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">EpsilonStatement</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">EpsilonStatement_on</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Subclassical schemes 
+<div class="paragraph"> </div>
+
+ PI = proof irrelevance 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ProofIrrelevance</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">a1</span> <span class="id" title="var">a2</span>:<span class="id" title="var">A</span>), <span class="id" title="var">a1</span> = <span class="id" title="var">a2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+IGP = independence of general premises
+          (an unconstrained generalisation of the constructive principle of
+           independence of premises) 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">IndependenceOfGeneralPremises</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">P</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">Q</span>:<span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inhabited</span> <span class="id" title="var">A</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Q</span> -&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; <span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Drinker = drinker's paradox (small form)
+              (called Ex in Bell <span class="inlinecode">[<span class="id" title="var">Bell</span>]</span>) 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">SmallDrinker'sParadox</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">P</span>:<span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>), <span class="id" title="var">inhabited</span> <span class="id" title="var">A</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, (<span class="id" title="tactic">exists</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) -&gt; <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+EM = excluded-middle 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ExcludedMiddle</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> \/ ~ <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Extensional schemes 
+<div class="paragraph"> </div>
+
+ Ext_prop_repr = choice of a representative among extensional propositions 
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Ext_pred_repr = choice of a representative among extensional predicates 
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Ext_fun_repr = choice of a representative among extensional functions 
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+We let also
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> IPL_2   = 2nd-order impredicative minimal predicate logic (with ex. quant.)
+
+</li>
+<li> IPL^2   = 2nd-order functional minimal predicate logic (with ex. quant.)
+
+</li>
+<li> IPL_2^2 = 2nd-order impredicative, 2nd-order functional minimal pred. logic (with ex. quant.)
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+with no prerequisite on the non-emptiness of domains
+
+<div class="paragraph"> </div>
+
+<a id="lab979"></a><h1 class="section">Table of contents</h1>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+1. Definitions
+
+<div class="paragraph"> </div>
+
+2. IPL_2^2 |- AC_rel + AC! = AC_fun
+
+<div class="paragraph"> </div>
+
+3.1. typed IPL_2 + Sigma-types + PI |- AC_rel = GAC_rel  and  IPL_2 |- AC_rel + IGP -&gt; GAC_rel and IPL_2 |- GAC_rel = OAC_rel
+
+<div class="paragraph"> </div>
+
+3.2. IPL^2 |- AC_fun + IGP = GAC_fun = OAC_fun = AC_fun + Drinker
+
+<div class="paragraph"> </div>
+
+3.3. D_iota -&gt; ID_iota  and  D_epsilon &lt;-&gt; ID_epsilon + Drinker
+
+<div class="paragraph"> </div>
+
+4. Derivability of choice for decidable relations with well-ordered codomain
+
+<div class="paragraph"> </div>
+
+5. AC_fun = AC_fun_dep = AC_trunc
+
+<div class="paragraph"> </div>
+
+6. Non contradiction of constructive descriptions wrt functional choices
+
+<div class="paragraph"> </div>
+
+7. Definite description transports classical logic to the computational world
+
+<div class="paragraph"> </div>
+
+8. Choice -&gt; Dependent choice -&gt; Countable choice
+
+<div class="paragraph"> </div>
+
+9.1. AC_fun_setoid = AC_fun + Ext_fun_repr + EM
+
+<div class="paragraph"> </div>
+
+9.2. AC_fun_setoid = AC_fun + Ext_pred_repr + PI
+ 
+<div class="paragraph"> </div>
+
+<a id="lab980"></a><h1 class="section">AC_rel + AC! = AC_fun</h1>
+
+
+<div class="paragraph"> </div>
+
+   We show that the functional formulation of the axiom of Choice
+   (usual formulation in type theory) is equivalent to its relational
+   formulation (only formulation of set theory) + functional relation
+   reification (aka axiom of unique choice, or, principle of (parametric)
+   definite descriptions) 
+<div class="paragraph"> </div>
+
+ This shows that the axiom of choice can be assumed (under its
+   relational formulation) without known inconsistency with classical logic,
+   though functional relation reification conflicts with classical logic 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">functional_rel_reification_and_rel_choice_imp_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fun_choice_imp_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fun_choice_imp_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">fun_choice_iff_rel_choice_and_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> &lt;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> /\ <span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab981"></a><h1 class="section">Connection between the guarded, non guarded and omniscient choices</h1>
+
+<div class="paragraph"> </div>
+
+ We show that the guarded formulations of the axiom of choice
+   are equivalent to their "omniscient" variant and comes from the non guarded
+   formulation in presence either of the independence of general premises
+   or subset types (themselves derivable from subtypes thanks to proof-
+   irrelevance) 
+<div class="paragraph"> </div>
+
+<a id="lab982"></a><h2 class="section">AC_rel + PI -&gt; GAC_rel and AC_rel + IGP -&gt; GAC_rel and GAC_rel = OAC_rel</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">rel_choice_and_proof_irrel_imp_guarded_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RelationalChoice</span> -&gt; <span class="id" title="var">ProofIrrelevance</span> -&gt; <span class="id" title="var">GuardedRelationalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">rel_choice_indep_of_general_premises_imp_guarded_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">inhabited</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">IndependenceOfGeneralPremises</span> -&gt; <span class="id" title="var">GuardedRelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">guarded_rel_choice_imp_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">GuardedRelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">RelationalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">subset_types_imp_guarded_rel_choice_iff_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">ProofIrrelevance</span> -&gt; (<span class="id" title="var">GuardedRelationalChoice</span> &lt;-&gt; <span class="id" title="var">RelationalChoice</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+OAC_rel = GAC_rel 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">guarded_iff_omniscient_rel_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">GuardedRelationalChoice</span> &lt;-&gt; <span class="id" title="var">OmniscientRelationalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab983"></a><h2 class="section">AC_fun + IGP = GAC_fun = OAC_fun = AC_fun + Drinker</h2>
+
+<div class="paragraph"> </div>
+
+ AC_fun + IGP = GAC_fun 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">guarded_fun_choice_imp_indep_of_general_premises</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">GuardedFunctionalChoice</span> -&gt; <span class="id" title="var">IndependenceOfGeneralPremises</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">guarded_fun_choice_imp_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">GuardedFunctionalChoice</span> -&gt; <span class="id" title="var">FunctionalChoiceOnInhabitedSet</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fun_choice_and_indep_general_prem_imp_guarded_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoiceOnInhabitedSet</span> -&gt; <span class="id" title="var">IndependenceOfGeneralPremises</span><br/>
+&nbsp;&nbsp;-&gt; <span class="id" title="var">GuardedFunctionalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">fun_choice_and_indep_general_prem_iff_guarded_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoiceOnInhabitedSet</span> /\ <span class="id" title="var">IndependenceOfGeneralPremises</span><br/>
+&nbsp;&nbsp;&lt;-&gt; <span class="id" title="var">GuardedFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+AC_fun + Drinker = OAC_fun 
+<div class="paragraph"> </div>
+
+ This was already observed by Bell <span class="inlinecode">[<span class="id" title="var">Bell</span>]</span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">omniscient_fun_choice_imp_small_drinker</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">OmniscientFunctionalChoice</span> -&gt; <span class="id" title="var">SmallDrinker'sParadox</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">omniscient_fun_choice_imp_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">OmniscientFunctionalChoice</span> -&gt; <span class="id" title="var">FunctionalChoiceOnInhabitedSet</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fun_choice_and_small_drinker_imp_omniscient_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoiceOnInhabitedSet</span> -&gt; <span class="id" title="var">SmallDrinker'sParadox</span><br/>
+&nbsp;&nbsp;-&gt; <span class="id" title="var">OmniscientFunctionalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">fun_choice_and_small_drinker_iff_omniscient_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoiceOnInhabitedSet</span> /\ <span class="id" title="var">SmallDrinker'sParadox</span><br/>
+&nbsp;&nbsp;&lt;-&gt; <span class="id" title="var">OmniscientFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+OAC_fun = GAC_fun 
+<div class="paragraph"> </div>
+
+ This is derivable from the intuitionistic equivalence between IGP and Drinker
+but we give a direct proof 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">guarded_iff_omniscient_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">GuardedFunctionalChoice</span> &lt;-&gt; <span class="id" title="var">OmniscientFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab984"></a><h2 class="section">D_iota -&gt; ID_iota  and  D_epsilon &lt;-&gt; ID_epsilon + Drinker</h2>
+
+<div class="paragraph"> </div>
+
+ D_iota -&gt; ID_iota 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">iota_imp_constructive_definite_description</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">IotaStatement</span> -&gt; <span class="id" title="var">ConstructiveDefiniteDescription</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+ID_epsilon + Drinker &lt;-&gt; D_epsilon 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">epsilon_imp_constructive_indefinite_description</span>:<br/>
+&nbsp;&nbsp;<span class="id" title="var">EpsilonStatement</span> -&gt; <span class="id" title="var">ConstructiveIndefiniteDescription</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">constructive_indefinite_description_and_small_drinker_imp_epsilon</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">SmallDrinker'sParadox</span> -&gt; <span class="id" title="var">ConstructiveIndefiniteDescription</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">EpsilonStatement</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">epsilon_imp_small_drinker</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">EpsilonStatement</span> -&gt; <span class="id" title="var">SmallDrinker'sParadox</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">constructive_indefinite_description_and_small_drinker_iff_epsilon</span> :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">SmallDrinker'sParadox</span> * <span class="id" title="var">ConstructiveIndefiniteDescription</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">EpsilonStatement</span>) *<br/>
+&nbsp;&nbsp;(<span class="id" title="var">EpsilonStatement</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">SmallDrinker'sParadox</span> * <span class="id" title="var">ConstructiveIndefiniteDescription</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab985"></a><h1 class="section">Derivability of choice for decidable relations with well-ordered codomain</h1>
+
+<div class="paragraph"> </div>
+
+ Countable codomains, such as <span class="inlinecode"><span class="id" title="var">nat</span></span>, can be equipped with a
+    well-order, which implies the existence of a least element on
+    inhabited decidable subsets. As a consequence, the relational form of
+    the axiom of choice is derivable on <span class="inlinecode"><span class="id" title="var">nat</span></span> for decidable relations.
+
+<div class="paragraph"> </div>
+
+    We show instead that functional relation reification and the
+    functional form of the axiom of choice are equivalent on decidable
+    relation with <span class="inlinecode"><span class="id" title="var">nat</span></span> as codomain
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Wf_nat</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Decidable</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">classical_denumerable_description_imp_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">nat</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">R</span>:<span class="id" title="var">A</span>-&gt;<span class="id" title="var">nat</span>-&gt;<span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">decidable</span> (<span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>)) -&gt; <span class="id" title="var">FunctionalChoice_on_rel</span> <span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab986"></a><h1 class="section">AC_fun = AC_fun_dep = AC_trunc</h1>
+
+<div class="paragraph"> </div>
+
+<a id="lab987"></a><h2 class="section">Choice on dependent and non dependent function types are equivalent</h2>
+
+<div class="paragraph"> </div>
+
+ The easy part 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">dep_non_dep_functional_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">DependentFunctionalChoice</span> -&gt; <span class="id" title="var">FunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Deriving choice on product types requires some computation on
+    singleton propositional types, so we need computational
+    conjunction projections and dependent elimination of conjunction
+    and equality 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Scheme</span> <span class="id" title="var">and_indd</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">and</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Scheme</span> <span class="id" title="var">eq_indd</span> := <span class="id" title="keyword">Induction</span> <span class="id" title="keyword">for</span> <span class="id" title="var">eq</span> <span class="id" title="keyword">Sort</span> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">proj1_inf</span> (<span class="id" title="var">A</span> <span class="id" title="var">B</span>:<span class="id" title="keyword">Prop</span>) (<span class="id" title="var">p</span> : <span class="id" title="var">A</span>/\<span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">a</span>,<span class="id" title="var">b</span>) := <span class="id" title="var">p</span> <span class="id" title="tactic">in</span> <span class="id" title="var">a</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">non_dep_dep_functional_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">DependentFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab988"></a><h2 class="section">Functional choice and truncation choice are equivalent</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">functional_choice_to_inhabited_forall_commute</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">InhabitedForallCommute</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">inhabited_forall_commute_to_functional_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">InhabitedForallCommute</span> -&gt; <span class="id" title="var">FunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab989"></a><h2 class="section">Reification of dependent and non dependent functional relation  are equivalent</h2>
+
+<div class="paragraph"> </div>
+
+ The easy part 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">dep_non_dep_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">DependentFunctionalRelReification</span> -&gt; <span class="id" title="var">FunctionalRelReification</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Deriving choice on product types requires some computation on
+    singleton propositional types, so we need computational
+    conjunction projections and dependent elimination of conjunction
+    and equality 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">non_dep_dep_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification</span> -&gt; <span class="id" title="var">DependentFunctionalRelReification</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">dep_iff_non_dep_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification</span> &lt;-&gt; <span class="id" title="var">DependentFunctionalRelReification</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab990"></a><h1 class="section">Non contradiction of constructive descriptions wrt functional axioms of choice</h1>
+
+<div class="paragraph"> </div>
+
+<a id="lab991"></a><h2 class="section">Non contradiction of indefinite description</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">relative_non_contradiction_of_indefinite_descr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, (<span class="id" title="var">ConstructiveIndefiniteDescription</span> -&gt; <span class="id" title="var">C</span>)<br/>
+&nbsp;&nbsp;-&gt; (<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">C</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">constructive_indefinite_descr_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">ConstructiveIndefiniteDescription</span> -&gt; <span class="id" title="var">FunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab992"></a><h2 class="section">Non contradiction of definite description</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">relative_non_contradiction_of_definite_descr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, (<span class="id" title="var">ConstructiveDefiniteDescription</span> -&gt; <span class="id" title="var">C</span>)<br/>
+&nbsp;&nbsp;-&gt; (<span class="id" title="var">FunctionalRelReification</span> -&gt; <span class="id" title="var">C</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">constructive_definite_descr_fun_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">ConstructiveDefiniteDescription</span> -&gt; <span class="id" title="var">FunctionalRelReification</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remark, the following corollaries morally hold:
+
+<div class="paragraph"> </div>
+
+Definition In_propositional_context (A:Type) := forall C:Prop, (A -&gt; C) -&gt; C.
+
+<div class="paragraph"> </div>
+
+Corollary constructive_definite_descr_in_prop_context_iff_fun_reification :
+   In_propositional_context ConstructiveIndefiniteDescription
+   &lt;-&gt; FunctionalChoice.
+
+<div class="paragraph"> </div>
+
+Corollary constructive_definite_descr_in_prop_context_iff_fun_reification :
+   In_propositional_context ConstructiveDefiniteDescription
+   &lt;-&gt; FunctionalRelReification.
+
+<div class="paragraph"> </div>
+
+but expecting <span class="inlinecode"><span class="id" title="var">FunctionalChoice</span></span> (resp. <span class="inlinecode"><span class="id" title="var">FunctionalRelReification</span></span>) to
+be applied on the same Type universes on both sides of the first
+(resp. second) equivalence breaks the stratification of universes.
+
+<div class="paragraph"> </div>
+
+<a id="lab993"></a><h1 class="section">Excluded-middle + definite description =&gt; computational excluded-middle</h1>
+
+<div class="paragraph"> </div>
+
+ The idea for the following proof comes from <span class="inlinecode">[<span class="id" title="var">ChicliPottierSimpson02</span>]</span> 
+<div class="paragraph"> </div>
+
+ Classical logic and axiom of unique choice (i.e. functional
+    relation reification), as shown in <span class="inlinecode">[<span class="id" title="var">ChicliPottierSimpson02</span>]</span>,
+    implies the double-negation of excluded-middle in <span class="inlinecode"><span class="id" title="keyword">Set</span></span> (which is
+    incompatible with the impredicativity of <span class="inlinecode"><span class="id" title="keyword">Set</span></span>).
+
+<div class="paragraph"> </div>
+
+    We adapt the proof to show that constructive definite description
+    transports excluded-middle from <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> to <span class="inlinecode"><span class="id" title="keyword">Set</span></span>.
+
+<div class="paragraph"> </div>
+
+    <span class="inlinecode">[<span class="id" title="var">ChicliPottierSimpson02</span>]</span> Laurent Chicli, Loïc Pottier, Carlos
+    Simpson, Mathematical Quotients and Quotient Types in Coq,
+    Proceedings of TYPES 2002, Lecture Notes in Computer Science 2646,
+    Springer Verlag.  
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Setoid</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">constructive_definite_descr_excluded_middle</span> :<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="var">ConstructiveDefiniteDescription_on</span> <span class="id" title="var">A</span>) -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> \/ ~ <span class="id" title="var">P</span>) -&gt; (<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, {<span class="id" title="var">P</span>} + {~ <span class="id" title="var">P</span>}).<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">fun_reification_descr_computational_excluded_middle_in_prop_context</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification</span> -&gt;<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> \/ ~ <span class="id" title="var">P</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">C</span>:<span class="id" title="keyword">Prop</span>, ((<span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, {<span class="id" title="var">P</span>} + {~ <span class="id" title="var">P</span>}) -&gt; <span class="id" title="var">C</span>) -&gt; <span class="id" title="var">C</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab994"></a><h1 class="section">Choice =&gt; Dependent choice =&gt; Countable choice</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">functional_choice_imp_functional_dependent_choice</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">FunctionalDependentChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">functional_dependent_choice_imp_functional_countable_choice</span> :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">FunctionalDependentChoice</span> -&gt; <span class="id" title="var">FunctionalCountableChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab995"></a><h1 class="section">About the axiom of choice over setoids</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ClassicalFacts</span> <span class="id" title="var">PropExtensionalityFacts</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab996"></a><h2 class="section">Consequences of the choice of a representative in an equivalence class</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">repr_fun_choice_imp_ext_prop_repr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">ExtensionalPropositionRepresentative</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">repr_fun_choice_imp_ext_pred_repr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">ExtensionalPredicateRepresentative</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">repr_fun_choice_imp_ext_function_repr</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">ExtensionalFunctionRepresentative</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab997"></a><h3 class="section">This is a variant of Diaconescu and Goodman-Myhill theorems</h3>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">repr_fun_choice_imp_excluded_middle</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">ExcludedMiddle</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">repr_fun_choice_imp_relational_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">RelationalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab998"></a><h2 class="section">AC_fun_setoid = AC_fun_setoid_gen = AC_fun_setoid_simple</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">gen_setoid_fun_choice_imp_setoid_fun_choice</span>  :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">GeneralizedSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_fun_choice_imp_gen_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">GeneralizedSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">setoid_fun_choice_iff_gen_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> &lt;-&gt; <span class="id" title="var">GeneralizedSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_fun_choice_imp_simple_setoid_fun_choice</span>  :<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">SimpleSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">simple_setoid_fun_choice_imp_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SimpleSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">setoid_fun_choice_iff_simple_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> &lt;-&gt; <span class="id" title="var">SimpleSetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab999"></a><h2 class="section">AC_fun_setoid = AC! + AC_fun_repr</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_fun_choice_imp_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">FunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Corollary</span> <span class="id" title="var">setoid_fun_choice_imp_functional_rel_reification</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>, <span class="id" title="var">SetoidFunctionalChoice_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> -&gt; <span class="id" title="var">FunctionalRelReification_on</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_fun_choice_imp_repr_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">SetoidFunctionalChoice</span> -&gt; <span class="id" title="var">RepresentativeFunctionalChoice</span> .<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">functional_rel_reification_and_repr_fun_choice_imp_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification</span> -&gt; <span class="id" title="var">RepresentativeFunctionalChoice</span> -&gt; <span class="id" title="var">SetoidFunctionalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">functional_rel_reification_and_repr_fun_choice_iff_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalRelReification</span> /\ <span class="id" title="var">RepresentativeFunctionalChoice</span> &lt;-&gt; <span class="id" title="var">SetoidFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Note: What characterization to give of
+RepresentativeFunctionalChoice? A formulation of it as a functional
+relation would certainly be equivalent to the formulation of
+SetoidFunctionalChoice as a functional relation, but in their
+functional forms, SetoidFunctionalChoice seems strictly stronger 
+<div class="paragraph"> </div>
+
+<a id="lab1000"></a><h1 class="section">AC_fun_setoid = AC_fun + Ext_fun_repr + EM</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">EqNotations</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1001"></a><h2 class="section">This is the main theorem in <span class="inlinecode">[<span class="id" title="var">Carlström04</span>]</span></h2>
+
+<div class="paragraph"> </div>
+
+ Note: all ingredients have a computational meaning when taken in
+  separation. However, to compute with the functional choice,
+  existential quantification has to be thought as a strong
+  existential, which is incompatible with the computational content of
+  excluded-middle 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">fun_choice_and_ext_functions_repr_and_excluded_middle_imp_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">ExtensionalFunctionRepresentative</span> -&gt; <span class="id" title="var">ExcludedMiddle</span> -&gt; <span class="id" title="var">RepresentativeFunctionalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_functional_choice_first_characterization</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> /\ <span class="id" title="var">ExtensionalFunctionRepresentative</span> /\ <span class="id" title="var">ExcludedMiddle</span> &lt;-&gt; <span class="id" title="var">SetoidFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1002"></a><h2 class="section">AC_fun_setoid = AC_fun + Ext_pred_repr + PI</h2>
+
+<div class="paragraph"> </div>
+
+ Note: all ingredients have a computational meaning when taken in
+  separation. However, to compute with the functional choice,
+  existential quantification has to be thought as a strong
+  existential, which is incompatible with proof-irrelevance which
+  requires existential quantification to be truncated 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">fun_choice_and_ext_pred_ext_and_proof_irrel_imp_setoid_fun_choice</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> -&gt; <span class="id" title="var">ExtensionalPredicateRepresentative</span> -&gt; <span class="id" title="var">ProofIrrelevance</span> -&gt; <span class="id" title="var">RepresentativeFunctionalChoice</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">setoid_functional_choice_second_characterization</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">FunctionalChoice</span> /\ <span class="id" title="var">ExtensionalPredicateRepresentative</span> /\ <span class="id" title="var">ProofIrrelevance</span> &lt;-&gt; <span class="id" title="var">SetoidFunctionalChoice</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab1003"></a><h1 class="section">Compatibility notations</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">description_rel_choice_imp_funct_choice</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">functional_rel_reification_and_rel_choice_imp_fun_choice</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">funct_choice_imp_rel_choice</span> := <span class="id" title="var">fun_choice_imp_rel_choice</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">FunChoice_Equiv_RelChoice_and_ParamDefinDescr</span> :=<br/>
+&nbsp;<span class="id" title="var">fun_choice_iff_rel_choice_and_functional_rel_reification</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">funct_choice_imp_description</span> := <span class="id" title="var">fun_choice_imp_functional_rel_reification</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

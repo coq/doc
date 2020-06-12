@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Numbers.Natural.Abstract.NStrongRec</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+This file defined the strong (course-of-value, well-founded) recursion
+and proves its properties 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">NSub</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">f_equiv'</span> := <span class="id" title="tactic">repeat</span> (<span class="id" title="tactic">repeat</span> <span class="id" title="var">f_equiv</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">intros</span> ? ? ?; <span class="id" title="tactic">auto</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">NStrongRecProp</span> (<span class="id" title="keyword">Import</span> <span class="id" title="var">N</span> : <span class="id" title="var">NAxiomsRecSig'</span>).<br/>
+<span class="id" title="keyword">Include</span> <span class="id" title="var">NSubProp</span> <span class="id" title="var">N</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">StrongRecursion</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Aeq</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">Aeq_equiv</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">Aeq</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">strong_rec</span></span> allows defining a recursive function <span class="inlinecode"><span class="id" title="var">phi</span></span> given by
+    an equation <span class="inlinecode"><span class="id" title="var">phi</span>(<span class="id" title="var">n</span>)</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">F</span>(<span class="id" title="var">phi</span>)(<span class="id" title="var">n</span>)</span> where recursive calls to <span class="inlinecode"><span class="id" title="var">phi</span></span>
+    in <span class="inlinecode"><span class="id" title="var">F</span></span> are made on strictly lower numbers than <span class="inlinecode"><span class="id" title="var">n</span></span>.
+
+<div class="paragraph"> </div>
+
+    For <span class="inlinecode"><span class="id" title="var">strong_rec</span></span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode"><span class="id" title="var">F</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span>:
+<ul class="doclist">
+<li> Parameter <span class="inlinecode"><span class="id" title="var">a</span>:<span class="id" title="var">A</span></span> is a default value used internally, it has no
+      effect on the final result.
+<ul class="doclist">
+<li> Parameter <span class="inlinecode"><span class="id" title="var">F</span>:(<span class="id" title="var">N</span>-&gt;<span class="id" title="var">A</span>)-&gt;<span class="id" title="var">N</span>-&gt;<span class="id" title="var">A</span></span> is the step function:
+      <span class="inlinecode"><span class="id" title="var">F</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span> should return <span class="inlinecode"><span class="id" title="var">phi</span>(<span class="id" title="var">n</span>)</span> when <span class="inlinecode"><span class="id" title="var">f</span></span> is a function
+      that coincide with <span class="inlinecode"><span class="id" title="var">phi</span></span> for numbers strictly less than <span class="inlinecode"><span class="id" title="var">n</span></span>.
+
+</li>
+</ul>
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">strong_rec</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">f</span> : (<span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>) -&gt; <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>) (<span class="id" title="var">n</span> : <span class="id" title="var">N.t</span>) : <span class="id" title="var">A</span> :=<br/>
+&nbsp;<span class="id" title="var">recursion</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">a</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">f</span>) (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) <span class="id" title="var">n</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For convenience, we use in proofs an intermediate definition
+    between <span class="inlinecode"><span class="id" title="var">recursion</span></span> and <span class="inlinecode"><span class="id" title="var">strong_rec</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">strong_rec0</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">f</span> : (<span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>) -&gt; <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>) : <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span> :=<br/>
+&nbsp;<span class="id" title="var">recursion</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">a</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">f</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec_alt</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span>,<br/>
+&nbsp;<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span> = <span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">strong_rec0_wd</span> :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">Aeq</span> ==&gt; ((<span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>) ==&gt; <span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>) ==&gt; <span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="var">strong_rec0</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">strong_rec_wd</span> :<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">Aeq</span> ==&gt; ((<span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>) ==&gt; <span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>) ==&gt; <span class="id" title="var">N.eq</span> ==&gt; <span class="id" title="var">Aeq</span>) <span class="id" title="var">strong_rec</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">FixPoint</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">f</span> : (<span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>) -&gt; <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>.<br/>
+<span class="id" title="keyword">Variable</span> <span class="id" title="var">f_wd</span> : <span class="id" title="var">Proper</span> ((<span class="id" title="var">N.eq</span>==&gt;<span class="id" title="var">Aeq</span>)==&gt;<span class="id" title="var">N.eq</span>==&gt;<span class="id" title="var">Aeq</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec0_0</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">m</span>,<br/>
+&nbsp;(<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> 0 <span class="id" title="var">m</span>) = <span class="id" title="var">a</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec0_succ</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>,<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) <span class="id" title="var">m</span>) (<span class="id" title="var">f</span> (<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec_0</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>,<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> 0) (<span class="id" title="var">f</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">a</span>) 0).<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Hypothesis</span> <span class="id" title="var">step_good</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">n</span> : <span class="id" title="var">N.t</span>) (<span class="id" title="var">h1</span> <span class="id" title="var">h2</span> : <span class="id" title="var">N.t</span> -&gt; <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">m</span> : <span class="id" title="var">N.t</span>, <span class="id" title="var">m</span> &lt; <span class="id" title="var">n</span> -&gt; <span class="id" title="var">Aeq</span> (<span class="id" title="var">h1</span> <span class="id" title="var">m</span>) (<span class="id" title="var">h2</span> <span class="id" title="var">m</span>)) -&gt; <span class="id" title="var">Aeq</span> (<span class="id" title="var">f</span> <span class="id" title="var">h1</span> <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> <span class="id" title="var">h2</span> <span class="id" title="var">n</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec0_more_steps</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>, <span class="id" title="var">m</span> &lt; <span class="id" title="var">n</span> -&gt;<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>) (<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> (<span class="id" title="var">n</span>+<span class="id" title="var">k</span>) <span class="id" title="var">m</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec0_fixpoint</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">n</span> : <span class="id" title="var">N.t</span>),<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> =&gt; <span class="id" title="var">strong_rec0</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) <span class="id" title="var">n</span>) <span class="id" title="var">n</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">strong_rec_fixpoint</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">n</span> : <span class="id" title="var">N.t</span>),<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span>) <span class="id" title="var">n</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+NB: without the <span class="inlinecode"><span class="id" title="var">step_good</span></span> hypothesis, we have proved that
+    <span class="inlinecode"><span class="id" title="var">strong_rec</span></span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode">0</span> is <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">a</span>)</span> <span class="inlinecode">0</span>. Now we can prove
+    that the first argument of <span class="inlinecode"><span class="id" title="var">f</span></span> is arbitrary in this case...
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">strong_rec_0_any</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>)(<span class="id" title="var">any</span> : <span class="id" title="var">N.t</span>-&gt;<span class="id" title="var">A</span>),<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> 0) (<span class="id" title="var">f</span> <span class="id" title="var">any</span> 0).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+... and that first argument of <span class="inlinecode"><span class="id" title="var">strong_rec</span></span> is always arbitrary. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">strong_rec_any_fst_arg</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">a'</span> <span class="id" title="var">n</span>,<br/>
+&nbsp;<span class="id" title="var">Aeq</span> (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span>) (<span class="id" title="var">strong_rec</span> <span class="id" title="var">a'</span> <span class="id" title="var">f</span> <span class="id" title="var">n</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">FixPoint</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">StrongRecursion</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">NStrongRecProp</span>.<br/>
+
+<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

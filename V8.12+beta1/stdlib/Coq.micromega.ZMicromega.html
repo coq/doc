@@ -1,0 +1,842 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.micromega.ZMicromega</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">List</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Bool</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderedRing</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">RingMicromega</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZCoeff</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Refl</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith_base</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArithRing</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Ztac</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">PreOmega</span>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">flatten_bool</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="var">id</span> : (<span class="id" title="var">_</span> &amp;&amp; <span class="id" title="var">_</span>)%<span class="id" title="var">bool</span> = <span class="id" title="var">true</span> |- <span class="id" title="var">_</span> ] =&gt;  <span class="id" title="tactic">destruct</span> (<span class="id" title="var">andb_prop</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">id</span>); <span class="id" title="tactic">clear</span> <span class="id" title="var">id</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  [ <span class="id" title="var">id</span> : (<span class="id" title="var">_</span> || <span class="id" title="var">_</span>)%<span class="id" title="var">bool</span> = <span class="id" title="var">true</span> |- <span class="id" title="var">_</span> ] =&gt;  <span class="id" title="tactic">destruct</span> (<span class="id" title="var">orb_prop</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">id</span>); <span class="id" title="tactic">clear</span> <span class="id" title="var">id</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inv</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span> ; <span class="id" title="tactic">try</span> <span class="id" title="tactic">subst</span> ; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_le_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, 0 = <span class="id" title="var">x</span>  &lt;-&gt; (0 &lt;= <span class="id" title="var">x</span> /\ <span class="id" title="var">x</span> &lt;= 0).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">lt_le_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;0 &lt; <span class="id" title="var">x</span> &lt;-&gt; 0 &lt;= <span class="id" title="var">x</span> - 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_0_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span> &lt;-&gt; 0 &lt;= <span class="id" title="var">y</span> - <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">le_neg</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;((0 &lt;= <span class="id" title="var">x</span>) -&gt; <span class="id" title="var">False</span>) &lt;-&gt; 0 &lt; -<span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_cnf</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(0 &lt;= <span class="id" title="var">x</span> - 1 -&gt; <span class="id" title="var">False</span>) /\ (0 &lt;= -1 - <span class="id" title="var">x</span> -&gt; <span class="id" title="var">False</span>) &lt;-&gt; <span class="id" title="var">x</span> = 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">EnvRing</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zsor</span> : <span class="id" title="var">SOR</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">Z</span>) <span class="id" title="var">Z.le</span> <span class="id" title="var">Z.lt</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ZSORaddon</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">SORaddon</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span>  (@<span class="id" title="var">eq</span> <span class="id" title="var">Z</span>) <span class="id" title="var">Z.le</span> <br/>
+&nbsp;&nbsp;0%<span class="id" title="var">Z</span> 1%<span class="id" title="var">Z</span> <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> <br/>
+&nbsp;&nbsp;<span class="id" title="var">Zeq_bool</span> <span class="id" title="var">Z.leb</span><br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="var">pow_N</span> 1 <span class="id" title="var">Z.mul</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">Zeval_expr</span> (<span class="id" title="var">env</span> : <span class="id" title="var">PolEnv</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">e</span>: <span class="id" title="var">PExpr</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEc</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEX</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">env</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEadd</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; <span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e1</span> + <span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEmul</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; <span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e1</span> * <span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEpow</span> <span class="id" title="var">e1</span> <span class="id" title="var">n</span>  =&gt; <span class="id" title="var">Z.pow</span> (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e1</span>) (<span class="id" title="var">Z.of_N</span> <span class="id" title="var">n</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEsub</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e1</span>) - (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PEopp</span> <span class="id" title="var">e</span>   =&gt; <span class="id" title="var">Z.opp</span> (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eval_expr</span> := <span class="id" title="var">eval_pexpr</span>  <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="var">pow_N</span> 1 <span class="id" title="var">Z.mul</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">Zeval_const</span>  (<span class="id" title="var">e</span>: <span class="id" title="var">PExpr</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEc</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">Some</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEX</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEadd</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; <span class="id" title="var">map_option2</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">x</span> + <span class="id" title="var">y</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e1</span>) (<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e2</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEmul</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; <span class="id" title="var">map_option2</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">x</span> * <span class="id" title="var">y</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e1</span>) (<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e2</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEpow</span> <span class="id" title="var">e1</span> <span class="id" title="var">n</span>  =&gt; <span class="id" title="var">map_option</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">Z.pow</span> <span class="id" title="var">x</span> (<span class="id" title="var">Z.of_N</span> <span class="id" title="var">n</span>)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e1</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEsub</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> =&gt; <span class="id" title="var">map_option2</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">x</span> - <span class="id" title="var">y</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e1</span>)  (<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e2</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PEopp</span> <span class="id" title="var">e</span>   =&gt; <span class="id" title="var">map_option</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">Z.opp</span> <span class="id" title="var">x</span>)) (<span class="id" title="var">Zeval_const</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ZNpower</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">r</span> <span class="id" title="var">n</span>, <span class="id" title="var">r</span> ^ <span class="id" title="var">Z.of_N</span> <span class="id" title="var">n</span> = <span class="id" title="var">pow_N</span> 1 <span class="id" title="var">Z.mul</span> <span class="id" title="var">r</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zeval_expr_compat</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span>, <span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span> = <span class="id" title="var">eval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zeval_op2</span> (<span class="id" title="var">o</span> : <span class="id" title="var">Op2</span>) : <span class="id" title="var">Z</span> -&gt; <span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">o</span> <span class="id" title="keyword">with</span><br/>
+| <span class="id" title="var">OpEq</span> =&gt;  @<span class="id" title="var">eq</span> <span class="id" title="var">Z</span><br/>
+| <span class="id" title="var">OpNEq</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>  =&gt; ~ <span class="id" title="var">x</span> = <span class="id" title="var">y</span><br/>
+| <span class="id" title="var">OpLe</span> =&gt; <span class="id" title="var">Z.le</span><br/>
+| <span class="id" title="var">OpGe</span> =&gt; <span class="id" title="var">Z.ge</span><br/>
+| <span class="id" title="var">OpLt</span> =&gt; <span class="id" title="var">Z.lt</span><br/>
+| <span class="id" title="var">OpGt</span> =&gt; <span class="id" title="var">Z.gt</span><br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zeval_formula</span> (<span class="id" title="var">env</span> : <span class="id" title="var">PolEnv</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>):=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">lhs</span>, <span class="id" title="var">op</span>, <span class="id" title="var">rhs</span>) := <span class="id" title="var">f</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Zeval_op2</span> <span class="id" title="var">op</span>) (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span>) (<span class="id" title="var">Zeval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">rhs</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zeval_formula'</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_formula</span>  <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">Z</span>) <span class="id" title="var">Z.le</span> <span class="id" title="var">Z.lt</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) (<span class="id" title="var">pow_N</span> 1 <span class="id" title="var">Z.mul</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zeval_formula_compat'</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>,  <span class="id" title="var">Zeval_formula</span> <span class="id" title="var">env</span>  <span class="id" title="var">f</span> &lt;-&gt; <span class="id" title="var">Zeval_formula'</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eval_nformula</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> 0 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span>  (@<span class="id" title="var">eq</span> <span class="id" title="var">Z</span>) <span class="id" title="var">Z.le</span> <span class="id" title="var">Z.lt</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) .<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zeval_op1</span> (<span class="id" title="var">o</span> : <span class="id" title="var">Op1</span>) : <span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">o</span> <span class="id" title="keyword">with</span><br/>
+| <span class="id" title="var">Equal</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> : <span class="id" title="var">Z</span> =&gt; <span class="id" title="var">x</span> = 0<br/>
+| <span class="id" title="var">NonEqual</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> : <span class="id" title="var">Z</span> =&gt; <span class="id" title="var">x</span> &lt;&gt; 0<br/>
+| <span class="id" title="keyword">Strict</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> : <span class="id" title="var">Z</span> =&gt; 0 &lt; <span class="id" title="var">x</span><br/>
+| <span class="id" title="var">NonStrict</span> =&gt; <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> : <span class="id" title="var">Z</span> =&gt; 0 &lt;= <span class="id" title="var">x</span><br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zeval_nformula_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">d</span>, (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">d</span>) \/ ~ (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">d</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ZWitness</span> := <span class="id" title="var">Psatz</span> <span class="id" title="var">Z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ZWeakChecker</span> := <span class="id" title="var">check_normalised_formulas</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Zeq_bool</span> <span class="id" title="var">Z.leb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ZWeakChecker_sound</span> :   <span class="id" title="keyword">forall</span> (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)) (<span class="id" title="var">cm</span> : <span class="id" title="var">ZWitness</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">ZWeakChecker</span> <span class="id" title="var">l</span> <span class="id" title="var">cm</span> = <span class="id" title="var">true</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">make_impl</span> (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span>) <span class="id" title="var">l</span> <span class="id" title="var">False</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">psub</span>  := <span class="id" title="var">psub</span> <span class="id" title="var">Z0</span>  <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> <span class="id" title="var">Zeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">padd</span>  := <span class="id" title="var">padd</span> <span class="id" title="var">Z0</span>  <span class="id" title="var">Z.add</span> <span class="id" title="var">Zeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">pmul</span> := <span class="id" title="var">pmul</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Zeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">normZ</span>  := <span class="id" title="var">norm</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">Z.opp</span> <span class="id" title="var">Zeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eval_pol</span> := <span class="id" title="var">eval_pol</span> <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_pol_sub</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>, <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">psub</span>  <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>) = <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> - <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">rhs</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_pol_add</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>, <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">padd</span>  <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>) = <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> + <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">rhs</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_pol_mul</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>, <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">pmul</span>  <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>) = <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">lhs</span> * <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">rhs</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_pol_norm</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span>, <span class="id" title="var">eval_expr</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span> = <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">normZ</span> <span class="id" title="var">e</span>) .<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zunsat</span> := <span class="id" title="var">check_inconsistent</span> 0  <span class="id" title="var">Zeq_bool</span> <span class="id" title="var">Z.leb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Zdeduce</span> := <span class="id" title="var">nformula_plus_nformula</span> 0 <span class="id" title="var">Z.add</span> <span class="id" title="var">Zeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zunsat_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Zunsat</span> <span class="id" title="var">f</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span> -&gt; <span class="id" title="var">False</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">xnnormalise</span> (<span class="id" title="var">t</span> : <span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">lhs</span>,<span class="id" title="var">o</span>,<span class="id" title="var">rhs</span>) := <span class="id" title="var">t</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">lhs</span> := <span class="id" title="var">normZ</span> <span class="id" title="var">lhs</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">rhs</span> := <span class="id" title="var">normZ</span> <span class="id" title="var">rhs</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">o</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpEq</span>  =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">rhs</span> <span class="id" title="var">lhs</span>,  <span class="id" title="var">Equal</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpNEq</span> =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">rhs</span> <span class="id" title="var">lhs</span>,  <span class="id" title="var">NonEqual</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpGt</span>  =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>,  <span class="id" title="keyword">Strict</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpLt</span>  =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">rhs</span> <span class="id" title="var">lhs</span>,  <span class="id" title="keyword">Strict</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpGe</span>  =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">lhs</span> <span class="id" title="var">rhs</span>,  <span class="id" title="var">NonStrict</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">OpLe</span> =&gt;  (<span class="id" title="var">psub</span> <span class="id" title="var">rhs</span> <span class="id" title="var">lhs</span>,  <span class="id" title="var">NonStrict</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xnnormalise_correct</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">xnnormalise</span> <span class="id" title="var">f</span>) &lt;-&gt; <span class="id" title="var">Zeval_formula</span> <span class="id" title="var">env</span>  <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">xnormalise</span> (<span class="id" title="var">f</span>: <span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">e</span>,<span class="id" title="var">o</span>) := <span class="id" title="var">f</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">o</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Equal</span>     =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">e</span> (<span class="id" title="var">Pc</span> 1),<span class="id" title="var">NonStrict</span>) :: (<span class="id" title="var">psub</span> (<span class="id" title="var">Pc</span> (-1)) <span class="id" title="var">e</span>, <span class="id" title="var">NonStrict</span>) :: <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">NonStrict</span> =&gt;  ((<span class="id" title="var">psub</span> (<span class="id" title="var">Pc</span> (-1)) <span class="id" title="var">e</span>,<span class="id" title="var">NonStrict</span>)::<span class="id" title="var">nil</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="keyword">Strict</span>    =&gt;  ((<span class="id" title="var">psub</span> (<span class="id" title="var">Pc</span> 0)) <span class="id" title="var">e</span>, <span class="id" title="var">NonStrict</span>)::<span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">NonEqual</span>  =&gt;  (<span class="id" title="var">e</span>, <span class="id" title="var">Equal</span>)::<span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_pol_Pc</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">z</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">Pc</span> <span class="id" title="var">z</span>) = <span class="id" title="var">z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">iff_ring</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- ?<span class="id" title="var">F</span> 0  ?<span class="id" title="var">X</span> &lt;-&gt; ?<span class="id" title="var">F</span> 0  ?<span class="id" title="var">Y</span> =&gt; <span class="id" title="tactic">replace</span> <span class="id" title="var">X</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Y</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">ring</span> ; <span class="id" title="tactic">tauto</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xnormalise_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">make_conj</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">False</span>) (<span class="id" title="var">xnormalise</span> <span class="id" title="var">f</span>)) &lt;-&gt; <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.micromega.Tauto</span> <span class="id" title="var">BinNums</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">cnf_of_list</span> {<span class="id" title="var">T</span>: <span class="id" title="keyword">Type</span>} (<span class="id" title="var">tg</span> : <span class="id" title="var">T</span>) (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">List.fold_right</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">acc</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">x</span> <span class="id" title="keyword">then</span> <span class="id" title="var">acc</span> <span class="id" title="keyword">else</span> ((<span class="id" title="var">x</span>,<span class="id" title="var">tg</span>)::<span class="id" title="var">nil</span>)::<span class="id" title="var">acc</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">cnf_tt</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>)  <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">cnf_of_list_correct</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> {<span class="id" title="var">T</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">tg</span>:<span class="id" title="var">T</span>)  (<span class="id" title="var">f</span> : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)) <span class="id" title="var">env</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_cnf</span> <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">cnf_of_list</span> <span class="id" title="var">tg</span> <span class="id" title="var">f</span>) &lt;-&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">make_conj</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> : <span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span> =&gt; <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">False</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">normalise</span> {<span class="id" title="var">T</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">t</span>:<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">tg</span>:<span class="id" title="var">T</span>) : <span class="id" title="var">cnf</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) <span class="id" title="var">T</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> := <span class="id" title="var">xnnormalise</span> <span class="id" title="var">t</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">f</span> <span class="id" title="keyword">then</span> <span class="id" title="var">cnf_ff</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">cnf_of_list</span> <span class="id" title="var">tg</span> (<span class="id" title="var">xnormalise</span> <span class="id" title="var">f</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">normalise_correct</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">T</span>: <span class="id" title="keyword">Type</span>) <span class="id" title="var">env</span> <span class="id" title="var">t</span> (<span class="id" title="var">tg</span>:<span class="id" title="var">T</span>), <span class="id" title="var">eval_cnf</span> <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">normalise</span> <span class="id" title="var">t</span> <span class="id" title="var">tg</span>) &lt;-&gt; <span class="id" title="var">Zeval_formula</span> <span class="id" title="var">env</span> <span class="id" title="var">t</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">xnegate</span> (<span class="id" title="var">f</span>:<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)  :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">e</span>,<span class="id" title="var">o</span>) := <span class="id" title="var">f</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">o</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Equal</span>  =&gt; (<span class="id" title="var">e</span>,<span class="id" title="var">Equal</span>) :: <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">NonEqual</span> =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">e</span> (<span class="id" title="var">Pc</span> 1),<span class="id" title="var">NonStrict</span>) :: (<span class="id" title="var">psub</span> (<span class="id" title="var">Pc</span> (-1)) <span class="id" title="var">e</span>, <span class="id" title="var">NonStrict</span>) :: <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">NonStrict</span> =&gt; (<span class="id" title="var">e</span>,<span class="id" title="var">NonStrict</span>)::<span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="keyword">Strict</span>    =&gt; (<span class="id" title="var">psub</span> <span class="id" title="var">e</span> (<span class="id" title="var">Pc</span> 1),<span class="id" title="var">NonStrict</span>)::<span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">negate</span> {<span class="id" title="var">T</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">t</span>:<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">tg</span>:<span class="id" title="var">T</span>) : <span class="id" title="var">cnf</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) <span class="id" title="var">T</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> := <span class="id" title="var">xnnormalise</span> <span class="id" title="var">t</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">f</span> <span class="id" title="keyword">then</span> <span class="id" title="var">cnf_tt</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">cnf_of_list</span> <span class="id" title="var">tg</span> (<span class="id" title="var">xnegate</span> <span class="id" title="var">f</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xnegate_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">make_conj</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">False</span>) (<span class="id" title="var">xnegate</span> <span class="id" title="var">f</span>)) &lt;-&gt; ~ <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">negate_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">T</span> <span class="id" title="var">env</span> <span class="id" title="var">t</span> (<span class="id" title="var">tg</span>:<span class="id" title="var">T</span>), <span class="id" title="var">eval_cnf</span> <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">negate</span> <span class="id" title="var">t</span> <span class="id" title="var">tg</span>) &lt;-&gt; ~ <span class="id" title="var">Zeval_formula</span> <span class="id" title="var">env</span>  <span class="id" title="var">t</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">cnfZ</span> (<span class="id" title="var">Annot</span>: <span class="id" title="keyword">Type</span>) (<span class="id" title="var">TX</span> : <span class="id" title="keyword">Type</span>)  (<span class="id" title="var">AF</span> : <span class="id" title="keyword">Type</span>)  (<span class="id" title="var">f</span> : <span class="id" title="var">TFormula</span> (<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>) <span class="id" title="var">Annot</span> <span class="id" title="var">TX</span> <span class="id" title="var">AF</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">rxcnf</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">Zdeduce</span> <span class="id" title="var">normalise</span> <span class="id" title="var">negate</span> <span class="id" title="var">true</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ZweakTautoChecker</span> (<span class="id" title="var">w</span>: <span class="id" title="var">list</span> <span class="id" title="var">ZWitness</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">BFormula</span> (<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>)) : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;@<span class="id" title="var">tauto_checker</span> (<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>)  (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) <span class="id" title="var">unit</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">Zdeduce</span> <span class="id" title="var">normalise</span> <span class="id" title="var">negate</span>  <span class="id" title="var">ZWitness</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">cl</span> =&gt; <span class="id" title="var">ZWeakChecker</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">fst</span> <span class="id" title="var">cl</span>)) <span class="id" title="var">f</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Zdiv</span>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ceiling</span> (<span class="id" title="var">a</span> <span class="id" title="var">b</span>:<span class="id" title="var">Z</span>) : <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">q</span>,<span class="id" title="var">r</span>) := <span class="id" title="var">Z.div_eucl</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; <span class="id" title="var">q</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>  =&gt; <span class="id" title="var">q</span> + 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Znumtheory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdivide_ceiling</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, (<span class="id" title="var">b</span> | <span class="id" title="var">a</span>) -&gt; <span class="id" title="var">ceiling</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> = <span class="id" title="var">Z.div</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">narrow_interval_lower_bound</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">x</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="var">a</span> &gt; 0 -&gt; <span class="id" title="var">a</span> * <span class="id" title="var">x</span>  &gt;= <span class="id" title="var">b</span> -&gt; <span class="id" title="var">x</span> &gt;= <span class="id" title="var">ceiling</span> <span class="id" title="var">b</span> <span class="id" title="var">a</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+NB: narrow_interval_upper_bound is Zdiv.Zdiv_le_lower_bound 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">QArith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">ZArithProof</span> :=<br/>
+| <span class="id" title="var">DoneProof</span><br/>
+| <span class="id" title="var">RatProof</span> : <span class="id" title="var">ZWitness</span> -&gt; <span class="id" title="var">ZArithProof</span> -&gt; <span class="id" title="var">ZArithProof</span><br/>
+| <span class="id" title="var">CutProof</span> : <span class="id" title="var">ZWitness</span> -&gt; <span class="id" title="var">ZArithProof</span> -&gt; <span class="id" title="var">ZArithProof</span><br/>
+| <span class="id" title="var">EnumProof</span> : <span class="id" title="var">ZWitness</span> -&gt; <span class="id" title="var">ZWitness</span> -&gt; <span class="id" title="var">list</span> <span class="id" title="var">ZArithProof</span> -&gt; <span class="id" title="var">ZArithProof</span><br/>
+| <span class="id" title="var">ExProof</span>   : <span class="id" title="var">positive</span> -&gt; <span class="id" title="var">ZArithProof</span> -&gt; <span class="id" title="var">ZArithProof</span><br/>
+<br/>
+.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Znumtheory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">isZ0</span> (<span class="id" title="var">x</span>:<span class="id" title="var">Z</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>  =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">isZ0_0</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">isZ0</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">x</span> = 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">isZ0_n0</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">isZ0</span> <span class="id" title="var">x</span> = <span class="id" title="var">false</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;&gt; 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ZgcdM</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Z</span>) := <span class="id" title="var">Z.max</span> (<span class="id" title="var">Z.gcd</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">Zgcd_pol</span> (<span class="id" title="var">p</span> : <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span>) : (<span class="id" title="var">Z</span> * <span class="id" title="var">Z</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Pc</span> <span class="id" title="var">c</span> =&gt; (0,<span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Pinj</span> <span class="id" title="var">_</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PX</span> <span class="id" title="var">p</span> <span class="id" title="var">_</span> <span class="id" title="var">q</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">g1</span>,<span class="id" title="var">c1</span>) := <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">g2</span>,<span class="id" title="var">c2</span>) := <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">q</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ZgcdM</span> (<span class="id" title="var">ZgcdM</span> <span class="id" title="var">g1</span> <span class="id" title="var">c1</span>) <span class="id" title="var">g2</span> , <span class="id" title="var">c2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">Zdiv_pol</span> (<span class="id" title="var">p</span>:<span class="id" title="var">PolC</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">x</span>:<span class="id" title="var">Z</span>) : <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Pc</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">Pc</span> (<span class="id" title="var">Z.div</span> <span class="id" title="var">c</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Pinj</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">Pinj</span> <span class="id" title="var">j</span> (<span class="id" title="var">Zdiv_pol</span> <span class="id" title="var">p</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PX</span> <span class="id" title="var">p</span> <span class="id" title="var">j</span> <span class="id" title="var">q</span> =&gt; <span class="id" title="var">PX</span> (<span class="id" title="var">Zdiv_pol</span> <span class="id" title="var">p</span> <span class="id" title="var">x</span>) <span class="id" title="var">j</span> (<span class="id" title="var">Zdiv_pol</span> <span class="id" title="var">q</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Zdivide_pol</span> (<span class="id" title="var">x</span>:<span class="id" title="var">Z</span>): <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+| <span class="id" title="var">Zdiv_Pc</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">c</span>, (<span class="id" title="var">x</span> | <span class="id" title="var">c</span>) -&gt; <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> (<span class="id" title="var">Pc</span> <span class="id" title="var">c</span>)<br/>
+| <span class="id" title="var">Zdiv_Pinj</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>, <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> <span class="id" title="var">p</span> -&gt;  <span class="id" title="keyword">forall</span> <span class="id" title="var">j</span>, <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> (<span class="id" title="var">Pinj</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span>)<br/>
+| <span class="id" title="var">Zdiv_PX</span>   : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>, <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> <span class="id" title="var">p</span> -&gt; <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> <span class="id" title="var">q</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">j</span>, <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> (<span class="id" title="var">PX</span> <span class="id" title="var">p</span> <span class="id" title="var">j</span> <span class="id" title="var">q</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdiv_pol_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">p</span>, 0 &lt; <span class="id" title="var">a</span> -&gt; <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">a</span> <span class="id" title="var">p</span>  -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">p</span> =  <span class="id" title="var">a</span> * <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">Zdiv_pol</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zgcd_pol_ge</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>, <span class="id" title="var">fst</span> (<span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span>) &gt;= 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdivide_pol_Zdivide</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">x</span> <span class="id" title="var">p</span> -&gt; (<span class="id" title="var">y</span> | <span class="id" title="var">x</span>) -&gt;  <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">y</span> <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdivide_pol_one</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>, <span class="id" title="var">Zdivide_pol</span> 1 <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zgcd_minus</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>, (<span class="id" title="var">a</span> | <span class="id" title="var">c</span> - <span class="id" title="var">b</span> ) -&gt; (<span class="id" title="var">Z.gcd</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> | <span class="id" title="var">c</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdivide_pol_sub</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;&nbsp;0 &lt; <span class="id" title="var">Z.gcd</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">a</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">p</span> <span class="id" title="var">b</span>) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Zdivide_pol</span> (<span class="id" title="var">Z.gcd</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zdivide_pol_sub_0</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">a</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">p</span> 0) -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">a</span> <span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zgcd_pol_div</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">g</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span> = (<span class="id" title="var">g</span>, <span class="id" title="var">c</span>) -&gt; <span class="id" title="var">Zdivide_pol</span> <span class="id" title="var">g</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">p</span> <span class="id" title="var">c</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zgcd_pol_correct_lt</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">env</span> <span class="id" title="var">g</span> <span class="id" title="var">c</span>, <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span> = (<span class="id" title="var">g</span>,<span class="id" title="var">c</span>) -&gt; 0 &lt; <span class="id" title="var">g</span> -&gt; <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">p</span> = <span class="id" title="var">g</span> * (<span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> (<span class="id" title="var">Zdiv_pol</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">p</span> <span class="id" title="var">c</span>) <span class="id" title="var">g</span>))  + <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">makeCuttingPlane</span> (<span class="id" title="var">p</span> : <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">PolC</span>  <span class="id" title="var">Z</span> * <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">g</span>,<span class="id" title="var">c</span>) := <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">p</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Z.gtb</span> <span class="id" title="var">g</span> <span class="id" title="var">Z0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> (<span class="id" title="var">Zdiv_pol</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">p</span> <span class="id" title="var">c</span>) <span class="id" title="var">g</span> , <span class="id" title="var">Z.opp</span> (<span class="id" title="var">ceiling</span> (<span class="id" title="var">Z.opp</span> <span class="id" title="var">c</span>) <span class="id" title="var">g</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> (<span class="id" title="var">p</span>,<span class="id" title="var">Z0</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">genCuttingPlane</span> (<span class="id" title="var">f</span> : <span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">option</span> (<span class="id" title="var">PolC</span> <span class="id" title="var">Z</span> * <span class="id" title="var">Z</span> * <span class="id" title="var">Op1</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">e</span>,<span class="id" title="var">op</span>) := <span class="id" title="var">f</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">op</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Equal</span> =&gt; <span class="id" title="keyword">let</span> (<span class="id" title="var">g</span>,<span class="id" title="var">c</span>) := <span class="id" title="var">Zgcd_pol</span> <span class="id" title="var">e</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">andb</span> (<span class="id" title="var">Z.gtb</span> <span class="id" title="var">g</span> <span class="id" title="var">Z0</span>) (<span class="id" title="var">andb</span> (<span class="id" title="var">negb</span> (<span class="id" title="var">Zeq_bool</span> <span class="id" title="var">c</span> <span class="id" title="var">Z0</span>)) (<span class="id" title="var">negb</span> (<span class="id" title="var">Zeq_bool</span> (<span class="id" title="var">Z.gcd</span> <span class="id" title="var">g</span> <span class="id" title="var">c</span>) <span class="id" title="var">g</span>)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="var">None</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>) := <span class="id" title="var">makeCuttingPlane</span> <span class="id" title="var">e</span>  <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Some</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>,<span class="id" title="var">Equal</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">NonEqual</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">e</span>,<span class="id" title="var">Z0</span>,<span class="id" title="var">op</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="keyword">Strict</span>   =&gt;  <span class="id" title="keyword">let</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>) := <span class="id" title="var">makeCuttingPlane</span> (<span class="id" title="var">PsubC</span> <span class="id" title="var">Z.sub</span> <span class="id" title="var">e</span> 1) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Some</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>,<span class="id" title="var">NonStrict</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">NonStrict</span> =&gt; <span class="id" title="keyword">let</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>) := <span class="id" title="var">makeCuttingPlane</span> <span class="id" title="var">e</span>  <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Some</span> (<span class="id" title="var">p</span>,<span class="id" title="var">c</span>,<span class="id" title="var">NonStrict</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">nformula_of_cutting_plane</span> (<span class="id" title="var">t</span> : <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span> * <span class="id" title="var">Z</span> * <span class="id" title="var">Op1</span>) : <span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">e_z</span>, <span class="id" title="var">o</span>) := <span class="id" title="var">t</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">e</span>,<span class="id" title="var">z</span>) := <span class="id" title="var">e_z</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">padd</span> <span class="id" title="var">e</span> (<span class="id" title="var">Pc</span> <span class="id" title="var">z</span>) , <span class="id" title="var">o</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">is_pol_Z0</span> (<span class="id" title="var">p</span> : <span class="id" title="var">PolC</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Pc</span> <span class="id" title="var">Z0</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|   <span class="id" title="var">_</span>   =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">is_pol_Z0_eval_pol</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span>, <span class="id" title="var">is_pol_Z0</span> <span class="id" title="var">p</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">eval_pol</span> <span class="id" title="var">env</span> <span class="id" title="var">p</span> = 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eval_Psatz</span>  : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) -&gt; <span class="id" title="var">ZWitness</span> -&gt;  <span class="id" title="var">option</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_Psatz</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Zeq_bool</span> <span class="id" title="var">Z.leb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">valid_cut_sign</span> (<span class="id" title="var">op</span>:<span class="id" title="var">Op1</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">op</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Equal</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">NonStrict</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>         =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">bound_var</span> (<span class="id" title="var">v</span> : <span class="id" title="var">positive</span>) : <span class="id" title="var">Formula</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">Build_Formula</span> (<span class="id" title="var">PEX</span> <span class="id" title="var">v</span>) <span class="id" title="var">OpGe</span> (<span class="id" title="var">PEc</span> 0).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">mk_eq_pos</span> (<span class="id" title="var">x</span> : <span class="id" title="var">positive</span>) (<span class="id" title="var">y</span>:<span class="id" title="var">positive</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">positive</span>) : <span class="id" title="var">Formula</span> <span class="id" title="var">Z</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">Build_Formula</span> (<span class="id" title="var">PEX</span> <span class="id" title="var">x</span>) <span class="id" title="var">OpEq</span> (<span class="id" title="var">PEsub</span> (<span class="id" title="var">PEX</span> <span class="id" title="var">y</span>) (<span class="id" title="var">PEX</span> <span class="id" title="var">t</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">vars</span> (<span class="id" title="var">jmp</span> : <span class="id" title="var">positive</span>) (<span class="id" title="var">p</span> : <span class="id" title="var">Pol</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">list</span> <span class="id" title="var">positive</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Pc</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Pinj</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">vars</span> (<span class="id" title="var">Pos.add</span> <span class="id" title="var">j</span> <span class="id" title="var">jmp</span>) <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PX</span> <span class="id" title="var">p</span> <span class="id" title="var">j</span> <span class="id" title="var">q</span> =&gt; <span class="id" title="var">jmp</span>::(<span class="id" title="var">vars</span> <span class="id" title="var">jmp</span> <span class="id" title="var">p</span>)++<span class="id" title="var">vars</span> (<span class="id" title="var">Pos.succ</span> <span class="id" title="var">jmp</span>) <span class="id" title="var">q</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">max_var</span> (<span class="id" title="var">jmp</span> : <span class="id" title="var">positive</span>) (<span class="id" title="var">p</span> : <span class="id" title="var">Pol</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">positive</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Pc</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">jmp</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Pinj</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">max_var</span> (<span class="id" title="var">Pos.add</span> <span class="id" title="var">j</span> <span class="id" title="var">jmp</span>) <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PX</span> <span class="id" title="var">p</span> <span class="id" title="var">j</span> <span class="id" title="var">q</span> =&gt; <span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var</span> <span class="id" title="var">jmp</span> <span class="id" title="var">p</span>) (<span class="id" title="var">max_var</span> (<span class="id" title="var">Pos.succ</span> <span class="id" title="var">jmp</span>) <span class="id" title="var">q</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">pos_le_add</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span> + <span class="id" title="var">x</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_le</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">v</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">v</span> &lt;= <span class="id" title="var">max_var</span> <span class="id" title="var">v</span> <span class="id" title="var">p</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">j</span> <span class="id" title="var">v</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">v</span> (<span class="id" title="var">vars</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span>) -&gt; <span class="id" title="var">Pos.le</span> <span class="id" title="var">v</span> (<span class="id" title="var">max_var</span> <span class="id" title="var">j</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">max_var_nformulae</span> (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">List.fold_left</span>  (<span class="id" title="keyword">fun</span> <span class="id" title="var">acc</span> <span class="id" title="var">f</span> =&gt; <span class="id" title="var">Pos.max</span> <span class="id" title="var">acc</span> (<span class="id" title="var">max_var</span> <span class="id" title="var">xH</span> (<span class="id" title="var">fst</span> <span class="id" title="var">f</span>))) <span class="id" title="var">l</span> <span class="id" title="var">xH</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">MaxVar</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">F</span> (<span class="id" title="var">acc</span> : <span class="id" title="var">positive</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">Pol</span> <span class="id" title="var">Z</span> * <span class="id" title="var">Op1</span>) := <span class="id" title="var">Pos.max</span> <span class="id" title="var">acc</span> (<span class="id" title="var">max_var</span> 1 (<span class="id" title="var">fst</span> <span class="id" title="var">f</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_nformulae_mono_aux</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">v</span> <span class="id" title="var">acc</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">v</span> &lt;= <span class="id" title="var">acc</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span> &lt;= <span class="id" title="var">fold_left</span> <span class="id" title="var">F</span> <span class="id" title="var">l</span> <span class="id" title="var">acc</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_nformulae_mono_aux'</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">acc</span> <span class="id" title="var">acc'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">acc</span> &lt;= <span class="id" title="var">acc'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fold_left</span> <span class="id" title="var">F</span> <span class="id" title="var">l</span> <span class="id" title="var">acc</span> &lt;= <span class="id" title="var">fold_left</span> <span class="id" title="var">F</span> <span class="id" title="var">l</span> <span class="id" title="var">acc'</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_nformulae_correct_aux</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">p</span> <span class="id" title="var">o</span> <span class="id" title="var">v</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">p</span>,<span class="id" title="var">o</span>) <span class="id" title="var">l</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">v</span> (<span class="id" title="var">vars</span> <span class="id" title="var">xH</span> <span class="id" title="var">p</span>) -&gt; <span class="id" title="var">Pos.le</span> <span class="id" title="var">v</span> (<span class="id" title="var">fold_left</span> <span class="id" title="var">F</span> <span class="id" title="var">l</span> 1)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MaxVar</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_nformalae_correct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">p</span> <span class="id" title="var">o</span> <span class="id" title="var">v</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">p</span>,<span class="id" title="var">o</span>) <span class="id" title="var">l</span> -&gt; <span class="id" title="var">In</span> <span class="id" title="var">v</span> (<span class="id" title="var">vars</span> <span class="id" title="var">xH</span> <span class="id" title="var">p</span>) -&gt; <span class="id" title="var">Pos.le</span> <span class="id" title="var">v</span> (<span class="id" title="var">max_var_nformulae</span> <span class="id" title="var">l</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">max_var_psatz</span> (<span class="id" title="var">w</span> : <span class="id" title="var">Psatz</span> <span class="id" title="var">Z</span>) : <span class="id" title="var">positive</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">w</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PsatzIn</span> <span class="id" title="var">_</span> <span class="id" title="var">n</span> =&gt; <span class="id" title="var">xH</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PsatzSquare</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">max_var</span> <span class="id" title="var">xH</span> (<span class="id" title="var">Psquare</span> 0 1 <span class="id" title="var">Z.add</span> <span class="id" title="var">Z.mul</span> <span class="id" title="var">Zeq_bool</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PsatzMulC</span> <span class="id" title="var">p</span> <span class="id" title="var">w</span> =&gt; <span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var</span> <span class="id" title="var">xH</span> <span class="id" title="var">p</span>) (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PsatzMulE</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> =&gt; <span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w1</span>) (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w2</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">PsatzAdd</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>  =&gt; <span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w1</span>) (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w2</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>   =&gt; <span class="id" title="var">xH</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">max_var_prf</span> (<span class="id" title="var">w</span> : <span class="id" title="var">ZArithProof</span>) : <span class="id" title="var">positive</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">w</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">DoneProof</span> =&gt; <span class="id" title="var">xH</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">RatProof</span> <span class="id" title="var">w</span> <span class="id" title="var">pf</span> | <span class="id" title="var">CutProof</span> <span class="id" title="var">w</span> <span class="id" title="var">pf</span> =&gt; <span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w</span>) (<span class="id" title="var">max_var_prf</span> <span class="id" title="var">pf</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">EnumProof</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">List.fold_left</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">acc</span> <span class="id" title="var">prf</span> =&gt; <span class="id" title="var">Pos.max</span> <span class="id" title="var">acc</span> (<span class="id" title="var">max_var_prf</span> <span class="id" title="var">prf</span>)) <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Pos.max</span> (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w1</span>) (<span class="id" title="var">max_var_psatz</span> <span class="id" title="var">w2</span>))<br/>
+&nbsp;&nbsp;| <span class="id" title="var">ExProof</span> <span class="id" title="var">_</span> <span class="id" title="var">pf</span> =&gt; <span class="id" title="var">max_var_prf</span> <span class="id" title="var">pf</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">ZChecker</span>  (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>)) (<span class="id" title="var">pf</span> : <span class="id" title="var">ZArithProof</span>)  {<span class="id" title="keyword">struct</span> <span class="id" title="var">pf</span>} : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">pf</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">DoneProof</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RatProof</span> <span class="id" title="var">w</span> <span class="id" title="var">pf</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">eval_Psatz</span> <span class="id" title="var">l</span> <span class="id" title="var">w</span>  <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">f</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">f</span> <span class="id" title="keyword">then</span> <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">ZChecker</span> (<span class="id" title="var">f</span>::<span class="id" title="var">l</span>) <span class="id" title="var">pf</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CutProof</span> <span class="id" title="var">w</span> <span class="id" title="var">pf</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">eval_Psatz</span> <span class="id" title="var">l</span> <span class="id" title="var">w</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">f</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">genCuttingPlane</span> <span class="id" title="var">f</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">cp</span> =&gt; <span class="id" title="var">ZChecker</span> (<span class="id" title="var">nformula_of_cutting_plane</span> <span class="id" title="var">cp</span>::<span class="id" title="var">l</span>) <span class="id" title="var">pf</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ExProof</span> <span class="id" title="var">x</span> <span class="id" title="var">prf</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">fr</span> := <span class="id" title="var">max_var_nformulae</span> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Pos.leb</span> <span class="id" title="var">x</span> <span class="id" title="var">fr</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">z</span>    := <span class="id" title="var">Pos.succ</span> <span class="id" title="var">fr</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">t</span>    := <span class="id" title="var">Pos.succ</span> <span class="id" title="var">z</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">nfx</span>  := <span class="id" title="var">xnnormalise</span> (<span class="id" title="var">mk_eq_pos</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span> <span class="id" title="var">t</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">posz</span> := <span class="id" title="var">xnnormalise</span> (<span class="id" title="var">bound_var</span> <span class="id" title="var">z</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">post</span> := <span class="id" title="var">xnnormalise</span> (<span class="id" title="var">bound_var</span> <span class="id" title="var">t</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ZChecker</span> (<span class="id" title="var">nfx</span>::<span class="id" title="var">posz</span>::<span class="id" title="var">post</span>::<span class="id" title="var">l</span>) <span class="id" title="var">prf</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EnumProof</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> <span class="id" title="var">pf</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">eval_Psatz</span> <span class="id" title="var">l</span> <span class="id" title="var">w1</span> , <span class="id" title="var">eval_Psatz</span> <span class="id" title="var">l</span> <span class="id" title="var">w2</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  <span class="id" title="var">Some</span> <span class="id" title="var">f1</span> , <span class="id" title="var">Some</span> <span class="id" title="var">f2</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">genCuttingPlane</span> <span class="id" title="var">f1</span> , <span class="id" title="var">genCuttingPlane</span> <span class="id" title="var">f2</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<span class="id" title="var">Some</span> (<span class="id" title="var">e1</span>,<span class="id" title="var">z1</span>,<span class="id" title="var">op1</span>) , <span class="id" title="var">Some</span> (<span class="id" title="var">e2</span>,<span class="id" title="var">z2</span>,<span class="id" title="var">op2</span>) =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="var">valid_cut_sign</span> <span class="id" title="var">op1</span> &amp;&amp; <span class="id" title="var">valid_cut_sign</span> <span class="id" title="var">op2</span> &amp;&amp; <span class="id" title="var">is_pol_Z0</span> (<span class="id" title="var">padd</span> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fix</span> <span class="id" title="var">label</span> (<span class="id" title="var">pfs</span>:<span class="id" title="var">list</span> <span class="id" title="var">ZArithProof</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">lb</span> <span class="id" title="var">ub</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">pfs</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="keyword">if</span> <span class="id" title="var">Z.gtb</span> <span class="id" title="var">lb</span> <span class="id" title="var">ub</span> <span class="id" title="keyword">then</span> <span class="id" title="var">true</span> <span class="id" title="keyword">else</span> <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">pf</span>::<span class="id" title="var">rsr</span> =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">ZChecker</span> ((<span class="id" title="var">psub</span> <span class="id" title="var">e1</span> (<span class="id" title="var">Pc</span> <span class="id" title="var">lb</span>), <span class="id" title="var">Equal</span>) :: <span class="id" title="var">l</span>) <span class="id" title="var">pf</span>) (<span class="id" title="var">label</span> <span class="id" title="var">rsr</span> (<span class="id" title="var">Z.add</span> <span class="id" title="var">lb</span> 1%<span class="id" title="var">Z</span>) <span class="id" title="var">ub</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)   <span class="id" title="var">pf</span> (<span class="id" title="var">Z.opp</span> <span class="id" title="var">z1</span>)  <span class="id" title="var">z2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   <span class="id" title="var">_</span>    ,   <span class="id" title="var">_</span>   =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   <span class="id" title="var">_</span>   ,  <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">bdepth</span> (<span class="id" title="var">pf</span> : <span class="id" title="var">ZArithProof</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">pf</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">DoneProof</span>  =&gt; <span class="id" title="var">O</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RatProof</span> <span class="id" title="var">_</span> <span class="id" title="var">p</span> =&gt;  <span class="id" title="var">S</span> (<span class="id" title="var">bdepth</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CutProof</span> <span class="id" title="var">_</span>  <span class="id" title="var">p</span> =&gt;   <span class="id" title="var">S</span>  (<span class="id" title="var">bdepth</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EnumProof</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">S</span> (<span class="id" title="var">List.fold_right</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">pf</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">Nat.max</span> (<span class="id" title="var">bdepth</span> <span class="id" title="var">pf</span>) <span class="id" title="var">x</span>)   <span class="id" title="var">O</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ExProof</span> <span class="id" title="var">_</span> <span class="id" title="var">p</span>   =&gt; <span class="id" title="var">S</span> (<span class="id" title="var">bdepth</span> <span class="id" title="var">p</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Wf_nat</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">in_bdepth</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>  <span class="id" title="var">y</span>, <span class="id" title="var">In</span> <span class="id" title="var">y</span> <span class="id" title="var">l</span> -&gt;  <span class="id" title="var">ltof</span> <span class="id" title="var">ZArithProof</span> <span class="id" title="var">bdepth</span> <span class="id" title="var">y</span> (<span class="id" title="var">EnumProof</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>  <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_Psatz_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">w</span> <span class="id" title="var">l</span> <span class="id" title="var">f'</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">make_conj</span> (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span>) <span class="id" title="var">l</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_Psatz</span> <span class="id" title="var">l</span> <span class="id" title="var">w</span>  = <span class="id" title="var">Some</span> <span class="id" title="var">f'</span> -&gt;  <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">makeCuttingPlane_ns_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">e</span>, <span class="id" title="var">NonStrict</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">makeCuttingPlane</span> <span class="id" title="var">e</span> = (<span class="id" title="var">e'</span>,<span class="id" title="var">c</span>) -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">nformula_of_cutting_plane</span> (<span class="id" title="var">e'</span>, <span class="id" title="var">c</span>, <span class="id" title="var">NonStrict</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">cutting_plane_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span> <span class="id" title="var">p</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">genCuttingPlane</span> <span class="id" title="var">f</span> = <span class="id" title="var">Some</span> <span class="id" title="var">p</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">nformula_of_cutting_plane</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span>  <span class="id" title="var">genCuttingPlaneNone</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">genCuttingPlane</span> <span class="id" title="var">f</span> = <span class="id" title="var">None</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">f</span> -&gt; <span class="id" title="var">False</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_nformula_mk_eq_pos</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span> <span class="id" title="var">t</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">env</span> <span class="id" title="var">x</span> = <span class="id" title="var">env</span> <span class="id" title="var">z</span> - <span class="id" title="var">env</span> <span class="id" title="var">t</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">xnnormalise</span> (<span class="id" title="var">mk_eq_pos</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span> <span class="id" title="var">t</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eval_nformula_bound_var</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">env</span> <span class="id" title="var">x</span> &gt;= 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> (<span class="id" title="var">xnnormalise</span> (<span class="id" title="var">bound_var</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">agree_env</span> (<span class="id" title="var">fr</span> : <span class="id" title="var">positive</span>) (<span class="id" title="var">env</span> <span class="id" title="var">env'</span> : <span class="id" title="var">positive</span> -&gt; <span class="id" title="var">Z</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">Pos.le</span> <span class="id" title="var">x</span> <span class="id" title="var">fr</span> -&gt; <span class="id" title="var">env</span> <span class="id" title="var">x</span> = <span class="id" title="var">env'</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">agree_env_subset</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> <span class="id" title="var">v1</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Pos.le</span> <span class="id" title="var">v2</span> <span class="id" title="var">v1</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> <span class="id" title="var">v2</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">agree_env_jump</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">fr</span> <span class="id" title="var">j</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> (<span class="id" title="var">fr</span> + <span class="id" title="var">j</span>) <span class="id" title="var">env</span> <span class="id" title="var">env'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> <span class="id" title="var">fr</span> (<span class="id" title="var">Env.jump</span> <span class="id" title="var">j</span> <span class="id" title="var">env</span>) (<span class="id" title="var">Env.jump</span> <span class="id" title="var">j</span> <span class="id" title="var">env'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">agree_env_tail</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">fr</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> (<span class="id" title="var">Pos.succ</span> <span class="id" title="var">fr</span>) <span class="id" title="var">env</span> <span class="id" title="var">env'</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">agree_env</span> <span class="id" title="var">fr</span> (<span class="id" title="var">Env.tail</span> <span class="id" title="var">env</span>) (<span class="id" title="var">Env.tail</span> <span class="id" title="var">env'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_var_acc</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">max_var</span> (<span class="id" title="var">i</span> + <span class="id" title="var">j</span>) <span class="id" title="var">p</span> = <span class="id" title="var">max_var</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> + <span class="id" title="var">j</span>)%<span class="id" title="var">positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">agree_env_eval_nformula</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span> <span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AGREE</span> : <span class="id" title="var">agree_env</span> (<span class="id" title="var">max_var</span> <span class="id" title="var">xH</span> (<span class="id" title="var">fst</span> <span class="id" title="var">e</span>))  <span class="id" title="var">env</span> <span class="id" title="var">env'</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span> <span class="id" title="var">e</span>  &lt;-&gt;  <span class="id" title="var">eval_nformula</span> <span class="id" title="var">env'</span> <span class="id" title="var">e</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">agree_env_eval_nformulae</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">env</span> <span class="id" title="var">env'</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AGREE</span> : <span class="id" title="var">agree_env</span> (<span class="id" title="var">max_var_nformulae</span> <span class="id" title="var">l</span>) <span class="id" title="var">env</span> <span class="id" title="var">env'</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make_conj</span> (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span>) <span class="id" title="var">l</span> &lt;-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make_conj</span> (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env'</span>) <span class="id" title="var">l</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_true_iff_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span> : <span class="id" title="var">bool</span>, (<span class="id" title="var">b1</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">b2</span> = <span class="id" title="var">true</span>) &lt;-&gt; <span class="id" title="var">b1</span> = <span class="id" title="var">b2</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">pos_tac</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="var">false</span> = <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">symmetry</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="var">Pos.eqb</span> ?<span class="id" title="var">X</span> ?<span class="id" title="var">Y</span> = <span class="id" title="var">false</span> =&gt; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">Pos.eqb_neq</span> ; <span class="id" title="tactic">intro</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">H</span> : @<span class="id" title="var">eq</span> <span class="id" title="var">positive</span> ?<span class="id" title="var">X</span> ?<span class="id" title="var">Y</span> |- <span class="id" title="var">_</span> =&gt;  <span class="id" title="tactic">apply</span> <span class="id" title="var">Zpos_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="keyword">context</span>[<span class="id" title="var">Z.pos</span> (<span class="id" title="var">Pos.succ</span> ?<span class="id" title="var">X</span>)] |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">rewrite</span> (<span class="id" title="var">Pos2Z.inj_succ</span> <span class="id" title="var">X</span>) <span class="id" title="tactic">in</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">Pos.leb</span> ?<span class="id" title="var">X</span> ?<span class="id" title="var">Y</span> = <span class="id" title="var">true</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">Pos.leb_le</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="var">Pos2Z.pos_le_pos</span> <span class="id" title="var">X</span> <span class="id" title="var">Y</span>) <span class="id" title="tactic">in</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ZChecker_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">w</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ZChecker</span> <span class="id" title="var">l</span> <span class="id" title="var">w</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">make_impl</span>  (<span class="id" title="var">eval_nformula</span> <span class="id" title="var">env</span>)  <span class="id" title="var">l</span> <span class="id" title="var">False</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ZTautoChecker</span>  (<span class="id" title="var">f</span> : <span class="id" title="var">BFormula</span> (<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>)) (<span class="id" title="var">w</span>: <span class="id" title="var">list</span> <span class="id" title="var">ZArithProof</span>): <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;@<span class="id" title="var">tauto_checker</span> (<span class="id" title="var">Formula</span> <span class="id" title="var">Z</span>) (<span class="id" title="var">NFormula</span> <span class="id" title="var">Z</span>) <span class="id" title="var">unit</span> <span class="id" title="var">Zunsat</span> <span class="id" title="var">Zdeduce</span> <span class="id" title="var">normalise</span> <span class="id" title="var">negate</span>  <span class="id" title="var">ZArithProof</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">cl</span> =&gt; <span class="id" title="var">ZChecker</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">fst</span> <span class="id" title="var">cl</span>)) <span class="id" title="var">f</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">ZTautoChecker_sound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">f</span> <span class="id" title="var">w</span>, <span class="id" title="var">ZTautoChecker</span> <span class="id" title="var">f</span> <span class="id" title="var">w</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">env</span>, <span class="id" title="var">eval_bf</span>  (<span class="id" title="var">Zeval_formula</span> <span class="id" title="var">env</span>)  <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">xhyps_of_pt</span> (<span class="id" title="var">base</span>:<span class="id" title="var">nat</span>) (<span class="id" title="var">acc</span> : <span class="id" title="var">list</span> <span class="id" title="var">nat</span>) (<span class="id" title="var">pt</span>:<span class="id" title="var">ZArithProof</span>)  : <span class="id" title="var">list</span> <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">pt</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">DoneProof</span> =&gt; <span class="id" title="var">acc</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RatProof</span> <span class="id" title="var">c</span> <span class="id" title="var">pt</span> =&gt; <span class="id" title="var">xhyps_of_pt</span> (<span class="id" title="var">S</span> <span class="id" title="var">base</span> ) (<span class="id" title="var">xhyps_of_psatz</span> <span class="id" title="var">base</span> <span class="id" title="var">acc</span> <span class="id" title="var">c</span>) <span class="id" title="var">pt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CutProof</span> <span class="id" title="var">c</span> <span class="id" title="var">pt</span> =&gt; <span class="id" title="var">xhyps_of_pt</span> (<span class="id" title="var">S</span> <span class="id" title="var">base</span> ) (<span class="id" title="var">xhyps_of_psatz</span> <span class="id" title="var">base</span> <span class="id" title="var">acc</span> <span class="id" title="var">c</span>) <span class="id" title="var">pt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EnumProof</span> <span class="id" title="var">c1</span> <span class="id" title="var">c2</span> <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">acc</span> := <span class="id" title="var">xhyps_of_psatz</span> <span class="id" title="var">base</span> (<span class="id" title="var">xhyps_of_psatz</span> <span class="id" title="var">base</span> <span class="id" title="var">acc</span> <span class="id" title="var">c2</span>) <span class="id" title="var">c1</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">List.fold_left</span> (<span class="id" title="var">xhyps_of_pt</span> (<span class="id" title="var">S</span> <span class="id" title="var">base</span>)) <span class="id" title="var">l</span> <span class="id" title="var">acc</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ExProof</span> <span class="id" title="var">_</span> <span class="id" title="var">pt</span>  =&gt;  <span class="id" title="var">xhyps_of_pt</span> (<span class="id" title="var">S</span> (<span class="id" title="var">S</span> (<span class="id" title="var">S</span> <span class="id" title="var">base</span> ))) <span class="id" title="var">acc</span> <span class="id" title="var">pt</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">hyps_of_pt</span> (<span class="id" title="var">pt</span> : <span class="id" title="var">ZArithProof</span>) : <span class="id" title="var">list</span> <span class="id" title="var">nat</span> := <span class="id" title="var">xhyps_of_pt</span> 0 <span class="id" title="var">nil</span> <span class="id" title="var">pt</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+To ease bindings from ml code 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">make_impl</span> := <span class="id" title="var">Refl.make_impl</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">make_conj</span> := <span class="id" title="var">Refl.make_conj</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">VarMap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">env</span> := <span class="id" title="var">PolEnv</span> <span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">node</span> := @<span class="id" title="var">VarMap.Branch</span> <span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">empty</span> := @<span class="id" title="var">VarMap.Empty</span> <span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">leaf</span> := @<span class="id" title="var">VarMap.Elt</span> <span class="id" title="var">Z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">coneMember</span> := <span class="id" title="var">ZWitness</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="tactic">eval</span> := <span class="id" title="var">eval_formula</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">prod_pos_nat</span> := <span class="id" title="var">prod</span> <span class="id" title="var">positive</span> <span class="id" title="var">nat</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">n_of_Z</span> := <span class="id" title="var">Z.to_N</span> (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

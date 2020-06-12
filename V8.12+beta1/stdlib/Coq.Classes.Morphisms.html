@@ -1,0 +1,929 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Classes.Morphisms</h1>
+
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab539"></a><h1 class="section">Typeclass-based morphism definition and standard, minimal instances</h1>
+
+
+<div class="paragraph"> </div>
+
+   Author: Matthieu Sozeau
+   Institution: LRI, CNRS UMR 8623 - University Paris Sud
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Basics</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Tactics</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Relations.Relation_Definitions</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab540"></a><h1 class="section">Morphisms.</h1>
+
+
+<div class="paragraph"> </div>
+
+   We now turn to the definition of <span class="inlinecode"><span class="id" title="var">Proper</span></span> and declare standard instances.
+   These will be used by the <span class="inlinecode"><span class="id" title="tactic">setoid_rewrite</span></span> tactic later. 
+<div class="paragraph"> </div>
+
+ A morphism for a relation <span class="inlinecode"><span class="id" title="var">R</span></span> is a proper element of the relation.
+   The relation <span class="inlinecode"><span class="id" title="var">R</span></span> will be instantiated by <span class="inlinecode"><span class="id" title="var">respectful</span></span> and <span class="inlinecode"><span class="id" title="var">A</span></span> by an arrow
+   type for usual morphisms. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Proper</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <span class="id" title="var">U</span> := <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="var">U</span>}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Class</span> <span class="id" title="var">Proper</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) (<span class="id" title="var">m</span> : <span class="id" title="var">A</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">proper_prf</span> : <span class="id" title="var">R</span> <span class="id" title="var">m</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Every element in the carrier of a reflexive relation is a morphism
+   for this relation.  We use a proxy class for this case which is used
+   internally to discharge reflexivity constraints.  The <span class="inlinecode"><span class="id" title="var">Reflexive</span></span>
+   instance will almost always be used, but it won't apply in general to
+   any kind of <span class="inlinecode"><span class="id" title="var">Proper</span></span> <span class="inlinecode">(<span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">B</span>)</span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> goal, making proof-search much
+   slower. A cleaner solution would be to be able to set different
+   priorities in different hint bases and select a particular hint
+   database for resolution of a type class constraint. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Class</span> <span class="id" title="var">ProperProxy</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) (<span class="id" title="var">m</span> : <span class="id" title="var">A</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">proper_proxy</span> : <span class="id" title="var">R</span> <span class="id" title="var">m</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_proper_proxy</span> (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) : <span class="id" title="var">ProperProxy</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">A</span>) <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">reflexive_proper_proxy</span> `(<span class="id" title="var">Reflexive</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>) (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) : <span class="id" title="var">ProperProxy</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_proper_proxy</span> <span class="id" title="var">x</span> `(<span class="id" title="var">Proper</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>) : <span class="id" title="var">ProperProxy</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Respectful morphisms. 
+<div class="paragraph"> </div>
+
+ The fully dependent version, not used yet. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">respectful_hetero</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">C</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Type</span>) (<span class="id" title="var">D</span> : <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">R</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="keyword">Prop</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">R'</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">y</span> : <span class="id" title="var">B</span>), <span class="id" title="var">C</span> <span class="id" title="var">x</span> -&gt; <span class="id" title="var">D</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="keyword">Prop</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">C</span> <span class="id" title="var">x</span>) -&gt; (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">B</span>, <span class="id" title="var">D</span> <span class="id" title="var">x</span>) -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span> =&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">R</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> -&gt; <span class="id" title="var">R'</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="var">g</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The non-dependent version is an instance where we forget dependencies. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">respectful</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) (<span class="id" title="var">R'</span> : <span class="id" title="var">relation</span> <span class="id" title="var">B</span>) : <span class="id" title="var">relation</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> @<span class="id" title="var">respectful_hetero</span> <span class="id" title="var">A</span> <span class="id" title="var">A</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">B</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">B</span>) <span class="id" title="var">R</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">R'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Proper</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We favor the use of Leibniz equality or a declared reflexive relation 
+  when resolving <span class="inlinecode"><span class="id" title="var">ProperProxy</span></span>, otherwise, if the relation is given (not an evar),
+  we fall back to <span class="inlinecode"><span class="id" title="var">Proper</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">ProperProxy</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) =&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">class_apply</span> @<span class="id" title="var">eq_proper_proxy</span> || <span class="id" title="var">class_apply</span> @<span class="id" title="var">reflexive_proper_proxy</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 2 (<span class="id" title="var">ProperProxy</span> ?<span class="id" title="var">R</span> <span class="id" title="var">_</span>) =&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">not_evar</span> <span class="id" title="var">R</span>; <span class="id" title="var">class_apply</span> @<span class="id" title="var">proper_proper_proxy</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Notations reminiscent of the old syntax for declaring morphisms. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Delimit</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">signature_scope</span> <span class="id" title="keyword">with</span> <span class="id" title="var">signature</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">ProperNotations</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; R ++&gt; R' " := (@<span class="id" title="var">respectful</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">R</span>%<span class="id" title="var">signature</span>) (<span class="id" title="var">R'</span>%<span class="id" title="var">signature</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>, <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 55) : <span class="id" title="var">signature_scope</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; R ==&gt; R' " := (@<span class="id" title="var">respectful</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">R</span>%<span class="id" title="var">signature</span>) (<span class="id" title="var">R'</span>%<span class="id" title="var">signature</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>, <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 55) : <span class="id" title="var">signature_scope</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; R --&gt; R' " := (@<span class="id" title="var">respectful</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">flip</span> (<span class="id" title="var">R</span>%<span class="id" title="var">signature</span>)) (<span class="id" title="var">R'</span>%<span class="id" title="var">signature</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>, <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 55) : <span class="id" title="var">signature_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">ProperNotations</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">ProperNotations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">signature_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">solve_proper</span></span> try to solve the goal <span class="inlinecode"><span class="id" title="var">Proper</span></span> <span class="inlinecode">(?==&gt;</span> <span class="inlinecode">...</span> <span class="inlinecode">==&gt;?)</span> <span class="inlinecode"><span class="id" title="var">f</span></span>
+    by repeated introductions and setoid rewrites. It should work
+    fine when <span class="inlinecode"><span class="id" title="var">f</span></span> is a combination of already known morphisms and
+    quantifiers. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_respectful</span> <span class="id" title="var">t</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| |- <span class="id" title="var">respectful</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> "H" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> ? ? <span class="id" title="var">H</span>; <span class="id" title="var">solve_respectful</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">setoid_rewrite</span> <span class="id" title="var">H</span>; <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">t</span>; <span class="id" title="tactic">reflexivity</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_proper</span> := <span class="id" title="tactic">unfold</span> <span class="id" title="var">Proper</span>; <span class="id" title="var">solve_respectful</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">idtac</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">f_equiv</span></span> is a clone of <span class="inlinecode"><span class="id" title="tactic">f_equal</span></span> that handles setoid equivalences.
+    For example, if we know that <span class="inlinecode"><span class="id" title="var">f</span></span> is a morphism for <span class="inlinecode"><span class="id" title="var">E1</span>==&gt;<span class="id" title="var">E2</span>==&gt;<span class="id" title="var">E</span></span>,
+    then the goal <span class="inlinecode"><span class="id" title="var">E</span></span> <span class="inlinecode">(<span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">y</span>)</span> <span class="inlinecode">(<span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">x'</span></span> <span class="inlinecode"><span class="id" title="var">y'</span>)</span> will be transformed by <span class="inlinecode"><span class="id" title="var">f_equiv</span></span>
+    into the subgoals <span class="inlinecode"><span class="id" title="var">E1</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">x'</span></span> and <span class="inlinecode"><span class="id" title="var">E2</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="var">y'</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">f_equiv</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- ?<span class="id" title="var">R</span> (?<span class="id" title="var">f</span> ?<span class="id" title="var">x</span>) (?<span class="id" title="var">f'</span> <span class="id" title="var">_</span>) =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Rx</span> := <span class="id" title="tactic">fresh</span> "R" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">evar</span> (<span class="id" title="var">Rx</span> : <span class="id" title="var">relation</span> <span class="id" title="var">T</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">H</span> : (<span class="id" title="var">Rx</span>==&gt;<span class="id" title="var">R</span>)%<span class="id" title="var">signature</span> <span class="id" title="var">f</span> <span class="id" title="var">f'</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">Rx</span> <span class="id" title="tactic">in</span> *; <span class="id" title="tactic">clear</span> <span class="id" title="var">Rx</span>; [ <span class="id" title="var">f_equiv</span> | <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">reflexivity</span> ]<br/>
+&nbsp;&nbsp;| |- ?<span class="id" title="var">R</span> ?<span class="id" title="var">f</span> ?<span class="id" title="var">f'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">solve</span> [<span class="id" title="tactic">change</span> (<span class="id" title="var">Proper</span> <span class="id" title="var">R</span> <span class="id" title="var">f</span>); <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">typeclass_instances</span> | <span class="id" title="tactic">reflexivity</span> ]<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">idtac</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Relations</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <span class="id" title="var">U</span> := <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="var">U</span>} (<span class="id" title="var">P</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">U</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">forall_def</span></span> reifies the dependent product as a definition. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">forall_def</span> : <span class="id" title="keyword">Type</span> := <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Dependent pointwise lifting of a relation on the range. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">forall_relation</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">sig</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, <span class="id" title="var">relation</span> (<span class="id" title="var">P</span> <span class="id" title="var">a</span>)) : <span class="id" title="var">relation</span> (<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">P</span> <span class="id" title="var">x</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span> =&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, <span class="id" title="var">sig</span> <span class="id" title="var">a</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Non-dependent pointwise lifting 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">pointwise_relation</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">B</span>) : <span class="id" title="var">relation</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span> =&gt; <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, <span class="id" title="var">R</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">pointwise_pointwise</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">B</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">relation_equivalence</span> (<span class="id" title="var">pointwise_relation</span> <span class="id" title="var">R</span>) (@<span class="id" title="var">eq</span> <span class="id" title="var">A</span> ==&gt; <span class="id" title="var">R</span>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Subrelations induce a morphism on the identity. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">subrelation_id_proper</span> `(<span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">RA</span> <span class="id" title="var">RA'</span>) : <span class="id" title="var">Proper</span> (<span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RA'</span>) <span class="id" title="var">id</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+The subrelation property goes through products as usual. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">subrelation_respectful</span> `(<span class="id" title="var">subl</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">RA'</span> <span class="id" title="var">RA</span>, <span class="id" title="var">subr</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">B</span> <span class="id" title="var">RB</span> <span class="id" title="var">RB'</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">subrelation</span> (<span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RB</span>) (<span class="id" title="var">RA'</span> ==&gt; <span class="id" title="var">RB'</span>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+And of course it is reflexive. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">subrelation_refl</span> <span class="id" title="var">R</span> : @<span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span> <span class="id" title="var">R</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Proper</span></span> is itself a covariant morphism for <span class="inlinecode"><span class="id" title="var">subrelation</span></span>.
+   We use an unconvertible premise to avoid looping.
+   
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">subrelation_proper</span> `(<span class="id" title="var">mor</span> : <span class="id" title="var">Proper</span> <span class="id" title="var">A</span> <span class="id" title="var">R'</span> <span class="id" title="var">m</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(<span class="id" title="var">unc</span> : <span class="id" title="var">Unconvertible</span> (<span class="id" title="var">relation</span> <span class="id" title="var">A</span>) <span class="id" title="var">R</span> <span class="id" title="var">R'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(<span class="id" title="var">sub</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">R'</span> <span class="id" title="var">R</span>) : <span class="id" title="var">Proper</span> <span class="id" title="var">R</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">proper_subrelation_proper</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">subrelation</span> ++&gt; <span class="id" title="var">eq</span> ==&gt; <span class="id" title="var">impl</span>) (@<span class="id" title="var">Proper</span> <span class="id" title="var">A</span>).<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">pointwise_subrelation</span> `(<span class="id" title="var">sub</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">B</span> <span class="id" title="var">R</span> <span class="id" title="var">R'</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">subrelation</span> (<span class="id" title="var">pointwise_relation</span> <span class="id" title="var">R</span>) (<span class="id" title="var">pointwise_relation</span> <span class="id" title="var">R'</span>) | 4.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+For dependent function types. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">forall_subrelation</span> (<span class="id" title="var">R</span> <span class="id" title="var">S</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> : <span class="id" title="var">A</span>, <span class="id" title="var">relation</span> (<span class="id" title="var">P</span> <span class="id" title="var">x</span>)) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, <span class="id" title="var">subrelation</span> (<span class="id" title="var">R</span> <span class="id" title="var">a</span>) (<span class="id" title="var">S</span> <span class="id" title="var">a</span>)) -&gt; <span class="id" title="var">subrelation</span> (<span class="id" title="var">forall_relation</span> <span class="id" title="var">R</span>) (<span class="id" title="var">forall_relation</span> <span class="id" title="var">S</span>).<br/>
+ <span class="id" title="keyword">End</span> <span class="id" title="var">Relations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Type</span><span class="id" title="var">classes</span> <span class="id" title="keyword">Opaque</span> <span class="id" title="var">respectful</span> <span class="id" title="var">pointwise_relation</span> <span class="id" title="var">forall_relation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">Reflexive</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">Symmetric</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">Transitive</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Resolution with subrelation: favor decomposing products over applying reflexivity
+  for unconstrained goals. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">subrelation_tac</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="var">is_ground</span> <span class="id" title="var">T</span> ; <span class="id" title="var">is_ground</span> <span class="id" title="var">U</span> ; <span class="id" title="var">class_apply</span> @<span class="id" title="var">subrelation_refl</span>) ||<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">class_apply</span> @<span class="id" title="var">subrelation_respectful</span> || <span class="id" title="var">class_apply</span> @<span class="id" title="var">subrelation_refl</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 3 (@<span class="id" title="var">subrelation</span> <span class="id" title="var">_</span> ?<span class="id" title="var">T</span> ?<span class="id" title="var">U</span>) =&gt; <span class="id" title="var">subrelation_tac</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">CoInductive</span> <span class="id" title="var">apply_subrelation</span> : <span class="id" title="keyword">Prop</span> := <span class="id" title="var">do_subrelation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">proper_subrelation</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="var">H</span> : <span class="id" title="var">apply_subrelation</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span> ; <span class="id" title="var">class_apply</span> @<span class="id" title="var">subrelation_proper</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 5 (@<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> ?<span class="id" title="var">H</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">proper_subrelation</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Essential subrelation instances for <span class="inlinecode"><span class="id" title="var">iff</span></span>, <span class="inlinecode"><span class="id" title="var">impl</span></span> and <span class="inlinecode"><span class="id" title="var">pointwise_relation</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">iff_impl_subrelation</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">iff</span> <span class="id" title="var">impl</span> | 2.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">iff_flip_impl_subrelation</span> : <span class="id" title="var">subrelation</span> <span class="id" title="var">iff</span> (<span class="id" title="var">flip</span> <span class="id" title="var">impl</span>) | 2.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+We use an extern hint to help unification. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 4 (<span class="id" title="var">subrelation</span> (@<span class="id" title="var">forall_relation</span> ?<span class="id" title="var">A</span> ?<span class="id" title="var">B</span> ?<span class="id" title="var">R</span>) (@<span class="id" title="var">forall_relation</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ?<span class="id" title="var">S</span>)) =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (@<span class="id" title="var">forall_subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">R</span> <span class="id" title="var">S</span>) ; <span class="id" title="tactic">intro</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">GenericInstances</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Let</span> <span class="id" title="var">U</span> := <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">C</span> : <span class="id" title="var">U</span>}.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We can build a PER on the Coq function space if we have PERs on the domain and
+   codomain. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Instance</span> <span class="id" title="var">respectful_per</span> `(<span class="id" title="var">PER</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>, <span class="id" title="var">PER</span> <span class="id" title="var">B</span> <span class="id" title="var">R'</span>) : <span class="id" title="var">PER</span> (<span class="id" title="var">R</span> ==&gt; <span class="id" title="var">R'</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The complement of a relation conserves its proper elements. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">complement_proper</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(<span class="id" title="var">mR</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">iff</span>) <span class="id" title="var">R</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">iff</span>) (<span class="id" title="var">complement</span> <span class="id" title="var">R</span>) := <span class="id" title="var">_</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The <span class="inlinecode"><span class="id" title="var">flip</span></span> too, actually the <span class="inlinecode"><span class="id" title="var">flip</span></span> instance is a bit more general. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">flip_proper</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(<span class="id" title="var">mor</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">C</span>) (<span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RB</span> ==&gt; <span class="id" title="var">RC</span>) <span class="id" title="var">f</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">RB</span> ==&gt; <span class="id" title="var">RA</span> ==&gt; <span class="id" title="var">RC</span>) (<span class="id" title="var">flip</span> <span class="id" title="var">f</span>) := <span class="id" title="var">_</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Every Transitive relation gives rise to a binary morphism on <span class="inlinecode"><span class="id" title="var">impl</span></span>,
+   contravariant in the first argument, covariant in the second. 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Proper declarations for partial applications. 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Every Transitive relation induces a morphism by "pushing" an <span class="inlinecode"><span class="id" title="var">R</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> on the left of an <span class="inlinecode"><span class="id" title="var">R</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span> proof to get an <span class="inlinecode"><span class="id" title="var">R</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span> goal. 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Every Symmetric and Transitive relation gives rise to an equivariant morphism. 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">symmetric_equiv_flip</span> `(<span class="id" title="var">Symmetric</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>) : <span class="id" title="var">relation_equivalence</span> <span class="id" title="var">R</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R</span>).<br/>
+ 
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq functions are morphisms for Leibniz equality,
+     applied only if really needed. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">reflexive_eq_dom_reflexive</span> `(<span class="id" title="var">Reflexive</span> <span class="id" title="var">B</span> <span class="id" title="var">R'</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Reflexive</span> (@<span class="id" title="var">Logic.eq</span> <span class="id" title="var">A</span> ==&gt; <span class="id" title="var">R'</span>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">respectful</span></span> is a morphism for relation equivalence. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <span class="id" title="var">respectful_morphism</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">relation_equivalence</span> ++&gt; <span class="id" title="var">relation_equivalence</span> ++&gt; <span class="id" title="var">relation_equivalence</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(@<span class="id" title="var">respectful</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">R</span></span> is Reflexive, hence we can build the needed proof. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Reflexive_partial_app_morphism</span> `(<span class="id" title="var">Proper</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>) (<span class="id" title="var">R</span> ==&gt; <span class="id" title="var">R'</span>) <span class="id" title="var">m</span>, <span class="id" title="var">ProperProxy</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Proper</span> <span class="id" title="var">R'</span> (<span class="id" title="var">m</span> <span class="id" title="var">x</span>).<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">flip_respectful</span> (<span class="id" title="var">R</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) (<span class="id" title="var">R'</span> : <span class="id" title="var">relation</span> <span class="id" title="var">B</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">relation_equivalence</span> (<span class="id" title="var">flip</span> (<span class="id" title="var">R</span> ==&gt; <span class="id" title="var">R'</span>)) (<span class="id" title="var">flip</span> <span class="id" title="var">R</span> ==&gt; <span class="id" title="var">flip</span> <span class="id" title="var">R'</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Treating flip: can't make them direct instances as we
+   need at least a <span class="inlinecode"><span class="id" title="var">flip</span></span> present in the goal. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">flip1</span> `(<span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">R'</span> <span class="id" title="var">R</span>) : <span class="id" title="var">subrelation</span> (<span class="id" title="var">flip</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R'</span>)) <span class="id" title="var">R</span>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">flip2</span> `(<span class="id" title="var">subrelation</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span> <span class="id" title="var">R'</span>) : <span class="id" title="var">subrelation</span> <span class="id" title="var">R</span> (<span class="id" title="var">flip</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R'</span>)).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+That's if and only if 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">eq_subrelation</span> `(<span class="id" title="var">Reflexive</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>) : <span class="id" title="var">subrelation</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">A</span>) <span class="id" title="var">R</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Once we have normalized, we will apply this instance to simplify the problem. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">proper_flip_proper</span> `(<span class="id" title="var">mor</span> : <span class="id" title="var">Proper</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span> <span class="id" title="var">m</span>) : <span class="id" title="var">Proper</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R</span>) <span class="id" title="var">m</span> := <span class="id" title="var">mor</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Every reflexive relation gives rise to a morphism, 
+  only for immediately solving goals without variables. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">reflexive_proper</span> `{<span class="id" title="var">Reflexive</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>} (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) : <span class="id" title="var">Proper</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_eq</span> (<span class="id" title="var">x</span> : <span class="id" title="var">A</span>) : <span class="id" title="var">Proper</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">A</span>) <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">GenericInstances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Class</span> <span class="id" title="var">PartialApplication</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">CoInductive</span> <span class="id" title="var">normalization_done</span> : <span class="id" title="keyword">Prop</span> := <span class="id" title="var">did_normalization</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Class</span> <span class="id" title="var">Params</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="keyword">of</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">arity</span> : <span class="id" title="var">nat</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">partial_application_tactic</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">do_partial_apps</span> <span class="id" title="var">H</span> <span class="id" title="var">m</span> <span class="id" title="var">cont</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ?<span class="id" title="var">m'</span> ?<span class="id" title="var">x</span> =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">Reflexive_partial_app_morphism</span> ; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[(<span class="id" title="var">do_partial_apps</span> <span class="id" title="var">H</span> <span class="id" title="var">m'</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">idtac</span>))|<span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">cont</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">do_partial</span> <span class="id" title="var">H</span> <span class="id" title="var">ar</span> <span class="id" title="var">m</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">ar</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 0%<span class="id" title="var">nat</span> =&gt; <span class="id" title="var">do_partial_apps</span> <span class="id" title="var">H</span> <span class="id" title="var">m</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">fail</span> 1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">S</span> ?<span class="id" title="var">n'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?<span class="id" title="var">m'</span> ?<span class="id" title="var">x</span> =&gt; <span class="id" title="var">do_partial</span> <span class="id" title="var">H</span> <span class="id" title="var">n'</span> <span class="id" title="var">m'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">params</span> <span class="id" title="var">m</span> <span class="id" title="var">sk</span> <span class="id" title="var">fk</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">let</span> <span class="id" title="var">m'</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span> <span class="id" title="var">head_of_constr</span> <span class="id" title="var">m'</span> <span class="id" title="var">m</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">n</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">evar</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">v</span> := <span class="id" title="tactic">eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <span class="id" title="var">n</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">clear</span> <span class="id" title="var">n</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span>(<span class="id" title="var">H</span>:<span class="id" title="var">Params</span> <span class="id" title="var">m'</span> <span class="id" title="var">v</span>) <span class="id" title="tactic">by</span> (<span class="id" title="tactic">subst</span> <span class="id" title="var">m'</span>; <span class="id" title="var">once</span> <span class="id" title="var">typeclasses</span> <span class="id" title="tactic">eauto</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">v'</span> := <span class="id" title="tactic">eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <span class="id" title="var">v</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">subst</span> <span class="id" title="var">m'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">sk</span> <span class="id" title="var">H</span> <span class="id" title="var">v'</span> || <span class="id" title="tactic">fail</span> 1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|| <span class="id" title="var">fk</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">on_morphism</span> <span class="id" title="var">m</span> <span class="id" title="var">cont</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">params</span> <span class="id" title="var">m</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> <span class="id" title="var">n</span> =&gt; <span class="id" title="var">do_partial</span> <span class="id" title="var">H</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">cont</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">_</span> : <span class="id" title="var">normalization_done</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="tactic">fail</span> 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">_</span> : @<span class="id" title="var">Params</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="tactic">fail</span> 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ |- @<span class="id" title="var">Proper</span> ?<span class="id" title="var">T</span> <span class="id" title="var">_</span> (?<span class="id" title="var">m</span> ?<span class="id" title="var">x</span>) ] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">H</span> : <span class="id" title="var">PartialApplication</span> |- <span class="id" title="var">_</span> ] =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">class_apply</span> @<span class="id" title="var">Reflexive_partial_app_morphism</span>; [|<span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">on_morphism</span> (<span class="id" title="var">m</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">class_apply</span> @<span class="id" title="var">Reflexive_partial_app_morphism</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Bootstrap !!! 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">proper_proper</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">relation_equivalence</span> ==&gt; <span class="id" title="var">eq</span> ==&gt; <span class="id" title="var">iff</span>) (@<span class="id" title="var">Proper</span> <span class="id" title="var">A</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">proper_reflexive</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">_</span> : <span class="id" title="var">normalization_done</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="tactic">fail</span> 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">class_apply</span> <span class="id" title="var">proper_eq</span> || <span class="id" title="var">class_apply</span> @<span class="id" title="var">reflexive_proper</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">subrelation</span> (<span class="id" title="var">flip</span> <span class="id" title="var">_</span>) <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">flip1</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">subrelation</span> <span class="id" title="var">_</span> (<span class="id" title="var">flip</span> <span class="id" title="var">_</span>)) =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">flip2</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">complement</span> <span class="id" title="var">_</span>)) =&gt; <span class="id" title="tactic">apply</span> @<span class="id" title="var">complement_proper</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">flip</span> <span class="id" title="var">_</span>)) =&gt; <span class="id" title="tactic">apply</span> @<span class="id" title="var">flip_proper</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 2 (@<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">flip</span> <span class="id" title="var">_</span>) <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">proper_flip_proper</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 4 (@<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">partial_application_tactic</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 7 (@<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">proper_reflexive</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Special-purpose class to do normalization of signatures w.r.t. flip. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">Normalize</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Class</span> <span class="id" title="var">Normalizes</span> (<span class="id" title="var">m</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) (<span class="id" title="var">m'</span> : <span class="id" title="var">relation</span> <span class="id" title="var">A</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">normalizes</span> : <span class="id" title="var">relation_equivalence</span> <span class="id" title="var">m</span> <span class="id" title="var">m'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Current strategy: add <span class="inlinecode"><span class="id" title="var">flip</span></span> everywhere and reduce using <span class="inlinecode"><span class="id" title="var">subrelation</span></span>
+   afterwards. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_normalizes_proper</span> `(<span class="id" title="var">Normalizes</span> <span class="id" title="var">R0</span> <span class="id" title="var">R1</span>, <span class="id" title="var">Proper</span> <span class="id" title="var">A</span> <span class="id" title="var">R1</span> <span class="id" title="var">m</span>) : <span class="id" title="var">Proper</span> <span class="id" title="var">R0</span> <span class="id" title="var">m</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">flip_atom</span> <span class="id" title="var">R</span> : <span class="id" title="var">Normalizes</span> <span class="id" title="var">R</span> (<span class="id" title="var">flip</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Normalize</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">flip_arrow</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} {<span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(<span class="id" title="var">NA</span> : <span class="id" title="var">Normalizes</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R'''</span>), <span class="id" title="var">NB</span> : <span class="id" title="var">Normalizes</span> <span class="id" title="var">B</span> <span class="id" title="var">R'</span> (<span class="id" title="var">flip</span> <span class="id" title="var">R''</span>)) :<br/>
+&nbsp;&nbsp;<span class="id" title="var">Normalizes</span> (<span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span>) (<span class="id" title="var">R</span> ==&gt; <span class="id" title="var">R'</span>) (<span class="id" title="var">flip</span> (<span class="id" title="var">R'''</span> ==&gt; <span class="id" title="var">R''</span>)%<span class="id" title="var">signature</span>).<br/>
+ 
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">normalizes</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ |- <span class="id" title="var">Normalizes</span> <span class="id" title="var">_</span> (<span class="id" title="var">respectful</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) <span class="id" title="var">_</span> ] =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">flip_arrow</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">class_apply</span> @<span class="id" title="var">flip_atom</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">proper_normalization</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">_</span> : <span class="id" title="var">normalization_done</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="tactic">fail</span> 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [ <span class="id" title="var">_</span> : <span class="id" title="var">apply_subrelation</span> |- @<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> ?<span class="id" title="var">R</span> <span class="id" title="var">_</span> ] =&gt; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> "H" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">set</span>(<span class="id" title="var">H</span>:=<span class="id" title="var">did_normalization</span>) ; <span class="id" title="var">class_apply</span> @<span class="id" title="var">proper_normalizes_proper</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 1 (<span class="id" title="var">Normalizes</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">normalizes</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 6 (@<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) =&gt; <span class="id" title="var">proper_normalization</span> <br/>
+&nbsp;&nbsp;: <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When the relation on the domain is symmetric, we can
+    flip the relation on the codomain. Same for binary functions. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_sym_flip</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> `(<span class="id" title="var">Symmetric</span> <span class="id" title="var">A</span> <span class="id" title="var">R1</span>)`(<span class="id" title="var">Proper</span> (<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>) (<span class="id" title="var">R1</span>==&gt;<span class="id" title="var">R2</span>) <span class="id" title="var">f</span>),<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">R1</span>==&gt;<span class="id" title="var">flip</span> <span class="id" title="var">R2</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_sym_flip_2</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> `(<span class="id" title="var">Symmetric</span> <span class="id" title="var">A</span> <span class="id" title="var">R1</span>)`(<span class="id" title="var">Symmetric</span> <span class="id" title="var">B</span> <span class="id" title="var">R2</span>)`(<span class="id" title="var">Proper</span> (<span class="id" title="var">A</span>-&gt;<span class="id" title="var">B</span>-&gt;<span class="id" title="var">C</span>) (<span class="id" title="var">R1</span>==&gt;<span class="id" title="var">R2</span>==&gt;<span class="id" title="var">R3</span>) <span class="id" title="var">f</span>),<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">R1</span>==&gt;<span class="id" title="var">R2</span>==&gt;<span class="id" title="var">flip</span> <span class="id" title="var">R3</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When the relation on the domain is symmetric, a predicate is
+  compatible with <span class="inlinecode"><span class="id" title="var">iff</span></span> as soon as it is compatible with <span class="inlinecode"><span class="id" title="var">impl</span></span>.
+  Same with a binary relation. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_sym_impl_iff</span> : <span class="id" title="keyword">forall</span> `(<span class="id" title="var">Symmetric</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>)`(<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">R</span>==&gt;<span class="id" title="var">impl</span>) <span class="id" title="var">f</span>),<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">R</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">proper_sym_impl_iff_2</span> :<br/>
+&nbsp;<span class="id" title="keyword">forall</span> `(<span class="id" title="var">Symmetric</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>)`(<span class="id" title="var">Symmetric</span> <span class="id" title="var">B</span> <span class="id" title="var">R'</span>)`(<span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">R</span>==&gt;<span class="id" title="var">R'</span>==&gt;<span class="id" title="var">impl</span>) <span class="id" title="var">f</span>),<br/>
+&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">R</span>==&gt;<span class="id" title="var">R'</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">f</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A <span class="inlinecode"><span class="id" title="var">PartialOrder</span></span> is compatible with its underlying equivalence. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">PartialOrder_proper</span> `(<span class="id" title="var">PartialOrder</span> <span class="id" title="var">A</span> <span class="id" title="var">eqA</span> <span class="id" title="var">R</span>) :<br/>
+&nbsp;&nbsp;<span class="id" title="var">Proper</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+From a <span class="inlinecode"><span class="id" title="var">PartialOrder</span></span> to the corresponding <span class="inlinecode"><span class="id" title="var">StrictOrder</span></span>:
+     <span class="inlinecode"><span class="id" title="var">lt</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">le</span></span> <span class="inlinecode">/\</span> <span class="inlinecode">~<span class="id" title="var">eq</span></span>.
+    If the order is total, we could also say <span class="inlinecode"><span class="id" title="var">gt</span></span> <span class="inlinecode">=</span> <span class="inlinecode">~<span class="id" title="var">le</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">PartialOrder_StrictOrder</span> `(<span class="id" title="var">PartialOrder</span> <span class="id" title="var">A</span> <span class="id" title="var">eqA</span> <span class="id" title="var">R</span>) :<br/>
+&nbsp;&nbsp;<span class="id" title="var">StrictOrder</span> (<span class="id" title="var">relation_conjunction</span> <span class="id" title="var">R</span> (<span class="id" title="var">complement</span> <span class="id" title="var">eqA</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+From a <span class="inlinecode"><span class="id" title="var">StrictOrder</span></span> to the corresponding <span class="inlinecode"><span class="id" title="var">PartialOrder</span></span>:
+     <span class="inlinecode"><span class="id" title="var">le</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">lt</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">eq</span></span>.
+    If the order is total, we could also say <span class="inlinecode"><span class="id" title="var">ge</span></span> <span class="inlinecode">=</span> <span class="inlinecode">~<span class="id" title="var">lt</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">StrictOrder_PreOrder</span><br/>
+&nbsp;`(<span class="id" title="var">Equivalence</span> <span class="id" title="var">A</span> <span class="id" title="var">eqA</span>, <span class="id" title="var">StrictOrder</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>, <span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">R</span>) :<br/>
+&nbsp;<span class="id" title="var">PreOrder</span> (<span class="id" title="var">relation_disjunction</span> <span class="id" title="var">R</span> <span class="id" title="var">eqA</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 4 (<span class="id" title="var">PreOrder</span> (<span class="id" title="var">relation_disjunction</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>)) =&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">class_apply</span> <span class="id" title="var">StrictOrder_PreOrder</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">StrictOrder_PartialOrder</span><br/>
+&nbsp;&nbsp;`(<span class="id" title="var">Equivalence</span> <span class="id" title="var">A</span> <span class="id" title="var">eqA</span>, <span class="id" title="var">StrictOrder</span> <span class="id" title="var">A</span> <span class="id" title="var">R</span>, <span class="id" title="var">Proper</span> <span class="id" title="var">_</span> (<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">eqA</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">R</span>) :<br/>
+&nbsp;&nbsp;<span class="id" title="var">PartialOrder</span> <span class="id" title="var">eqA</span> (<span class="id" title="var">relation_disjunction</span> <span class="id" title="var">R</span> <span class="id" title="var">eqA</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 4 (<span class="id" title="var">StrictOrder</span> (<span class="id" title="var">relation_conjunction</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>)) =&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">class_apply</span> <span class="id" title="var">PartialOrder_StrictOrder</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 4 (<span class="id" title="var">PartialOrder</span> <span class="id" title="var">_</span> (<span class="id" title="var">relation_disjunction</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>)) =&gt; <br/>
+&nbsp;&nbsp;<span class="id" title="var">class_apply</span> <span class="id" title="var">StrictOrder_PartialOrder</span> : <span class="id" title="var">typeclass_instances</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

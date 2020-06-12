@@ -1,0 +1,975 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.QArith.QArith_base</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">ZArith_base</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">ZArithRing</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Morphisms</span> <span class="id" title="var">Setoid</span> <span class="id" title="var">Bool</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab619"></a><h1 class="section">Definition of <span class="inlinecode"><span class="id" title="var">Q</span></span> and basic properties</h1>
+
+<div class="paragraph"> </div>
+
+ Rationals are pairs of <span class="inlinecode"><span class="id" title="var">Z</span></span> and <span class="inlinecode"><span class="id" title="var">positive</span></span> numbers. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Record</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Set</span> := <span class="id" title="var">Qmake</span> {<span class="id" title="var">Qnum</span> : <span class="id" title="var">Z</span>; <span class="id" title="var">Qden</span> : <span class="id" title="var">positive</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Delimit</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Q_scope</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Q</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">simpl_mult</span> := <span class="id" title="tactic">rewrite</span> ?<span class="id" title="var">Pos2Z.inj_mul</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">a</span>#<span class="id" title="var">b</span></span> denotes the fraction <span class="inlinecode"><span class="id" title="var">a</span></span> over <span class="inlinecode"><span class="id" title="var">b</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Notation</span> &quot;a # b" := (<span class="id" title="var">Qmake</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 55, <span class="id" title="keyword">no</span> <span class="id" title="keyword">associativity</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">of_decimal</span> (<span class="id" title="var">d</span>:<span class="id" title="var">Decimal.decimal</span>) : <span class="id" title="var">Q</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> '(<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">e</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">d</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Decimal.Decimal</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span> =&gt; (<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">Decimal.Pos</span> <span class="id" title="var">Decimal.Nil</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Decimal.DecimalExp</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span> <span class="id" title="var">e</span> =&gt; (<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">num</span> := <span class="id" title="var">Z.of_int</span> (<span class="id" title="var">Decimal.app_int</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="var">Z.sub</span> (<span class="id" title="var">Z.of_int</span> <span class="id" title="var">e</span>) (<span class="id" title="var">Z.of_nat</span> (<span class="id" title="var">Decimal.nb_digits</span> <span class="id" title="var">f</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; <span class="id" title="var">Qmake</span> <span class="id" title="var">num</span> 1<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zpos</span> <span class="id" title="var">e</span> =&gt; <span class="id" title="var">Qmake</span> (<span class="id" title="var">Pos.iter</span> (<span class="id" title="var">Z.mul</span> 10) <span class="id" title="var">num</span> <span class="id" title="var">e</span>) 1<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zneg</span> <span class="id" title="var">e</span> =&gt; <span class="id" title="var">Qmake</span> <span class="id" title="var">num</span> (<span class="id" title="var">Pos.iter</span> (<span class="id" title="var">Pos.mul</span> 10) 1%<span class="id" title="var">positive</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">to_decimal</span> (<span class="id" title="var">q</span>:<span class="id" title="var">Q</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Decimal.decimal</span> :=<br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">choose_exponent</span> <span class="id" title="var">i</span> <span class="id" title="var">ne</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">i</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Decimal.Pos</span> <span class="id" title="var">i</span> | <span class="id" title="var">Decimal.Neg</span> <span class="id" title="var">i</span> =&gt; <span class="id" title="var">i</span> <span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">li</span> := <span class="id" title="var">Decimal.nb_digits</span> <span class="id" title="var">i</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">le</span> := <span class="id" title="var">Decimal.nb_digits</span> (<span class="id" title="var">Nat.to_uint</span> <span class="id" title="var">ne</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Nat.ltb</span> (<span class="id" title="var">Nat.add</span> <span class="id" title="var">li</span> <span class="id" title="var">le</span>) <span class="id" title="var">ne</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">decimal_exponent</span> <span class="id" title="var">i</span> <span class="id" title="var">ne</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="var">Z.to_int</span> (<span class="id" title="var">Z.opp</span> (<span class="id" title="var">Z.of_nat</span> <span class="id" title="var">ne</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Decimal.DecimalExp</span> <span class="id" title="var">i</span> <span class="id" title="var">Decimal.Nil</span> <span class="id" title="var">e</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">decimal_dot</span> <span class="id" title="var">i</span> <span class="id" title="var">ne</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ai</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Decimal.Pos</span> <span class="id" title="var">i</span> | <span class="id" title="var">Decimal.Neg</span> <span class="id" title="var">i</span> =&gt; <span class="id" title="var">i</span> <span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ni</span> := <span class="id" title="var">Decimal.nb_digits</span> <span class="id" title="var">ai</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">Nat.ltb</span> <span class="id" title="var">ne</span> <span class="id" title="var">ni</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">i</span> := <span class="id" title="var">Decimal.del_tail_int</span> <span class="id" title="var">ne</span> <span class="id" title="var">i</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> := <span class="id" title="var">Decimal.del_head</span> (<span class="id" title="var">Nat.sub</span> <span class="id" title="var">ni</span> <span class="id" title="var">ne</span>) <span class="id" title="var">ai</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Decimal.Decimal</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">z</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Decimal.Pos</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Decimal.Pos</span> (<span class="id" title="var">Decimal.zero</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Decimal.Neg</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Decimal.Neg</span> (<span class="id" title="var">Decimal.zero</span>) <span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Decimal.Decimal</span> <span class="id" title="var">z</span> (<span class="id" title="var">Nat.iter</span> (<span class="id" title="var">Nat.sub</span> <span class="id" title="var">ne</span> <span class="id" title="var">ni</span>) <span class="id" title="var">Decimal.D0</span> <span class="id" title="var">ai</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">num</span> := <span class="id" title="var">Z.to_int</span> (<span class="id" title="var">Qnum</span> <span class="id" title="var">q</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">den</span>, <span class="id" title="var">e_den</span>) := <span class="id" title="var">Decimal.nztail</span> (<span class="id" title="var">Pos.to_uint</span> (<span class="id" title="var">Qden</span> <span class="id" title="var">q</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">den</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Decimal.D1</span> <span class="id" title="var">Decimal.Nil</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e_den</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">O</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">Decimal.Decimal</span> <span class="id" title="var">num</span> <span class="id" title="var">Decimal.Nil</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ne</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">choose_exponent</span> <span class="id" title="var">num</span> <span class="id" title="var">ne</span> <span class="id" title="keyword">then</span> <span class="id" title="var">Some</span> (<span class="id" title="var">decimal_exponent</span> <span class="id" title="var">num</span> <span class="id" title="var">ne</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">Some</span> (<span class="id" title="var">decimal_dot</span> <span class="id" title="var">num</span> <span class="id" title="var">ne</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">of_hexadecimal</span> (<span class="id" title="var">d</span>:<span class="id" title="var">Hexadecimal.hexadecimal</span>) : <span class="id" title="var">Q</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> '(<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">e</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">d</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.Hexadecimal</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span> =&gt; (<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">Decimal.Pos</span> <span class="id" title="var">Decimal.Nil</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.HexadecimalExp</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span> <span class="id" title="var">e</span> =&gt; (<span class="id" title="var">i</span>, <span class="id" title="var">f</span>, <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">num</span> := <span class="id" title="var">Z.of_hex_int</span> (<span class="id" title="var">Hexadecimal.app_int</span> <span class="id" title="var">i</span> <span class="id" title="var">f</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="var">Z.sub</span> (<span class="id" title="var">Z.of_int</span> <span class="id" title="var">e</span>) (<span class="id" title="var">Z.mul</span> 4 (<span class="id" title="var">Z.of_nat</span> (<span class="id" title="var">Hexadecimal.nb_digits</span> <span class="id" title="var">f</span>))) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; <span class="id" title="var">Qmake</span> <span class="id" title="var">num</span> 1<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zpos</span> <span class="id" title="var">e</span> =&gt; <span class="id" title="var">Qmake</span> (<span class="id" title="var">Pos.iter</span> (<span class="id" title="var">Z.mul</span> 2) <span class="id" title="var">num</span> <span class="id" title="var">e</span>) 1<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zneg</span> <span class="id" title="var">e</span> =&gt; <span class="id" title="var">Qmake</span> <span class="id" title="var">num</span> (<span class="id" title="var">Pos.iter</span> (<span class="id" title="var">Pos.mul</span> 2) 1%<span class="id" title="var">positive</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">to_hexadecimal</span> (<span class="id" title="var">q</span>:<span class="id" title="var">Q</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Hexadecimal.hexadecimal</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">mk_exp</span> <span class="id" title="var">i</span> <span class="id" title="var">e</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hexadecimal.HexadecimalExp</span> <span class="id" title="var">i</span> <span class="id" title="var">Hexadecimal.Nil</span> (<span class="id" title="var">Z.to_int</span> (<span class="id" title="var">Z.opp</span> <span class="id" title="var">e</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">num</span> := <span class="id" title="var">Z.to_hex_int</span> (<span class="id" title="var">Qnum</span> <span class="id" title="var">q</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">den</span>, <span class="id" title="var">e_den</span>) := <span class="id" title="var">Hexadecimal.nztail</span> (<span class="id" title="var">Pos.to_hex_uint</span> (<span class="id" title="var">Qden</span> <span class="id" title="var">q</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="var">Z.of_nat</span> <span class="id" title="var">e_den</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">den</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.D1</span> <span class="id" title="var">Hexadecimal.Nil</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e_den</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">O</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">Hexadecimal.Hexadecimal</span> <span class="id" title="var">num</span> <span class="id" title="var">Hexadecimal.Nil</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">mk_exp</span> <span class="id" title="var">num</span> (4 * <span class="id" title="var">e</span>)%<span class="id" title="var">Z</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.D2</span> <span class="id" title="var">Hexadecimal.Nil</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">mk_exp</span> <span class="id" title="var">num</span> (1 + 4 * <span class="id" title="var">e</span>)%<span class="id" title="var">Z</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.D4</span> <span class="id" title="var">Hexadecimal.Nil</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">mk_exp</span> <span class="id" title="var">num</span> (2 + 4 * <span class="id" title="var">e</span>)%<span class="id" title="var">Z</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Hexadecimal.D8</span> <span class="id" title="var">Hexadecimal.Nil</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">mk_exp</span> <span class="id" title="var">num</span> (3 + 4 * <span class="id" title="var">e</span>)%<span class="id" title="var">Z</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">of_numeral</span> (<span class="id" title="var">d</span>:<span class="id" title="var">Numeral.numeral</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Q</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">d</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Numeral.Dec</span> <span class="id" title="var">d</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">of_decimal</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Numeral.Hex</span> <span class="id" title="var">d</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">of_hexadecimal</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">to_numeral</span> (<span class="id" title="var">q</span>:<span class="id" title="var">Q</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Numeral.numeral</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">to_decimal</span> <span class="id" title="var">q</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">None</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">q</span> =&gt; <span class="id" title="var">Some</span> (<span class="id" title="var">Numeral.Dec</span> <span class="id" title="var">q</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">inject_Z</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Z</span>) := <span class="id" title="var">Qmake</span> <span class="id" title="var">x</span> 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">QDen</span> <span class="id" title="var">p</span> := (<span class="id" title="var">Zpos</span> (<span class="id" title="var">Qden</span> <span class="id" title="var">p</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qeq</span> (<span class="id" title="var">p</span> <span class="id" title="var">q</span> : <span class="id" title="var">Q</span>) := (<span class="id" title="var">Qnum</span> <span class="id" title="var">p</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">q</span>)%<span class="id" title="var">Z</span> = (<span class="id" title="var">Qnum</span> <span class="id" title="var">q</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">p</span>)%<span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qle</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) := (<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">y</span> &lt;= <span class="id" title="var">Qnum</span> <span class="id" title="var">y</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">x</span>)%<span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qlt</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) := (<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">y</span> &lt; <span class="id" title="var">Qnum</span> <span class="id" title="var">y</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">x</span>)%<span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">Qgt</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> := (<span class="id" title="var">Qlt</span> <span class="id" title="var">b</span> <span class="id" title="var">a</span>) (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">Qge</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> := (<span class="id" title="var">Qle</span> <span class="id" title="var">b</span> <span class="id" title="var">a</span>) (<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Infix</span> &quot;==" := <span class="id" title="var">Qeq</span> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 70, <span class="id" title="keyword">no</span> <span class="id" title="keyword">associativity</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;&lt;" := <span class="id" title="var">Qlt</span> : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;&lt;=" := <span class="id" title="var">Qle</span> : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;x &gt; y" := (<span class="id" title="var">Qlt</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>)(<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;x &gt;= y" := (<span class="id" title="var">Qle</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>)(<span class="id" title="var">only</span> <span class="id" title="var">parsing</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;x &lt;= y &lt;= z" := (<span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span>/\<span class="id" title="var">y</span>&lt;=<span class="id" title="var">z</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+injection from Z is injective. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inject_Z_injective</span> (<span class="id" title="var">a</span> <span class="id" title="var">b</span>: <span class="id" title="var">Z</span>): <span class="id" title="var">inject_Z</span> <span class="id" title="var">a</span> == <span class="id" title="var">inject_Z</span> <span class="id" title="var">b</span> &lt;-&gt; <span class="id" title="var">a</span> = <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Another approach : using Qcompare for defining order relations. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qcompare</span> (<span class="id" title="var">p</span> <span class="id" title="var">q</span> : <span class="id" title="var">Q</span>) := (<span class="id" title="var">Qnum</span> <span class="id" title="var">p</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">q</span> ?= <span class="id" title="var">Qnum</span> <span class="id" title="var">q</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">p</span>)%<span class="id" title="var">Z</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;p ?= q" := (<span class="id" title="var">Qcompare</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_alt</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : (<span class="id" title="var">p</span> == <span class="id" title="var">q</span>) &lt;-&gt; (<span class="id" title="var">p</span> ?= <span class="id" title="var">q</span>) = <span class="id" title="var">Eq</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_alt</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : (<span class="id" title="var">p</span>&lt;<span class="id" title="var">q</span>) &lt;-&gt; (<span class="id" title="var">p</span>?=<span class="id" title="var">q</span> = <span class="id" title="var">Lt</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qgt_alt</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : (<span class="id" title="var">p</span>&gt;<span class="id" title="var">q</span>) &lt;-&gt; (<span class="id" title="var">p</span>?=<span class="id" title="var">q</span> = <span class="id" title="var">Gt</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_alt</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : (<span class="id" title="var">p</span>&lt;=<span class="id" title="var">q</span>) &lt;-&gt; (<span class="id" title="var">p</span>?=<span class="id" title="var">q</span> &lt;&gt; <span class="id" title="var">Gt</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qge_alt</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span> : (<span class="id" title="var">p</span>&gt;=<span class="id" title="var">q</span>) &lt;-&gt; (<span class="id" title="var">p</span>?=<span class="id" title="var">q</span> &lt;&gt; <span class="id" title="var">Lt</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">Qeq</span> <span class="id" title="var">Qlt</span> <span class="id" title="var">Qle</span> : <span class="id" title="var">qarith</span>.<br/>
+<span class="id" title="keyword">Hint Extern</span> 5 (?<span class="id" title="var">X1</span> &lt;&gt; ?<span class="id" title="var">X2</span>) =&gt; <span class="id" title="tactic">intro</span>; <span class="id" title="tactic">discriminate</span>: <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qcompare_antisym</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">CompOpp</span> (<span class="id" title="var">x</span> ?= <span class="id" title="var">y</span>) = (<span class="id" title="var">y</span> ?= <span class="id" title="var">x</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qcompare_spec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">CompareSpec</span> (<span class="id" title="var">x</span>==<span class="id" title="var">y</span>) (<span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span>) (<span class="id" title="var">y</span>&lt;<span class="id" title="var">x</span>) (<span class="id" title="var">x</span> ?= <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab620"></a><h1 class="section">Properties of equality.</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qeq_refl</span> <span class="id" title="var">x</span> : <span class="id" title="var">x</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qeq_sym</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qeq_trans</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> : <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span> == <span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span> == <span class="id" title="var">z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Immediate</span> <span class="id" title="var">Qeq_sym</span> : <span class="id" title="var">qarith</span>.<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Qeq_refl</span> <span class="id" title="var">Qeq_trans</span> : <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In a word, <span class="inlinecode"><span class="id" title="var">Qeq</span></span> is a setoid equality. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Q_Setoid</span> : <span class="id" title="var">Equivalence</span> <span class="id" title="var">Qeq</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Furthermore, this equality is decidable: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qeq_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : {<span class="id" title="var">x</span>==<span class="id" title="var">y</span>} + {~ <span class="id" title="var">x</span>==<span class="id" title="var">y</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="var">Zeq_bool</span> (<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">y</span>) (<span class="id" title="var">Qnum</span> <span class="id" title="var">y</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">x</span>))%<span class="id" title="var">Z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qle_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="var">Z.leb</span> (<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">y</span>) (<span class="id" title="var">Qnum</span> <span class="id" title="var">y</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">x</span>))%<span class="id" title="var">Z</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_iff</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_eq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_eq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_neq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">false</span> -&gt; ~ <span class="id" title="var">x</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_bool_iff</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Qle_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_bool_imp_le</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Qle_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qnot_eq_sym</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : ~<span class="id" title="var">x</span> == <span class="id" title="var">y</span> -&gt; ~<span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_comm</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_refl</span> <span class="id" title="var">x</span>: <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_sym</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qeq_bool_trans</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> = <span class="id" title="var">true</span> -&gt; <span class="id" title="var">Qeq_bool</span> <span class="id" title="var">x</span> <span class="id" title="var">z</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Qnot_eq_sym</span> : <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab621"></a><h1 class="section">Addition, multiplication and opposite</h1>
+
+<div class="paragraph"> </div>
+
+ The addition, multiplication and opposite are defined
+   in the straightforward way: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qplus</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) :=<br/>
+&nbsp;&nbsp;(<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">y</span> + <span class="id" title="var">Qnum</span> <span class="id" title="var">y</span> * <span class="id" title="var">QDen</span> <span class="id" title="var">x</span>) # (<span class="id" title="var">Qden</span> <span class="id" title="var">x</span> * <span class="id" title="var">Qden</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qmult</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) := (<span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> * <span class="id" title="var">Qnum</span> <span class="id" title="var">y</span>) # (<span class="id" title="var">Qden</span> <span class="id" title="var">x</span> * <span class="id" title="var">Qden</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qopp</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Q</span>) := (- <span class="id" title="var">Qnum</span> <span class="id" title="var">x</span>) # (<span class="id" title="var">Qden</span> <span class="id" title="var">x</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qminus</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) := <span class="id" title="var">Qplus</span> <span class="id" title="var">x</span> (<span class="id" title="var">Qopp</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qinv</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Q</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">Qnum</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; 0<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zpos</span> <span class="id" title="var">p</span> =&gt; (<span class="id" title="var">QDen</span> <span class="id" title="var">x</span>)#<span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Zneg</span> <span class="id" title="var">p</span> =&gt; (<span class="id" title="var">Zneg</span> (<span class="id" title="var">Qden</span> <span class="id" title="var">x</span>))#<span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qdiv</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">Q</span>) := <span class="id" title="var">Qmult</span> <span class="id" title="var">x</span> (<span class="id" title="var">Qinv</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Infix</span> &quot;+" := <span class="id" title="var">Qplus</span> : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;- x" := (<span class="id" title="var">Qopp</span> <span class="id" title="var">x</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;-" := <span class="id" title="var">Qminus</span> : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;*" := <span class="id" title="var">Qmult</span> : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> &quot;/ x" := (<span class="id" title="var">Qinv</span> <span class="id" title="var">x</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+<span class="id" title="keyword">Infix</span> &quot;/" := <span class="id" title="var">Qdiv</span> : <span class="id" title="var">Q_scope</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A light notation for <span class="inlinecode"><span class="id" title="var">Zpos</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmake_Qdiv</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> : <span class="id" title="var">a</span>#<span class="id" title="var">b</span>==<span class="id" title="var">inject_Z</span> <span class="id" title="var">a</span>/<span class="id" title="var">inject_Z</span> (<span class="id" title="var">Zpos</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab622"></a><h1 class="section">Setoid compatibility results</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qplus_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qplus</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qopp_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qopp</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qminus_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qminus</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qmult_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qmult</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qinv_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qinv</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qdiv_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qdiv</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qcompare_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">Qcompare</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qle_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">Qle</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qlt_compat</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">iff</span>) <span class="id" title="var">Qlt</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qeqb_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">Qeq_bool</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qleb_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">eq</span>) <span class="id" title="var">Qle_bool</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">0</span> and <span class="inlinecode">1</span> are apart 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Q_apart_0_1</span> : ~ 1 == 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab623"></a><h1 class="section">Properties of <span class="inlinecode"><span class="id" title="var">Qadd</span></span></h1>
+
+<div class="paragraph"> </div>
+
+ Addition is associative: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qplus_assoc</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>+(<span class="id" title="var">y</span>+<span class="id" title="var">z</span>)==(<span class="id" title="var">x</span>+<span class="id" title="var">y</span>)+<span class="id" title="var">z</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">0</span> is a neutral element for addition: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_0_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, 0+<span class="id" title="var">x</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_0_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, <span class="id" title="var">x</span>+0 == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Commutativity of addition: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qplus_comm</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>+<span class="id" title="var">y</span> == <span class="id" title="var">y</span>+<span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab624"></a><h1 class="section">Properties of <span class="inlinecode"><span class="id" title="var">Qopp</span></span></h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qopp_involutive</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">q</span>, - -<span class="id" title="var">q</span> == <span class="id" title="var">q</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qplus_opp_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">q</span>, <span class="id" title="var">q</span>+(-<span class="id" title="var">q</span>) == 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of addition (uses theory about Qopp above): 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_inj_r</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>):<br/>
+&nbsp;&nbsp;<span class="id" title="var">x</span> + <span class="id" title="var">z</span> == <span class="id" title="var">y</span> + <span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_inj_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>):<br/>
+&nbsp;&nbsp;<span class="id" title="var">z</span> + <span class="id" title="var">x</span> == <span class="id" title="var">z</span> + <span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab625"></a><h1 class="section">Properties of <span class="inlinecode"><span class="id" title="var">Qmult</span></span></h1>
+
+<div class="paragraph"> </div>
+
+ Multiplication is associative: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_assoc</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">p</span>, <span class="id" title="var">n</span>*(<span class="id" title="var">m</span>*<span class="id" title="var">p</span>)==(<span class="id" title="var">n</span>*<span class="id" title="var">m</span>)*<span class="id" title="var">p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+multiplication and zero 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_0_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> , 0*<span class="id" title="var">x</span> == 0.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_0_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> , <span class="id" title="var">x</span>*0 == 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode">1</span> is a neutral element for multiplication: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_1_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, 1*<span class="id" title="var">n</span> == <span class="id" title="var">n</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_1_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <span class="id" title="var">n</span>*1==<span class="id" title="var">n</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Commutativity of multiplication 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_comm</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>*<span class="id" title="var">y</span>==<span class="id" title="var">y</span>*<span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Distributivity over <span class="inlinecode"><span class="id" title="var">Qadd</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_plus_distr_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>*(<span class="id" title="var">y</span>+<span class="id" title="var">z</span>)==(<span class="id" title="var">x</span>*<span class="id" title="var">y</span>)+(<span class="id" title="var">x</span>*<span class="id" title="var">z</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_plus_distr_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, (<span class="id" title="var">x</span>+<span class="id" title="var">y</span>)*<span class="id" title="var">z</span>==(<span class="id" title="var">x</span>*<span class="id" title="var">z</span>)+(<span class="id" title="var">y</span>*<span class="id" title="var">z</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Integrality 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_integral</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>*<span class="id" title="var">y</span>==0 -&gt; <span class="id" title="var">x</span>==0 \/ <span class="id" title="var">y</span>==0.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_integral_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, ~ <span class="id" title="var">x</span> == 0 -&gt; <span class="id" title="var">x</span>*<span class="id" title="var">y</span> == 0 -&gt; <span class="id" title="var">y</span> == 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab626"></a><h1 class="section">inject_Z is a ring homomorphism:</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inject_Z_plus</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Z</span>): <span class="id" title="var">inject_Z</span> (<span class="id" title="var">x</span> + <span class="id" title="var">y</span>) = <span class="id" title="var">inject_Z</span> <span class="id" title="var">x</span> + <span class="id" title="var">inject_Z</span> <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inject_Z_mult</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Z</span>): <span class="id" title="var">inject_Z</span> (<span class="id" title="var">x</span> * <span class="id" title="var">y</span>) = <span class="id" title="var">inject_Z</span> <span class="id" title="var">x</span> * <span class="id" title="var">inject_Z</span> <span class="id" title="var">y</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inject_Z_opp</span> (<span class="id" title="var">x</span>: <span class="id" title="var">Z</span>): <span class="id" title="var">inject_Z</span> (- <span class="id" title="var">x</span>) = - <span class="id" title="var">inject_Z</span> <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab627"></a><h1 class="section">Inverse and division.</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_involutive</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">q</span>, (/ / <span class="id" title="var">q</span>) == <span class="id" title="var">q</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_inv_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>, ~ <span class="id" title="var">x</span> == 0 -&gt; <span class="id" title="var">x</span>*(/<span class="id" title="var">x</span>) == 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_mult_distr</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>, / (<span class="id" title="var">p</span> * <span class="id" title="var">q</span>) == /<span class="id" title="var">p</span> * /<span class="id" title="var">q</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qdiv_mult_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, ~ <span class="id" title="var">y</span> == 0 -&gt; (<span class="id" title="var">x</span>*<span class="id" title="var">y</span>)/<span class="id" title="var">y</span> == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Qmult_div_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, ~ <span class="id" title="var">y</span> == 0 -&gt; <span class="id" title="var">y</span>*(<span class="id" title="var">x</span>/<span class="id" title="var">y</span>) == <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_plus_distr</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>, ((<span class="id" title="var">a</span> # <span class="id" title="var">c</span>) + (<span class="id" title="var">b</span> # <span class="id" title="var">c</span>) == (<span class="id" title="var">a</span>+<span class="id" title="var">b</span>) # <span class="id" title="var">c</span>)%<span class="id" title="var">Q</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_minus_distr</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>, (<span class="id" title="var">a</span> # <span class="id" title="var">c</span>) + - (<span class="id" title="var">b</span> # <span class="id" title="var">c</span>) == (<span class="id" title="var">a</span>-<span class="id" title="var">b</span>) # <span class="id" title="var">c</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of Qmult (requires theory about Qinv above): 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_inj_r</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): ~ <span class="id" title="var">z</span> == 0 -&gt; (<span class="id" title="var">x</span> * <span class="id" title="var">z</span> == <span class="id" title="var">y</span> * <span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_inj_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): ~ <span class="id" title="var">z</span> == 0 -&gt; (<span class="id" title="var">z</span> * <span class="id" title="var">x</span> == <span class="id" title="var">z</span> * <span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> == <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab628"></a><h1 class="section">Properties of order upon Q.</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_refl</span> <span class="id" title="var">x</span> : <span class="id" title="var">x</span>&lt;=<span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_antisym</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span> -&gt; <span class="id" title="var">x</span>==<span class="id" title="var">y</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_trans</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span>&lt;=<span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span>&lt;=<span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Qle_trans</span> : <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_irrefl</span> <span class="id" title="var">x</span> : ~<span class="id" title="var">x</span>&lt;<span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_not_eq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; ~ <span class="id" title="var">x</span>==<span class="id" title="var">y</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zle_Qle</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Z</span>): (<span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>)%<span class="id" title="var">Z</span> = (<span class="id" title="var">inject_Z</span> <span class="id" title="var">x</span> &lt;= <span class="id" title="var">inject_Z</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Zlt_Qlt</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <span class="id" title="var">Z</span>): (<span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span>)%<span class="id" title="var">Z</span> = (<span class="id" title="var">inject_Z</span> <span class="id" title="var">x</span> &lt; <span class="id" title="var">inject_Z</span> <span class="id" title="var">y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Large = strict or equal 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_lteq</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> \/ <span class="id" title="var">x</span>==<span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_le_weak</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_lt_trans</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span>&lt;<span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_le_trans</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span>&lt;=<span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_trans</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span>&lt;<span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">z</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span></span> iff <span class="inlinecode">~(<span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span>)</span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qnot_lt_le</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : ~ <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span> &lt;= <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qnot_le_lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : ~ <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span> -&gt; <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_not_le</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span> -&gt; ~ <span class="id" title="var">y</span> &lt;= <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_not_lt</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span> -&gt; ~ <span class="id" title="var">y</span> &lt; <span class="id" title="var">x</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_lt_or_eq</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> \/ <span class="id" title="var">x</span>==<span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Qle_not_lt</span> <span class="id" title="var">Qlt_not_le</span> <span class="id" title="var">Qnot_le_lt</span> <span class="id" title="var">Qnot_lt_le</span><br/>
+&nbsp;<span class="id" title="var">Qlt_le_weak</span> <span class="id" title="var">Qlt_not_eq</span> <span class="id" title="var">Qle_antisym</span> <span class="id" title="var">Qle_refl</span>: <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Some decidability results about orders. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Q_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, {<span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span>} + {<span class="id" title="var">y</span>&lt;<span class="id" title="var">x</span>} + {<span class="id" title="var">x</span>==<span class="id" title="var">y</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_le_dec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, {<span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span>} + {<span class="id" title="var">y</span>&lt;=<span class="id" title="var">x</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qarchimedean</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">q</span> : <span class="id" title="var">Q</span>, { <span class="id" title="var">p</span> : <span class="id" title="var">positive</span> | <span class="id" title="var">q</span> &lt; <span class="id" title="var">Z.pos</span> <span class="id" title="var">p</span> # 1 }.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Compatibility of operations with respect to order. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qopp_le_compat</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>, <span class="id" title="var">p</span>&lt;=<span class="id" title="var">q</span> -&gt; -<span class="id" title="var">q</span> &lt;= -<span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Qopp_le_compat</span> : <span class="id" title="var">qarith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_minus_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>, <span class="id" title="var">p</span> &lt;= <span class="id" title="var">q</span> &lt;-&gt; 0 &lt;= <span class="id" title="var">q</span>+-<span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_minus_iff</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">p</span> <span class="id" title="var">q</span>, <span class="id" title="var">p</span> &lt; <span class="id" title="var">q</span> &lt;-&gt; 0 &lt; <span class="id" title="var">q</span>+-<span class="id" title="var">p</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_le_compat</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> <span class="id" title="var">t</span>, <span class="id" title="var">x</span>&lt;=<span class="id" title="var">y</span> -&gt; <span class="id" title="var">z</span>&lt;=<span class="id" title="var">t</span> -&gt; <span class="id" title="var">x</span>+<span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span>+<span class="id" title="var">t</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_lt_le_compat</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> <span class="id" title="var">t</span>, <span class="id" title="var">x</span>&lt;<span class="id" title="var">y</span> -&gt; <span class="id" title="var">z</span>&lt;=<span class="id" title="var">t</span> -&gt; <span class="id" title="var">x</span>+<span class="id" title="var">z</span> &lt; <span class="id" title="var">y</span>+<span class="id" title="var">t</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_le_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): <span class="id" title="var">x</span> + <span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span> + <span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_le_r</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): <span class="id" title="var">z</span> + <span class="id" title="var">x</span> &lt;= <span class="id" title="var">z</span> + <span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_lt_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): <span class="id" title="var">x</span> + <span class="id" title="var">z</span> &lt; <span class="id" title="var">y</span> + <span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qplus_lt_r</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): <span class="id" title="var">z</span> + <span class="id" title="var">x</span> &lt; <span class="id" title="var">z</span> + <span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_le_compat_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span> -&gt; 0 &lt;= <span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span>*<span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span>*<span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_lt_0_le_reg_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, 0 &lt; <span class="id" title="var">z</span>  -&gt; <span class="id" title="var">x</span>*<span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span>*<span class="id" title="var">z</span> -&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_le_r</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): 0 &lt; <span class="id" title="var">z</span> -&gt; (<span class="id" title="var">x</span>*<span class="id" title="var">z</span> &lt;= <span class="id" title="var">y</span>*<span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_le_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): 0 &lt; <span class="id" title="var">z</span> -&gt; (<span class="id" title="var">z</span>*<span class="id" title="var">x</span> &lt;= <span class="id" title="var">z</span>*<span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> &lt;= <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_lt_compat_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, 0 &lt; <span class="id" title="var">z</span>  -&gt; <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span> -&gt; <span class="id" title="var">x</span>*<span class="id" title="var">z</span> &lt; <span class="id" title="var">y</span>*<span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_lt_r</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, 0 &lt; <span class="id" title="var">z</span> -&gt; (<span class="id" title="var">x</span>*<span class="id" title="var">z</span> &lt; <span class="id" title="var">y</span>*<span class="id" title="var">z</span> &lt;-&gt; <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span>).<br/>
+&nbsp;<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+&nbsp;<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_lt_l</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>: <span class="id" title="var">Q</span>): 0 &lt; <span class="id" title="var">z</span> -&gt; (<span class="id" title="var">z</span>*<span class="id" title="var">x</span> &lt; <span class="id" title="var">z</span>*<span class="id" title="var">y</span> &lt;-&gt; <span class="id" title="var">x</span> &lt; <span class="id" title="var">y</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qmult_le_0_compat</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, 0 &lt;= <span class="id" title="var">a</span> -&gt; 0 &lt;= <span class="id" title="var">b</span> -&gt; 0 &lt;= <span class="id" title="var">a</span>*<span class="id" title="var">b</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_le_0_compat</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, 0 &lt;= <span class="id" title="var">a</span> -&gt; 0 &lt;= /<span class="id" title="var">a</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_shift_div_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">c</span> -&gt; <span class="id" title="var">a</span>*<span class="id" title="var">c</span> &lt;= <span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span> &lt;= <span class="id" title="var">b</span>/<span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_shift_inv_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">c</span> -&gt; <span class="id" title="var">a</span>*<span class="id" title="var">c</span> &lt;= 1 -&gt; <span class="id" title="var">a</span> &lt;= /<span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_shift_div_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span> &lt;= <span class="id" title="var">c</span>*<span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span>/<span class="id" title="var">b</span> &lt;= <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qle_shift_inv_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">b</span> -&gt; 1 &lt;= <span class="id" title="var">c</span>*<span class="id" title="var">b</span> -&gt; /<span class="id" title="var">b</span> &lt;= <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_lt_0_compat</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span>, 0 &lt; <span class="id" title="var">a</span> -&gt; 0 &lt; /<span class="id" title="var">a</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_shift_div_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">c</span> -&gt; <span class="id" title="var">a</span>*<span class="id" title="var">c</span> &lt; <span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span> &lt; <span class="id" title="var">b</span>/<span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_shift_inv_l</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">c</span> -&gt; <span class="id" title="var">a</span>*<span class="id" title="var">c</span> &lt; 1 -&gt; <span class="id" title="var">a</span> &lt; /<span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_shift_div_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span> &lt; <span class="id" title="var">c</span>*<span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span>/<span class="id" title="var">b</span> &lt; <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qlt_shift_inv_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>,<br/>
+&nbsp;0 &lt; <span class="id" title="var">b</span> -&gt; 1 &lt; <span class="id" title="var">c</span>*<span class="id" title="var">b</span> -&gt; /<span class="id" title="var">b</span> &lt; <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Qinv_lt_contravar</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> : <span class="id" title="var">Q</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;0 &lt; <span class="id" title="var">a</span> -&gt; 0 &lt; <span class="id" title="var">b</span> -&gt; (<span class="id" title="var">a</span> &lt; <span class="id" title="var">b</span> &lt;-&gt; /<span class="id" title="var">b</span> &lt; /<span class="id" title="var">a</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab629"></a><h1 class="section">Rational to the n-th power</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qpower_positive</span> : <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">positive</span> -&gt; <span class="id" title="var">Q</span> :=<br/>
+&nbsp;<span class="id" title="var">pow_pos</span> <span class="id" title="var">Qmult</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qpower_positive_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qpower_positive</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">Qpower</span> (<span class="id" title="var">q</span>:<span class="id" title="var">Q</span>) (<span class="id" title="var">z</span>:<span class="id" title="var">Z</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">z</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Zpos</span> <span class="id" title="var">p</span> =&gt; <span class="id" title="var">Qpower_positive</span> <span class="id" title="var">q</span> <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Z0</span> =&gt; 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Zneg</span> <span class="id" title="var">p</span> =&gt; /<span class="id" title="var">Qpower_positive</span> <span class="id" title="var">q</span> <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> &quot; q ^ z " := (<span class="id" title="var">Qpower</span> <span class="id" title="var">q</span> <span class="id" title="var">z</span>) : <span class="id" title="var">Q_scope</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Qpower_comp</span> : <span class="id" title="var">Proper</span> (<span class="id" title="var">Qeq</span>==&gt;<span class="id" title="var">eq</span>==&gt;<span class="id" title="var">Qeq</span>) <span class="id" title="var">Qpower</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
