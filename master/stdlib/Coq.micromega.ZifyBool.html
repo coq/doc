@@ -46,33 +46,14 @@
 <div class="code">
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Bool</span> <span class="id" title="var">ZArith</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Zify</span> <span class="id" title="var">ZifyClasses</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZifyInst</span>.<br/>
 <span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
 
 <br/>
-</div>
-
-<div class="doc">
-<span class="inlinecode"><span class="id" title="var">Z_of_bool</span></span> is the injection function for boolean 
-</div>
-<div class="code">
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">Z_of_bool</span> (<span class="id" title="var">b</span> : <span class="id" title="var">bool</span>) : <span class="id" title="var">Z</span> := <span class="id" title="keyword">if</span> <span class="id" title="var">b</span> <span class="id" title="keyword">then</span> 1 <span class="id" title="keyword">else</span> 0.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-<span class="inlinecode"><span class="id" title="var">bool_of_Z</span></span> is a compatible reverse operation 
-</div>
-<div class="code">
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">bool_of_Z</span> (<span class="id" title="var">z</span> : <span class="id" title="var">Z</span>) : <span class="id" title="var">bool</span> := <span class="id" title="var">negb</span> (<span class="id" title="var">Z.eqb</span> <span class="id" title="var">z</span> 0).<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_of_bool_bound</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,   0 &lt;= <span class="id" title="var">Z_of_bool</span> <span class="id" title="var">x</span> &lt;= 1.<br/>
-
-<br/>
-<span class="id" title="keyword">Instance</span> <span class="id" title="var">Inj_bool_Z</span> : <span class="id" title="var">InjTyp</span> <span class="id" title="var">bool</span> <span class="id" title="var">Z</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">inj</span> := <span class="id" title="var">Z_of_bool</span> ; <span class="id" title="var">pred</span> :=(<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; 0 &lt;= <span class="id" title="var">x</span> &lt;= 1) ; <span class="id" title="var">cstr</span> := <span class="id" title="var">Z_of_bool_bound</span>}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">InjTyp</span> <span class="id" title="var">Inj_bool_Z</span>.<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Inj_bool_bool</span> : <span class="id" title="var">InjTyp</span> <span class="id" title="var">bool</span> <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">inj</span> := (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; <span class="id" title="var">x</span>) ; <span class="id" title="var">pred</span> := (<span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">b</span> = <span class="id" title="var">true</span> \/ <span class="id" title="var">b</span> = <span class="id" title="var">false</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cstr</span> := (<span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">intro</span> <span class="id" title="var">b</span>; <span class="id" title="tactic">destruct</span> <span class="id" title="var">b</span>; <span class="id" title="tactic">tauto</span>))}.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">InjTyp</span> <span class="id" title="var">Inj_bool_bool</span>.<br/>
 
 <br/>
 </div>
@@ -84,83 +65,52 @@ Boolean operators
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_andb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">andb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.min</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>: (<span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span>,<span class="id" title="var">m</span>; <span class="id" title="tactic">reflexivity</span>)}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_andb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">andb</span> ; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>  =&gt; <span class="id" title="var">eq_refl</span>}.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_andb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_orb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">orb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.max</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span>,<span class="id" title="var">m</span>; <span class="id" title="tactic">reflexivity</span>)}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_orb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">orb</span> ; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span>}.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_orb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_implb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">implb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">Z.max</span> (1 - <span class="id" title="var">x</span>) <span class="id" title="var">y</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span>,<span class="id" title="var">m</span>; <span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_implb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">implb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_implb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">xorb_eq</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xorb</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span> = <span class="id" title="var">andb</span> (<span class="id" title="var">orb</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>) (<span class="id" title="var">negb</span> (<span class="id" title="var">eqb</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>)).<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_xorb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">xorb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">Z.max</span> (<span class="id" title="var">x</span> - <span class="id" title="var">y</span>) (<span class="id" title="var">y</span> - <span class="id" title="var">x</span>);<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span>,<span class="id" title="var">m</span>; <span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_xorb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">orb</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) (<span class="id" title="var">negb</span> (<span class="id" title="var">eqb</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>)); <span class="id" title="var">TBOpInj</span> := <span class="id" title="var">xorb_eq</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_xorb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_eqb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">eqb</span> :=<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">eqb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_eqb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_negb</span> : <span class="id" title="var">UnOp</span> <span class="id" title="var">negb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> =&gt; 1 - <span class="id" title="var">x</span> ; <span class="id" title="var">TUOpInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">destruct</span> <span class="id" title="var">x</span>; <span class="id" title="tactic">reflexivity</span>)}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_negb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="var">negb</span> ; <span class="id" title="var">TUOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span>}.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_negb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_eq_bool</span> : <span class="id" title="var">BinRel</span> (@<span class="id" title="var">eq</span> <span class="id" title="var">bool</span>) :=<br/>
-&nbsp;&nbsp;{<span class="id" title="var">TR</span> := @<span class="id" title="var">eq</span> <span class="id" title="var">Z</span> ; <span class="id" title="var">TRInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span>,<span class="id" title="var">m</span>; <span class="id" title="tactic">simpl</span> ; <span class="id" title="tactic">intuition</span> <span class="id" title="tactic">congruence</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinRel</span> <span class="id" title="var">Op_eq_bool</span>.<br/>
+&nbsp;&nbsp;{<span class="id" title="var">TR</span> := @<span class="id" title="var">eq</span> <span class="id" title="var">bool</span> ; <span class="id" title="var">TRInj</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">reflexivity</span>) }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinRel</span> <span class="id" title="var">Op_eq_bool</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_true</span> : <span class="id" title="var">CstOp</span> <span class="id" title="var">true</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TCst</span> := 1 ; <span class="id" title="var">TCstInj</span> := <span class="id" title="var">eq_refl</span> }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">CstOp</span> <span class="id" title="var">Op_true</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TCst</span> := <span class="id" title="var">true</span> ; <span class="id" title="var">TCstInj</span> := <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">CstOp</span> <span class="id" title="var">Op_true</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_false</span> : <span class="id" title="var">CstOp</span> <span class="id" title="var">false</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TCst</span> := 0 ; <span class="id" title="var">TCstInj</span> := <span class="id" title="var">eq_refl</span> }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">CstOp</span> <span class="id" title="var">Op_false</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-Comparisons are encoded using the predicates <span class="inlinecode"><span class="id" title="var">isZero</span></span> and <span class="inlinecode"><span class="id" title="var">isLeZero</span></span>.
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">isZero</span> (<span class="id" title="var">z</span> : <span class="id" title="var">Z</span>) := <span class="id" title="var">Z_of_bool</span> (<span class="id" title="var">Z.eqb</span> <span class="id" title="var">z</span> 0).<br/>
-
-<br/>
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">isLeZero</span> (<span class="id" title="var">x</span> : <span class="id" title="var">Z</span>) := <span class="id" title="var">Z_of_bool</span> (<span class="id" title="var">Z.leb</span> <span class="id" title="var">x</span> 0).<br/>
-
-<br/>
-<span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_isZero</span> : <span class="id" title="var">UnOp</span> <span class="id" title="var">isZero</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="var">isZero</span>; <span class="id" title="var">TUOpInj</span> := <span class="id" title="keyword">ltac</span>: (<span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_isZero</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_isLeZero</span> : <span class="id" title="var">UnOp</span> <span class="id" title="var">isLeZero</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="var">isLeZero</span>; <span class="id" title="var">TUOpInj</span> := <span class="id" title="keyword">ltac</span>: (<span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_isLeZero</span>.<br/>
-
-<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_eqb_isZero</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Z_of_bool</span> (<span class="id" title="var">n</span> =? <span class="id" title="var">m</span>) = <span class="id" title="var">isZero</span> (<span class="id" title="var">n</span> - <span class="id" title="var">m</span>).<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_leb_sub</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> &lt;=? <span class="id" title="var">y</span>  = ((<span class="id" title="var">x</span> - <span class="id" title="var">y</span>) &lt;=? 0).<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_ltb_leb</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> &lt;? <span class="id" title="var">y</span>  = (<span class="id" title="var">x</span> +1 &lt;=? <span class="id" title="var">y</span>).<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TCst</span> := <span class="id" title="var">false</span> ; <span class="id" title="var">TCstInj</span> := <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">CstOp</span> <span class="id" title="var">Op_false</span>.<br/>
 
 <br/>
 </div>
@@ -172,50 +122,28 @@ Comparison over Z
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_Zeqb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Z.eqb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isZero</span> (<span class="id" title="var">Z.sub</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) ; <span class="id" title="var">TBOpInj</span> := <span class="id" title="var">Z_eqb_isZero</span>}.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.eqb</span> ; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zeqb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_Zleb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Z.leb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">x</span>-<span class="id" title="var">y</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">ltac</span>: (<span class="id" title="tactic">intros</span>;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">auto</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zleb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.leb</span>; <span class="id" title="var">TBOpInj</span> :=  <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zleb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_Zgeb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Z.geb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">y</span>-<span class="id" title="var">x</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z.geb_leb</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">auto</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zgeb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.geb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zgeb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_Zltb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Z.ltb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">x</span>+1-<span class="id" title="var">y</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_ltb_leb</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>) }.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.ltb</span> ; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zltb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_Zgtb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Z.gtb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">y</span>-<span class="id" title="var">x</span>+1) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z.gtb_ltb</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_ltb_leb</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z.add_sub_swap</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zgtb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.gtb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>  =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_Zgtb</span>.<br/>
 
 <br/>
 </div>
@@ -239,60 +167,51 @@ Comparison over nat
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_nat_eqb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Nat.eqb</span> :=<br/>
-&nbsp;&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isZero</span> (<span class="id" title="var">Z.sub</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>; <span class="id" title="tactic">simpl</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span>  &lt;- <span class="id" title="var">Z_eqb_isZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">f_equal</span>; <span class="id" title="tactic">apply</span> <span class="id" title="var">Z_of_nat_eqb_iff</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_eqb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.eqb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="var">Z_of_nat_eqb_iff</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_eqb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_nat_leb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Nat.leb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">x</span>-<span class="id" title="var">y</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_of_nat_leb_iff</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">auto</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_leb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.leb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="var">Z_of_nat_leb_iff</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_leb</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_nat_ltb</span> : <span class="id" title="var">BinOp</span> <span class="id" title="var">Nat.ltb</span> :=<br/>
-&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> =&gt; <span class="id" title="var">isLeZero</span> (<span class="id" title="var">x</span>+1-<span class="id" title="var">y</span>) ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TBOpInj</span> := <span class="id" title="keyword">ltac</span>:(<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_of_nat_ltb_iff</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">isLeZero</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Z_ltb_leb</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Z_leb_sub</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>) }.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_ltb</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TBOp</span> := <span class="id" title="var">Z.ltb</span>; <span class="id" title="var">TBOpInj</span> := <span class="id" title="var">Z_of_nat_ltb_iff</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">BinOp</span> <span class="id" title="var">Op_nat_ltb</span>.<br/>
 
 <br/>
-</div>
-
-<div class="doc">
-Injected boolean operators 
-</div>
-<div class="code">
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">b2n_b2z</span> :  <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,  <span class="id" title="var">Z.of_nat</span> (<span class="id" title="var">Nat.b2n</span> <span class="id" title="var">x</span>) = <span class="id" title="var">Z.b2z</span> <span class="id" title="var">x</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Z_eqb_ZSpec_ok</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,  0 &lt;= <span class="id" title="var">isZero</span> <span class="id" title="var">x</span> &lt;= 1 /\<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">x</span> = 0 &lt;-&gt; <span class="id" title="var">isZero</span> <span class="id" title="var">x</span> = 1).<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_b2n</span> : <span class="id" title="var">UnOp</span> <span class="id" title="var">Nat.b2n</span> :=<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="var">Z.b2z</span>; <span class="id" title="var">TUOpInj</span> := <span class="id" title="var">b2n_b2z</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_b2n</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Instance</span> <span class="id" title="var">Z_eqb_ZSpec</span> : <span class="id" title="var">UnOpSpec</span> <span class="id" title="var">isZero</span> :=<br/>
-&nbsp;&nbsp;{| <span class="id" title="var">UPred</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">r</span> =&gt; 0 &lt;= <span class="id" title="var">r</span> &lt;= 1 /\ (<span class="id" title="var">n</span> = 0 &lt;-&gt; <span class="id" title="var">isZero</span> <span class="id" title="var">n</span> = 1) ; <span class="id" title="var">USpec</span> := <span class="id" title="var">Z_eqb_ZSpec_ok</span> |}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">Spec</span> <span class="id" title="var">Z_eqb_ZSpec</span>.<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">Op_b2z</span> : <span class="id" title="var">UnOp</span> <span class="id" title="var">Z.b2z</span> :=<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">TUOp</span> := <span class="id" title="var">Z.b2z</span>; <span class="id" title="var">TUOpInj</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">eq_refl</span> }.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">UnOp</span> <span class="id" title="var">Op_b2z</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">leZeroSpec_ok</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span>,  <span class="id" title="var">x</span> &lt;= 0 /\ <span class="id" title="var">isLeZero</span> <span class="id" title="var">x</span> = 1 \/ <span class="id" title="var">x</span> &gt; 0 /\ <span class="id" title="var">isLeZero</span> <span class="id" title="var">x</span> = 0.<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">b2z_spec</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">b</span>, (<span class="id" title="var">b</span> = <span class="id" title="var">true</span> /\ <span class="id" title="var">Z.b2z</span> <span class="id" title="var">b</span> = 1) \/ (<span class="id" title="var">b</span> = <span class="id" title="var">false</span> /\ <span class="id" title="var">Z.b2z</span> <span class="id" title="var">b</span> = 0).<br/>
 
 <br/>
-<span class="id" title="keyword">Instance</span> <span class="id" title="var">leZeroSpec</span> : <span class="id" title="var">UnOpSpec</span> <span class="id" title="var">isLeZero</span> :=<br/>
-&nbsp;&nbsp;{| <span class="id" title="var">UPred</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">r</span> =&gt; (<span class="id" title="var">n</span>&lt;=0 /\ <span class="id" title="var">r</span> = 1) \/ (<span class="id" title="var">n</span> &gt; 0 /\ <span class="id" title="var">r</span> = 0) ; <span class="id" title="var">USpec</span> := <span class="id" title="var">leZeroSpec_ok</span>|}.<br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">Spec</span> <span class="id" title="var">leZeroSpec</span>.<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">b2zSpec</span> : <span class="id" title="var">UnOpSpec</span> <span class="id" title="var">Z.b2z</span> :=<br/>
+&nbsp;&nbsp;{ <span class="id" title="var">UPred</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> <span class="id" title="var">r</span> =&gt; (<span class="id" title="var">b</span> = <span class="id" title="var">true</span> /\ <span class="id" title="var">r</span> = 1) \/ (<span class="id" title="var">b</span> = <span class="id" title="var">false</span> /\ <span class="id" title="var">r</span> = 0);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">USpec</span> := <span class="id" title="var">b2z_spec</span><br/>
+&nbsp;&nbsp;}.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">Zify</span> <span class="id" title="var">UnOpSpec</span> <span class="id" title="var">b2zSpec</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">elim_bool_cstr</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">C</span> : ?<span class="id" title="var">B</span> = <span class="id" title="var">true</span> \/ ?<span class="id" title="var">B</span> = <span class="id" title="var">false</span> |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">C</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">C</span>|<span class="id" title="var">C</span>]; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">C</span> <span class="id" title="tactic">in</span> *<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">Zify.zify_post_hook</span> ::= <span class="id" title="var">elim_bool_cstr</span>.<br/>
 </div>
     <div id="sidebarWrapper">
       <div id="sidebar">
