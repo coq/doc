@@ -1693,16 +1693,89 @@ Default is off.</p>
 (corresponding to <a class="reference internal" href="../proof-engine/ltac.html#grammar-token-ltac-expr"><code class="xref std std-token docutils literal notranslate"><span class="pre">ltac_expr</span></code></a> in the documentation).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">vernac</span></code> - for <a class="reference internal" href="../language/core/basic.html#grammar-token-command"><code class="xref std std-token docutils literal notranslate"><span class="pre">command</span></code></a>s</p></li>
 </ul>
-<p>The first three of these give the precedence and associativity for each construct.
-For example, these lines printed by <code class="docutils literal notranslate"><span class="pre">Print</span> <span class="pre">Grammar</span> <span class="pre">tactic</span></code> indicates that the <code class="docutils literal notranslate"><span class="pre">try</span></code> construct
-is at level 3 and right-associative.  <code class="docutils literal notranslate"><span class="pre">SELF</span></code> represents the <code class="docutils literal notranslate"><span class="pre">tactic_expr</span></code> nonterminal
-at level 5 (the top level):</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>| &quot;3&quot; RIGHTA
+<p>This command doesn't display all nonterminals of the grammar.  For example,
+productions shown by <code class="docutils literal notranslate"><span class="pre">Print</span> <span class="pre">Grammar</span> <span class="pre">tactic</span></code> refer to nonterminals <code class="docutils literal notranslate"><span class="pre">tactic_then_locality</span></code>
+and <code class="docutils literal notranslate"><span class="pre">tactic_then_gen</span></code> which are not shown and can't be printed.</p>
+<p>The prefixes <code class="docutils literal notranslate"><span class="pre">tactic:</span></code>, <code class="docutils literal notranslate"><span class="pre">prim:</span></code>, <code class="docutils literal notranslate"><span class="pre">constr:</span></code> appearing in the output are meant to identify
+what part of the grammar a nonterminal is from.  If you examine nonterminal definitions
+in the source code, they are identified only by the name following the colon.</p>
+<p>Most of the grammar in the documentation was updated in 8.12 to make it accurate and
+readable.  This was done using a new developer tool that extracts the grammar from the
+source code, edits it and inserts it into the documentation files.  While the
+edited grammar is equivalent to the original, for readability some nonterminals
+have been renamed and others have been eliminated by substituting the nonterminal
+definition where the nonterminal was referenced.  This command shows the original grammar,
+so it won't exactly match the documentation.</p>
+<p>The <span class="smallcaps">Coq</span> parser is based on Camlp5.  The documentation for
+<a class="reference external" href="http://camlp5.github.io/doc/htmlc/grammars.html">Extensible grammars</a> is the
+most relevant but it assumes considerable knowledge.  Here are the essentials:</p>
+<p>Productions can contain the following elements:</p>
+<ul class="simple">
+<li><p>nonterminal names - identifiers in the form <code class="docutils literal notranslate"><span class="pre">[a-zA-Z0-9_]*</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;…&quot;</span></code> - a literal string that becomes a keyword and cannot be used as an <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.
+The string doesn't have to be a valid identifier; frequently the string will contain only
+punctuation characters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IDENT</span> <span class="pre">&quot;…&quot;</span></code> - a literal string that has the form of an <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OPT</span> <span class="pre">element</span></code> - optionally include <code class="docutils literal notranslate"><span class="pre">element</span></code> (e.g. a nonterminal, IDENT &quot;…&quot; or &quot;…&quot;)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LIST1</span> <span class="pre">element</span></code> - a list of one or more <code class="docutils literal notranslate"><span class="pre">element</span></code>s</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LIST0</span> <span class="pre">element</span></code> - an optional list of <code class="docutils literal notranslate"><span class="pre">element</span></code>s</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LIST1</span> <span class="pre">element</span> <span class="pre">SEP</span> <span class="pre">sep</span></code> - a list of <code class="docutils literal notranslate"><span class="pre">element</span></code>s separated by <code class="docutils literal notranslate"><span class="pre">sep</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LIST0</span> <span class="pre">element</span> <span class="pre">SEP</span> <span class="pre">sep</span></code> - an optional list of <code class="docutils literal notranslate"><span class="pre">element</span></code>s separated by <code class="docutils literal notranslate"><span class="pre">sep</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">elements1</span> <span class="pre">|</span> <span class="pre">elements2</span> <span class="pre">|</span> <span class="pre">…</span> <span class="pre">]</span></code> - alternatives (either <code class="docutils literal notranslate"><span class="pre">elements1</span></code> or <code class="docutils literal notranslate"><span class="pre">elements2</span></code> or …)</p></li>
+</ul>
+<p>Nonterminals can have multiple <strong>levels</strong> to specify precedence and associativity
+of its productions.  This feature of grammars makes it simple to parse input
+such as <code class="docutils literal notranslate"><span class="pre">1+2*3</span></code> in the usual way as <code class="docutils literal notranslate"><span class="pre">1+(2*3)</span></code>.  However, most nonterminals have a single level.</p>
+<p>For example, this output from <code class="docutils literal notranslate"><span class="pre">Print</span> <span class="pre">Grammar</span> <span class="pre">tactic</span></code> shows the first 3 levels for
+<code class="docutils literal notranslate"><span class="pre">tactic_expr</span></code>, designated as &quot;5&quot;, &quot;4&quot; and &quot;3&quot;.  Level 3 is right-associative,
+which applies to the productions within it, such as the <code class="docutils literal notranslate"><span class="pre">try</span></code> construct:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Entry tactic:tactic_expr is
+[ &quot;5&quot; RIGHTA
+  [ tactic:binder_tactic ]
+| &quot;4&quot; LEFTA
+  [ SELF; &quot;;&quot;; tactic:binder_tactic
+  | SELF; &quot;;&quot;; SELF
+  | SELF; &quot;;&quot;; tactic_then_locality; tactic_then_gen; &quot;]&quot; ]
+| &quot;3&quot; RIGHTA
   [ IDENT &quot;try&quot;; SELF
+  :
 </pre></div>
 </div>
-<p>Note that the productions printed by this command are represented in the form used by
-<span class="smallcaps">Coq</span>'s parser (coqpp), which differs from how productions are shown in the documentation.</p>
+<p>The interpretation of <code class="docutils literal notranslate"><span class="pre">SELF</span></code> depends on its position in the production and the
+associativity of the level:</p>
+<ul class="simple">
+<li><p>At the beginning of a production, <code class="docutils literal notranslate"><span class="pre">SELF</span></code> means the next level.  In the
+fragment shown above, the next level for <code class="docutils literal notranslate"><span class="pre">try</span></code> is &quot;2&quot;.  (This is defined by the order
+of appearance in the grammar or output; the levels could just as well be
+named &quot;foo&quot; and &quot;bar&quot;.)</p></li>
+<li><p>In the middle of a production, <code class="docutils literal notranslate"><span class="pre">SELF</span></code> means the top level (&quot;5&quot; in the fragment)</p></li>
+<li><p>At the end of a production, <code class="docutils literal notranslate"><span class="pre">SELF</span></code> means the next level within
+<code class="docutils literal notranslate"><span class="pre">LEFTA</span></code> levels and the current level within <code class="docutils literal notranslate"><span class="pre">RIGHTA</span></code> levels.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">NEXT</span></code> always means the next level. <code class="docutils literal notranslate"><span class="pre">nonterminal</span> <span class="pre">LEVEL</span> <span class="pre">&quot;…&quot;</span></code> is a reference to the specified level
+for <code class="docutils literal notranslate"><span class="pre">nonterminal</span></code>.</p>
+<p><a class="reference external" href="http://camlp5.github.io/doc/htmlc/grammars.html#b:Associativity">Associativity</a>
+explains <code class="docutils literal notranslate"><span class="pre">SELF</span></code> and <code class="docutils literal notranslate"><span class="pre">NEXT</span></code> in somewhat more detail.</p>
+<p>The output for <code class="docutils literal notranslate"><span class="pre">Print</span> <span class="pre">Grammar</span> <span class="pre">constr</span></code> includes <a class="reference internal" href="#coq:cmd.notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a> definitions,
+which are dynamically added to the grammar at run time.
+For example, in the definition for <code class="docutils literal notranslate"><span class="pre">operconstr</span></code>, the production on the second line shown
+here is defined by a <a class="reference internal" href="#coq:cmd.reserved-notation" title="Reserved Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Reserved</span> <span class="pre">Notation</span></code></a> command in <code class="docutils literal notranslate"><span class="pre">Notations.v</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>| &quot;50&quot; LEFTA
+  [ SELF; &quot;||&quot;; NEXT
+</pre></div>
+</div>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">Print</span> <span class="pre">Grammar</span> <span class="pre">tactic</span></code> includes <a class="reference internal" href="#coq:cmd.tactic-notation" title="Tactic Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Tactic</span> <span class="pre">Notation</span></code></a>s, such as <a class="reference internal" href="../proof-engine/tactics.html#coq:tacv.dintuition" title="dintuition"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">dintuition</span></code></a>.</p>
+<p>The file
+<a class="reference external" href="http://github.com/coq/coq/blob/master/doc/tools/docgram/fullGrammar">doc/tools/docgram/fullGrammar</a>
+in the source tree extracts the full grammar for
+<span class="smallcaps">Coq</span> (not including notations and tactic notations defined in <code class="docutils literal notranslate"><span class="pre">*.v</span></code> files nor some optionally-loaded plugins)
+in a single file with minor changes to handle nonterminals using multiple levels (described in
+<a class="reference external" href="http://github.com/coq/coq/blob/master/doc/tools/docgram/README.md">doc/tools/docgram/README.md</a>).
+This is complete and much easier to read than the grammar source files.
+<a class="reference external" href="http://github.com/coq/coq/blob/master/doc/tools/docgram/orderedGrammar">doc/tools/docgram/orderedGrammar</a>
+has the edited grammar that's used in the documentation.</p>
+<p>Developer documentation for parsing is in
+<a class="reference external" href="http://github.com/coq/coq/blob/master/dev/doc/parsing.md">dev/doc/parsing.md</a>.</p>
 </dd></dl>
 
 </div>
@@ -2222,7 +2295,7 @@ rule</p>
 <code class="docutils literal notranslate"><span class="pre">expr</span></code> at level less or equal than <code class="docutils literal notranslate"><span class="pre">2</span></code> (including, recursively,
 the given rule) and <code class="docutils literal notranslate"><span class="pre">y</span></code> is any expression parsed in entry <code class="docutils literal notranslate"><span class="pre">expr</span></code>
 at level strictly less than <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
-<p>Rules associated to an entry can refer different sub-entries. The
+<p>Rules associated with an entry can refer different sub-entries. The
 grammar entry name <code class="docutils literal notranslate"><span class="pre">constr</span></code> can be used to refer to the main grammar
 of term as in the rule</p>
 <div class="coqtop literal-block docutils container">
@@ -2309,7 +2382,7 @@ up to the insertion of a pair of curly brackets.</p>
 <dl class="cmd">
 <dt id="coq:cmd.print-custom-grammar">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Print</span></span> <span><span>Custom</span></span> <span><span>Grammar</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole">ident</span></a></span></code><a class="headerlink" href="#coq:cmd.print-custom-grammar" title="Permalink to this definition">¶</a></dt>
-<dd><p>This displays the state of the grammar for terms associated to
+<dd><p>This displays the state of the grammar for terms associated with
 the custom entry <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.</p>
 </dd></dl>
 
