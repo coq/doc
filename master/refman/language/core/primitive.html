@@ -1360,7 +1360,7 @@ follows:</p>
 </span><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">get_set_same</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">A</span><span> </span><span class="coqdoc-var">t</span><span> </span><span class="coqdoc-var">i</span><span> (</span><span class="coqdoc-var">a</span><span>:</span><span class="coqdoc-var">A</span><span>), (</span><span class="coqdoc-var">i</span><span> &lt; </span><span class="coqdoc-var">length</span><span> </span><span class="coqdoc-var">t</span><span>) = </span><span class="coqdoc-var">true</span><span> -&gt; </span><span class="coqdoc-var">t</span><span>.[</span><span class="coqdoc-var">i</span><span>&lt;-</span><span class="coqdoc-var">a</span><span>].[</span><span class="coqdoc-var">i</span><span>] = </span><span class="coqdoc-var">a</span><span>.</span><span>
 </span><span class="coqdoc-keyword">Axiom</span><span> </span><span class="coqdoc-var">get_set_other</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">A</span><span> </span><span class="coqdoc-var">t</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span> (</span><span class="coqdoc-var">a</span><span>:</span><span class="coqdoc-var">A</span><span>), </span><span class="coqdoc-var">i</span><span> &lt;&gt; </span><span class="coqdoc-var">j</span><span> -&gt; </span><span class="coqdoc-var">t</span><span>.[</span><span class="coqdoc-var">i</span><span>&lt;-</span><span class="coqdoc-var">a</span><span>].[</span><span class="coqdoc-var">j</span><span>] = </span><span class="coqdoc-var">t</span><span>.[</span><span class="coqdoc-var">j</span><span>].</span><span>
 </span></span></div>
-<p>The complete set of such operators can be obtained looking at the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">PArray</span></span></code> module.</p>
+<p>The rest of these operators can be found in the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">PArray</span></span></code> module.</p>
 <p>These primitive declarations are regular axioms. As such, they must be trusted and are listed by the
 <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Print</span></span> <span class="name"><span class="pre">Assumptions</span></span></code> command.</p>
 <p>The reduction machines (<a class="reference internal" href="../../proof-engine/tactics.html#coq:tacv.vm-compute" title="vm_compute"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">vm_compute</span></code></a>, <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacv.native-compute" title="native_compute"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">native_compute</span></code></a>) implement
@@ -1373,10 +1373,19 @@ and functions of a <code class="code Coq docutils literal notranslate"><span cla
 extraction. Instead, it has to be provided by the user (if they want to compile
 or execute the extracted code). For instance, an implementation of this module
 can be taken from the kernel of Coq (see <code class="docutils literal notranslate"><span class="pre">kernel/parray.ml</span></code>).</p>
-<p>Primitive arrays expose a functional interface, but they are internally
-implemented using a persistent data structure <a class="reference internal" href="../../zebibliography.html#conchonfilliatre07wml" id="id4">[CF07]</a>.
-Update and access to an element in the most recent copy of an array are
-constant time operations.</p>
+<p>Coq's primitive arrays are persistent data structures. Semantically, a set operation
+<code class="docutils literal notranslate"><span class="pre">t.[i</span> <span class="pre">&lt;-</span> <span class="pre">a]</span></code> represents a new array that has the same values as <code class="docutils literal notranslate"><span class="pre">t</span></code>, except
+at position <code class="docutils literal notranslate"><span class="pre">i</span></code> where its value is <code class="docutils literal notranslate"><span class="pre">a</span></code>. The array <code class="docutils literal notranslate"><span class="pre">t</span></code> still exists, can
+still be used and its values were not modified. Operationally, the implementation
+of Coq's primitive arrays is optimized so that the new array <code class="docutils literal notranslate"><span class="pre">t.[i</span> <span class="pre">&lt;-</span> <span class="pre">a]</span></code> does not
+copy all of <code class="docutils literal notranslate"><span class="pre">t</span></code>. The details are in section 2.3 of <a class="reference internal" href="../../zebibliography.html#conchonfilliatre07wml" id="id4">[CF07]</a>.
+In short, the implementation keeps one version of <code class="docutils literal notranslate"><span class="pre">t</span></code> as an OCaml native array and
+other versions as lists of modifications to <code class="docutils literal notranslate"><span class="pre">t</span></code>. Accesses to the native array
+version are constant time operations. However, accesses to versions where all the cells of
+the array are modified have O(n) access time, the same as a list. The version that is kept as the native array
+changes dynamically upon each get and set call: the current list of modifications
+is applied to the native array and the lists of modifications of the other versions
+are updated so that they still represent the same values.</p>
 </div>
 </div>
 
