@@ -107,6 +107,23 @@
 
 </li>
 </ul>
+
+<div class="paragraph"> </div>
+
+  Additionally we provide default intro pattern ltac views:
+<ul class="doclist">
+<li> top of the stack actions:
+    =&gt; /<span class="inlinecode"><span class="id" title="tactic">apply</span></span>     := =&gt; hyp {}/hyp
+    =&gt; /<span class="inlinecode"><span class="id" title="var">swap</span></span>      := =&gt; x y; move: y x
+                      (also swap and perserves let bindings)
+    =&gt; /<span class="inlinecode"><span class="id" title="var">dup</span></span>       := =&gt; x; have copy := x; move: copy x
+                      (also copies and preserves let bindings)
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
  More information about these definitions and their use can be found in the
  ssreflect manual, and in specific comments below.                           
 </div>
@@ -960,6 +977,63 @@ Implementation notes:
 <br/>
 <span class="id" title="keyword">End</span> <a class="idref" href="Coq.ssr.ssreflect.html#NonPropType"><span class="id" title="module">NonPropType</span></a>.<br/>
 <span class="id" title="keyword">Export</span> <span class="id" title="var">NonPropType.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Export</span> <a id="ipat" class="idref" href="#ipat"><span class="id" title="module">ipat</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="69f87318111a06c23cf3b6c947249a45" class="idref" href="#69f87318111a06c23cf3b6c947249a45"><span class="id" title="notation">&quot;</span></a>'[' 'apply' ']'" := (<span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">f</span> {}/<span class="id" title="var">f</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0, <span class="id" title="var">only</span> <span class="id" title="var">parsing</span>) : <span class="id" title="var">ssripat_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We try to preserve the naming by matching the names from the goal.
+    We do 'move' to perform a hnf before trying to match.               
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a id="d18bf1e242aa8006719f115a8f44092e" class="idref" href="#d18bf1e242aa8006719f115a8f44092e"><span class="id" title="notation">&quot;</span></a>'[' 'swap' ']'" := (<span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">move</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">forall</span> (<a id="x:139" class="idref" href="#x:139"><span class="id" title="binder">x</span></a> : <span class="id" title="var">_</span>), <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">x</span>; <span class="id" title="tactic">move</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">forall</span> (<a id="y:151" class="idref" href="#y:151"><span class="id" title="binder">y</span></a> : <span class="id" title="var">_</span>), <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">let</span> <a id="y:153" class="idref" href="#y:153"><span class="id" title="binder">y</span></a> := <span class="id" title="var">_</span> <span class="id" title="tactic">in</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: @<span class="id" title="var">y</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">let</span> <a id="x:141" class="idref" href="#x:141"><span class="id" title="binder">x</span></a> := <span class="id" title="var">_</span> <span class="id" title="tactic">in</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span> =&gt; <span class="id" title="var">x</span>; <span class="id" title="tactic">move</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">forall</span> (<a id="y:147" class="idref" href="#y:147"><span class="id" title="binder">y</span></a> : <span class="id" title="var">_</span>), <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> @<span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">let</span> <a id="y:149" class="idref" href="#y:149"><span class="id" title="binder">y</span></a> := <span class="id" title="var">_</span> <span class="id" title="tactic">in</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: @<span class="id" title="var">y</span> @<span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">x</span>; <span class="id" title="tactic">move</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">forall</span> (<a id="y:143" class="idref" href="#y:143"><span class="id" title="binder">y</span></a> : <span class="id" title="var">_</span>), <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> @<span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">let</span> <a id="y:145" class="idref" href="#y:145"><span class="id" title="binder">y</span></a> := <span class="id" title="var">_</span> <span class="id" title="tactic">in</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">y</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: @<span class="id" title="var">y</span> @<span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">y</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">y</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">y</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0, <span class="id" title="var">only</span> <span class="id" title="var">parsing</span>) : <span class="id" title="var">ssripat_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="a686f16c7fee28a2e0daca8726c6780b" class="idref" href="#a686f16c7fee28a2e0daca8726c6780b"><span class="id" title="notation">&quot;</span></a>'[' 'dup' ']'" := (<span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">move</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">forall</span> (<a id="x:155" class="idref" href="#x:155"><span class="id" title="binder">x</span></a> : <span class="id" title="var">_</span>), <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">copy</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="var">have</span> <span class="id" title="var">copy</span> := <span class="id" title="var">x</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">copy</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">let</span> <a id="x:157" class="idref" href="#x:157"><span class="id" title="binder">x</span></a> := <span class="id" title="var">_</span> <span class="id" title="tactic">in</span> <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">copy</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">pose</span> <span class="id" title="var">copy</span> := <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">do</span> [<span class="id" title="tactic">unfold</span> <span class="id" title="var">x</span> <span class="id" title="tactic">in</span> (<span class="id" title="var">value</span> <span class="id" title="keyword">of</span> <span class="id" title="var">copy</span>)]; <span class="id" title="tactic">move</span>: @<span class="id" title="var">copy</span> @<span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> "_top_" <span class="id" title="tactic">in</span> <span class="id" title="tactic">move</span>=&gt; <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">copy</span> := <span class="id" title="tactic">fresh</span> "_top" <span class="id" title="tactic">in</span> <span class="id" title="var">have</span> <span class="id" title="var">copy</span> := <span class="id" title="var">x</span>; <span class="id" title="tactic">move</span>: <span class="id" title="var">copy</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0, <span class="id" title="var">only</span> <span class="id" title="var">parsing</span>) : <span class="id" title="var">ssripat_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="Coq.ssr.ssreflect.html#ipat"><span class="id" title="module">ipat</span></a>.<br/>
 </div>
     <div id="sidebarWrapper">
       <div id="sidebar">
