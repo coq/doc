@@ -128,9 +128,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../language/core/conversion.html">Conversion rules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#conversion">α-conversion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#reduction">β-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#iota-reduction">ι-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction">δ-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#zeta-reduction">ζ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction-sect">δ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id4">ι-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id7">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#expansion">η-expansion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#convertibility">Convertibility</a></li>
@@ -436,7 +436,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#quitting-and-debugging">Quitting and debugging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-display">Controlling display</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#printing-constructions-in-full">Printing constructions in full</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-the-reduction-strategies-and-the-conversion-algorithm">Controlling the reduction strategies and the conversion algorithm</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-typing-flags">Controlling Typing Flags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#internal-registration-commands">Internal registration commands</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../proof-engine/vernacular-commands.html#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
@@ -502,10 +501,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html">Reasoning with equalities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-leibniz-and-setoid-equality">Rewriting with Leibniz and setoid equality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-definitional-equality">Rewriting with definitional equality</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performing-computations">Performing computations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#conversion-tactics-applied-to-hypotheses">Conversion tactics applied to hypotheses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#applying-conversion-rules">Applying conversion rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#fast-reduction-tactics-vm-compute-and-native-compute">Fast reduction tactics: vm_compute and native_compute</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#computing-in-a-term-eval-and-eval">Computing in a term: eval and Eval</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#controlling-reduction-strategies-and-the-conversion-algorithm">Controlling reduction strategies and the conversion algorithm</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../proof-engine/ssreflect-proof-language.html">The <span class="smallcaps">SSReflect</span> proof language</a><ul>
@@ -2058,7 +2059,7 @@ other. If a signature mentions a relation <code class="docutils literal notransl
 arrow <code class="docutils literal notranslate"><span class="pre">==&gt;</span></code>, then the signature also applies for any relation <code class="docutils literal notranslate"><span class="pre">S</span></code> that is
 smaller than <code class="docutils literal notranslate"><span class="pre">R</span></code>, and the inverse applies on the right of an arrow. One
 can then declare only a few morphisms instances that generate the
-complete set of signatures for a particular constant. By default, the
+complete set of signatures for a particular <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a>. By default, the
 only declared subrelation is <code class="docutils literal notranslate"><span class="pre">iff</span></code>, which is a subrelation of <code class="docutils literal notranslate"><span class="pre">impl</span></code> and
 <code class="docutils literal notranslate"><span class="pre">inverse</span> <span class="pre">impl</span></code> (the dual of implication). That’s why we can declare only
 two morphisms for conjunction: <code class="docutils literal notranslate"><span class="pre">Proper</span> <span class="pre">(impl</span> <span class="pre">==&gt;</span> <span class="pre">impl</span> <span class="pre">==&gt;</span> <span class="pre">impl)</span> <span class="pre">and</span></code> and
@@ -2070,8 +2071,8 @@ example of a mostly user-space extension of the algorithm.</p>
 </div>
 <div class="section" id="constant-unfolding">
 <h3>Constant unfolding<a class="headerlink" href="#constant-unfolding" title="Permalink to this headline">¶</a></h3>
-<p>The resolution tactic is based on typeclasses and hence regards user-
-defined constants as transparent by default. This may slow down the
+<p>The resolution tactic is based on typeclasses and hence regards user-defined
+<a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a> as transparent by default. This may slow down the
 resolution due to a lot of unifications (all the declared <code class="docutils literal notranslate"><span class="pre">Proper</span></code>
 instances are tried at each node of the search tree). To speed it up,
 declare your constant as rigid for proof search using the command
@@ -2452,7 +2453,7 @@ term.</p>
 by <a class="reference internal" href="#coq:tacn.rewrite_strat" title="rewrite_strat"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">rewrite_strat</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">hints</span></code> strategy that applies any of the
 lemmas at the current subterm. The <code class="docutils literal notranslate"><span class="pre">terms</span></code> strategy takes the lemma
 names directly as arguments. The <code class="docutils literal notranslate"><span class="pre">eval</span></code> strategy expects a reduction
-expression (see <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performingcomputations"><span class="std std-ref">Performing computations</span></a>) and succeeds
+expression (see <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#applyingconversionrules"><span class="std std-ref">Applying conversion rules</span></a>) and succeeds
 if it reduces the subterm under consideration. The <code class="docutils literal notranslate"><span class="pre">fold</span></code> strategy takes
 a <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a> and tries to <em>unify</em> it to the current subterm, converting it to <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a>
 on success. It is stronger than the tactic <code class="docutils literal notranslate"><span class="pre">fold</span></code>.</p>

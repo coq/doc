@@ -128,9 +128,9 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Conversion rules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#conversion">α-conversion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reduction">β-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#iota-reduction">ι-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#delta-reduction">δ-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#zeta-reduction">ζ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delta-reduction-sect">δ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">ι-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expansion">η-expansion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#convertibility">Convertibility</a></li>
@@ -436,7 +436,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#quitting-and-debugging">Quitting and debugging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#controlling-display">Controlling display</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#printing-constructions-in-full">Printing constructions in full</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#controlling-the-reduction-strategies-and-the-conversion-algorithm">Controlling the reduction strategies and the conversion algorithm</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#controlling-typing-flags">Controlling Typing Flags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#internal-registration-commands">Internal registration commands</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../proof-engine/vernacular-commands.html#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
@@ -502,10 +501,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html">Reasoning with equalities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#rewriting-with-leibniz-and-setoid-equality">Rewriting with Leibniz and setoid equality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#rewriting-with-definitional-equality">Rewriting with definitional equality</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#performing-computations">Performing computations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#conversion-tactics-applied-to-hypotheses">Conversion tactics applied to hypotheses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#applying-conversion-rules">Applying conversion rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#fast-reduction-tactics-vm-compute-and-native-compute">Fast reduction tactics: vm_compute and native_compute</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#computing-in-a-term-eval-and-eval">Computing in a term: eval and Eval</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#controlling-reduction-strategies-and-the-conversion-algorithm">Controlling reduction strategies and the conversion algorithm</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../proof-engine/ssreflect-proof-language.html">The <span class="smallcaps">SSReflect</span> proof language</a><ul>
@@ -1252,9 +1253,11 @@
 \end{split}\]</div>
 <div class="section" id="conversion-rules">
 <span id="id1"></span><h1>Conversion rules<a class="headerlink" href="#conversion-rules" title="Permalink to this headline">¶</a></h1>
-<p>In CIC, there is an internal reduction mechanism. In particular, it
-can decide if two programs are <em>intentionally</em> equal (one says
-<a class="reference internal" href="#term-convertible"><span class="xref std std-term">convertible</span></a>). Convertibility is described in this section.</p>
+<p>Coq has conversion rules that can be used to determine if two
+terms are equal by definition, or <a class="reference internal" href="#term-convertible"><span class="xref std std-term">convertible</span></a>.
+Conversion rules consist of reduction rules and expansion rules.
+See <a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#applyingconversionrules"><span class="std std-ref">Applying conversion rules</span></a>,
+which describes tactics that apply these conversion rules.</p>
 <div class="section" id="conversion">
 <h2>α-conversion<a class="headerlink" href="#conversion" title="Permalink to this headline">¶</a></h2>
 <p>Two terms are <span class="term-defn"><span class="target" id="term-alpha-convertible"></span>α-convertible</span> if they are syntactically
@@ -1262,40 +1265,38 @@ equal ignoring differences in the names of variables bound within the expression
 For example <code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">x,</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">0</span> <span class="pre">=</span> <span class="pre">x</span></code> is α-convertible with <code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">y,</span> <span class="pre">y</span> <span class="pre">+</span> <span class="pre">0</span> <span class="pre">=</span> <span class="pre">y</span></code>.</p>
 </div>
 <div class="section" id="reduction">
-<span id="beta-reduction"></span><h2>β-reduction<a class="headerlink" href="#reduction" title="Permalink to this headline">¶</a></h2>
-<p>We want to be able to identify some terms as we can identify the
-application of a function to a given argument with its result. For
-instance the identity function over a given type <span class="math notranslate nohighlight">\(T\)</span> can be written
-<span class="math notranslate nohighlight">\(λx:T.~x\)</span>. In any global environment <span class="math notranslate nohighlight">\(E\)</span> and local context
-<span class="math notranslate nohighlight">\(Γ\)</span>, we want to identify any object <span class="math notranslate nohighlight">\(a\)</span> (of type
-<span class="math notranslate nohighlight">\(T\)</span>) with the application <span class="math notranslate nohighlight">\(((λ x:T.~x)~a)\)</span>.  We define for
-this a <em>reduction</em> (or a <em>conversion</em>) rule we call <span class="math notranslate nohighlight">\(β\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[E[Γ] ⊢ ((λx:T.~t)~u)~\triangleright_β~\subst{t}{x}{u}\]</div>
+<h2>β-reduction<a class="headerlink" href="#reduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="term-defn"><span class="target" id="term-beta-reduction"></span>β-reduction</span> reduces a <span class="term-defn"><span class="target" id="term-beta-redex"></span>beta-redex</span>, which is
+a term in the form <code class="docutils literal notranslate"><span class="pre">(fun</span> <span class="pre">x</span> <span class="pre">=&gt;</span> <span class="pre">t)</span> <span class="pre">u</span></code>.  (Beta-redex
+is short for &quot;beta-reducible expression&quot;, a term from lambda calculus.
+See <a class="reference external" href="https://en.wikipedia.org/wiki/Beta_normal_form#Beta_reduction">Beta reduction</a>
+for more background.)</p>
+<p>Formally, in any <a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#term-global-environment"><span class="xref std std-term">global environment</span></a> <span class="math notranslate nohighlight">\(E\)</span> and <a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#term-local-context"><span class="xref std std-term">local context</span></a>
+<span class="math notranslate nohighlight">\(Γ\)</span>, the beta-reduction rule is:</p>
+<dl>
+<dt id="inference-Beta">Beta</dt><dd><div class="math notranslate nohighlight">
+\[\frac{%
+%
+}{%
+E[Γ] ⊢ ((λx:T.~t)~u)~\triangleright_β~\subst{t}{x}{u}%
+}\]</div>
+</dd>
+</dl>
 <p>We say that <span class="math notranslate nohighlight">\(\subst{t}{x}{u}\)</span> is the <em>β-contraction</em> of
 <span class="math notranslate nohighlight">\(((λx:T.~t)~u)\)</span> and, conversely, that <span class="math notranslate nohighlight">\(((λ x:T.~t)~u)\)</span> is the
 <em>β-expansion</em> of <span class="math notranslate nohighlight">\(\subst{t}{x}{u}\)</span>.</p>
-<p>According to β-reduction, terms of the <em>Calculus of Inductive
-Constructions</em> enjoy some fundamental properties such as confluence,
+<p>Terms of the <em>Calculus of Inductive Constructions</em>
+enjoy some fundamental properties such as confluence,
 strong normalization, subject reduction. These results are
 theoretically of great importance but we will not detail them here and
 refer the interested reader to <a class="reference internal" href="../../zebibliography.html#coq85" id="id2">[Coq85]</a>.</p>
 </div>
-<div class="section" id="iota-reduction">
-<span id="id3"></span><h2>ι-reduction<a class="headerlink" href="#iota-reduction" title="Permalink to this headline">¶</a></h2>
-<p>A specific conversion rule is associated with the inductive objects in
-the global environment. We shall give later on (see Section
-<a class="reference internal" href="inductive.html#well-formed-inductive-definitions"><span class="std std-ref">Well-formed inductive definitions</span></a>) the precise rules but it
-just says that a destructor applied to an object built from a
-constructor behaves as expected. This reduction is called ι-reduction
-and is more precisely studied in <a class="reference internal" href="../../zebibliography.html#moh93" id="id4">[PM93a]</a><a class="reference internal" href="../../zebibliography.html#wer94" id="id5">[Wer94]</a>.</p>
-</div>
-<div class="section" id="delta-reduction">
-<span id="id6"></span><h2>δ-reduction<a class="headerlink" href="#delta-reduction" title="Permalink to this headline">¶</a></h2>
-<p>We may have variables defined in local contexts or constants defined
-in the global environment. It is legal to identify such a reference
-with its value, that is to expand (or unfold) it into its value. This
-reduction is called δ-reduction and shows as follows.</p>
+<div class="section" id="delta-reduction-sect">
+<span id="id3"></span><h2>δ-reduction<a class="headerlink" href="#delta-reduction-sect" title="Permalink to this headline">¶</a></h2>
+<p><span class="term-defn"><span class="target" id="term-delta-reduction"></span>δ-reduction</span> replaces variables defined in
+<a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#term-local-context"><span class="xref std std-term">local contexts</span></a>
+or <a class="reference internal" href="definitions.html#term-constant"><span class="xref std std-term">constants</span></a> defined in the <a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#term-global-environment"><span class="xref std std-term">global environment</span></a> with their values.
+<span class="term-defn"><span class="target" id="term-unfold"></span>Unfolding</span> means to replace a constant by its definition. Formally, this is:</p>
 <dl>
 <dt id="inference-Delta-Local">Delta-Local</dt><dd><div class="math notranslate nohighlight">
 \[\frac{%
@@ -1318,13 +1319,27 @@ E[Γ] ⊢ c~\triangleright_δ~t%
 }\]</div>
 </dd>
 </dl>
+<p><a class="reference internal" href="#term-delta-reduction"><span class="xref std std-term">Delta-reduction</span></a> only unfolds <a class="reference internal" href="definitions.html#term-constant"><span class="xref std std-term">constants</span></a> that are
+marked <span class="term-defn"><span class="target" id="term-transparent"></span>transparent</span>.  <span class="term-defn"><span class="target" id="term-opaque"></span>Opaque</span> is the opposite of
+transparent; <a class="reference internal" href="#term-delta-reduction"><span class="xref std std-term">delta-reduction</span></a> doesn't unfold opaque constants.</p>
 </div>
-<div class="section" id="zeta-reduction">
-<span id="id7"></span><h2>ζ-reduction<a class="headerlink" href="#zeta-reduction" title="Permalink to this headline">¶</a></h2>
-<p>Coq allows also to remove local definitions occurring in terms by
-replacing the defined variable by its value. The declaration being
-destroyed, this reduction differs from δ-reduction. It is called
-ζ-reduction and shows as follows.</p>
+<div class="section" id="id4">
+<h2>ι-reduction<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>A specific conversion rule is associated with the inductive objects in
+the global environment. We shall give later on (see Section
+<a class="reference internal" href="inductive.html#well-formed-inductive-definitions"><span class="std std-ref">Well-formed inductive definitions</span></a>) the precise rules but it
+just says that a destructor applied to an object built from a
+constructor behaves as expected. This reduction is called
+<span class="term-defn"><span class="target" id="term-iota-reduction"></span>ι-reduction</span>
+and is more precisely studied in <a class="reference internal" href="../../zebibliography.html#moh93" id="id5">[PM93a]</a><a class="reference internal" href="../../zebibliography.html#wer94" id="id6">[Wer94]</a>.</p>
+</div>
+<div class="section" id="id7">
+<h2>ζ-reduction<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p><span class="term-defn"><span class="target" id="term-zeta-reduction"></span>ζ-reduction</span> removes <a class="reference internal" href="definitions.html#let-in"><span class="std std-ref">let-in definitions</span></a>
+in terms by
+replacing the defined variable by its value. One way this reduction differs from
+δ-reduction is that the declaration is removed from the term entirely.
+Formally, this is:</p>
 <dl>
 <dt id="inference-Zeta">Zeta</dt><dd><div class="math notranslate nohighlight">
 \[\frac{%
@@ -1340,8 +1355,8 @@ E[Γ] ⊢ \letin{x}{u:U}{t}~\triangleright_ζ~\subst{t}{x}{u}%
 </dl>
 </div>
 <div class="section" id="expansion">
-<span id="eta-expansion"></span><h2>η-expansion<a class="headerlink" href="#expansion" title="Permalink to this headline">¶</a></h2>
-<p>Another important concept is η-expansion. It is legal to identify any
+<span id="eta-expansion-sect"></span><h2>η-expansion<a class="headerlink" href="#expansion" title="Permalink to this headline">¶</a></h2>
+<p>Another important concept is <span class="term-defn"><span class="target" id="term-eta-expansion"></span>η-expansion</span>. It is legal to identify any
 term <span class="math notranslate nohighlight">\(t\)</span> of functional type <span class="math notranslate nohighlight">\(∀ x:T,~U\)</span> with its so-called η-expansion</p>
 <div class="math notranslate nohighlight">
 \[λx:T.~(t~x)\]</div>

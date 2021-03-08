@@ -128,9 +128,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../language/core/conversion.html">Conversion rules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#conversion">α-conversion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#reduction">β-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#iota-reduction">ι-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction">δ-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#zeta-reduction">ζ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction-sect">δ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id4">ι-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id7">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#expansion">η-expansion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#convertibility">Convertibility</a></li>
@@ -436,7 +436,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#quitting-and-debugging">Quitting and debugging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#controlling-display">Controlling display</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#printing-constructions-in-full">Printing constructions in full</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#controlling-the-reduction-strategies-and-the-conversion-algorithm">Controlling the reduction strategies and the conversion algorithm</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#controlling-typing-flags">Controlling Typing Flags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#internal-registration-commands">Internal registration commands</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
@@ -502,10 +501,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html">Reasoning with equalities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-leibniz-and-setoid-equality">Rewriting with Leibniz and setoid equality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-definitional-equality">Rewriting with definitional equality</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performing-computations">Performing computations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#conversion-tactics-applied-to-hypotheses">Conversion tactics applied to hypotheses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#applying-conversion-rules">Applying conversion rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#fast-reduction-tactics-vm-compute-and-native-compute">Fast reduction tactics: vm_compute and native_compute</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#computing-in-a-term-eval-and-eval">Computing in a term: eval and Eval</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#controlling-reduction-strategies-and-the-conversion-algorithm">Controlling reduction strategies and the conversion algorithm</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ssreflect-proof-language.html">The <span class="smallcaps">SSReflect</span> proof language</a><ul>
@@ -1336,6 +1337,8 @@ a goal selector (<code class="docutils literal notranslate"><span class="notatio
 If no selector is provided,
 the command applies to the current goal.  If no proof is open, then the command only applies
 to accessible objects.  (see Section <a class="reference internal" href="tactics.html#invocation-of-tactics"><span class="std std-ref">Invocation of tactics</span></a>).</p>
+<p><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#coq:cmd.Eval" title="Eval"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Eval</span></code></a> and <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#coq:cmd.Compute" title="Compute"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Compute</span></code></a> are also <a class="reference internal" href="#grammar-token-query_command"><code class="xref std std-token docutils literal notranslate"><span class="pre">query_command</span></code></a>s, which are
+described elsewhere</p>
 <dl class="cmd">
 <dt id="coq:cmd.About">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>About</span></span> <a class="reference internal" href="#grammar-token-reference"><span class="hole">reference</span></a> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-univ_name_list"><span class="hole">univ_name_list</span></a></span><span class="notation-sup">?</span></span></span></code><a class="headerlink" href="#coq:cmd.About" title="Permalink to this definition">¶</a></dt>
@@ -1353,29 +1356,6 @@ subsequently with the <a class="reference internal" href="../language/extensions
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Check</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole">term</span></a></span></code><a class="headerlink" href="#coq:cmd.Check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays the type of <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code>. When called in proof mode, the
 term is checked in the local context of the selected goal.</p>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Eval">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Eval</span></span> <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#grammar-token-red_expr"><span class="hole">red_expr</span></a> <span><span>in</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole">term</span></a></span></code><a class="headerlink" href="#coq:cmd.Eval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs the specified reduction on <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code> and displays
-the resulting term with its type. If a proof is open, <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code>
-may reference hypotheses of the selected goal.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>Section <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performingcomputations"><span class="std std-ref">Performing computations</span></a>.</p>
-</div>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Compute">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Compute</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole">term</span></a></span></code><a class="headerlink" href="#coq:cmd.Compute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluates <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code> using the bytecode-based virtual machine.
-It is a shortcut for <a class="reference internal" href="#coq:cmd.Eval" title="Eval"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Eval</span></code></a> <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">vm</span></span></span><span><span><span class="pre">_</span></span></span><span><span><span class="pre">compute</span></span></span> <span><span><span class="pre">in</span></span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code>.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>Section <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performingcomputations"><span class="std std-ref">Performing computations</span></a>.</p>
-</div>
 </dd></dl>
 
 <dl class="cmd">
@@ -2641,211 +2621,8 @@ the goal unreadable.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="controlling-the-reduction-strategies-and-the-conversion-algorithm">
-<span id="vernac-controlling-the-reduction-strategies"></span><h2>Controlling the reduction strategies and the conversion algorithm<a class="headerlink" href="#controlling-the-reduction-strategies-and-the-conversion-algorithm" title="Permalink to this headline">¶</a></h2>
-<p>Coq provides reduction strategies that the tactics can invoke and two
-different algorithms to check the convertibility of types. The first
-conversion algorithm lazily compares applicative terms while the other
-is a brute-force but efficient algorithm that first normalizes the
-terms before comparing them. The second algorithm is based on a
-bytecode representation of terms similar to the bytecode
-representation used in the ZINC virtual machine <a class="reference internal" href="../zebibliography.html#leroy90" id="id9">[Ler90]</a>. It is
-especially useful for intensive computation of algebraic values, such
-as numbers, and for reflection-based tactics. The commands to fine-
-tune the reduction strategies and the lazy conversion algorithm are
-described first.</p>
-<dl class="cmd">
-<dt id="coq:cmd.Opaque">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Opaque</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-reference"><span class="hole">reference</span></a></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.Opaque" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command accepts the <a class="reference internal" href="../language/core/modules.html#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attribute.  By default, the scope
-of <a class="reference internal" href="#coq:cmd.Opaque" title="Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Opaque</span></code></a> is limited to the current section or module.</p>
-<p>This command has an effect on unfoldable constants, i.e. on constants
-defined by <a class="reference internal" href="../language/core/definitions.html#coq:cmd.Definition" title="Definition"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Definition</span></code></a> or <a class="reference internal" href="../language/core/sections.html#coq:cmd.Let" title="Let"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Let</span></code></a> (with an explicit body), or by a command
-associated with a definition such as <a class="reference internal" href="../language/core/inductive.html#coq:cmd.Fixpoint" title="Fixpoint"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Fixpoint</span></code></a>, etc,
-or by a proof ended by <a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#coq:cmd.Defined" title="Defined"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Defined</span></code></a>. The command tells not to unfold the
-constants in the <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-reference"><span class="hole"><span class="pre">reference</span></span></a></span></code> sequence in tactics using δ-conversion (unfolding
-a constant is replacing it by its definition).</p>
-<p><a class="reference internal" href="#coq:cmd.Opaque" title="Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Opaque</span></code></a> has also an effect on the conversion algorithm of Coq, telling
-it to delay the unfolding of a constant as much as possible when Coq
-has to check the conversion (see Section <a class="reference internal" href="../language/core/conversion.html#conversion-rules"><span class="std std-ref">Conversion rules</span></a>) of two distinct
-applied constants.</p>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Transparent">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Transparent</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-reference"><span class="hole">reference</span></a></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.Transparent" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command accepts the <a class="reference internal" href="../language/core/modules.html#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attribute.  By default, the scope
-of <a class="reference internal" href="#coq:cmd.Transparent" title="Transparent"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Transparent</span></code></a> is limited to the current section or module.</p>
-<p>This command is the converse of <a class="reference internal" href="#coq:cmd.Opaque" title="Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Opaque</span></code></a> and it applies on unfoldable
-constants to restore their unfoldability after an Opaque command.</p>
-<p>Note in particular that constants defined by a proof ended by Qed are
-not unfoldable and Transparent has no effect on them. This is to keep
-with the usual mathematical practice of <em>proof irrelevance</em>: what
-matters in a mathematical development is the sequence of lemma
-statements, not their actual proofs. This distinguishes lemmas from
-the usual defined constants, whose actual values are of course
-relevant in general.</p>
-<dl class="exn">
-<dt id="coq:exn.The-reference-‘qualid’-was-not-found-in-the-current-environment">
-<em class="property"><span class="sigannot">Error</span></em> <code class="sig-name descname"><span class="notation"><span><span>The</span></span> <span><span>reference</span></span> <a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole">qualid</span></a> <span><span>was</span></span> <span><span>not</span></span> <span><span>found</span></span> <span><span>in</span></span> <span><span>the</span></span> <span><span>current</span></span> <span><span>environment.</span></span></span></code><a class="headerlink" href="#coq:exn.The-reference-‘qualid’-was-not-found-in-the-current-environment" title="Permalink to this definition">¶</a></dt>
-<dd><p>There is no constant named <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> in the environment.</p>
-</dd></dl>
-
-</dd></dl>
-
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performingcomputations"><span class="std std-ref">Performing computations</span></a> and <a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#proof-editing-mode"><span class="std std-ref">Entering and exiting proof mode</span></a></p>
-</div>
-<span class="target" id="vernac-strategy"></span><dl class="cmd">
-<dt id="coq:cmd.Strategy">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Strategy</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-strategy_level"><span class="hole">strategy_level</span></a> <span><span>[</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-reference"><span class="hole">reference</span></a></span><span class="notation-sup">+</span></span> <span><span>]</span></span></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.Strategy" title="Permalink to this definition">¶</a></dt>
-<dd><div class="prodn-table docutils container">
-<div class="prodn-column-group docutils container">
-<div class="prodn-column docutils container">
-</div>
-<div class="prodn-column docutils container">
-</div>
-<div class="prodn-column docutils container">
-</div>
-<div class="prodn-column docutils container">
-</div>
-</div>
-<div class="prodn-row-group docutils container">
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-<span class="prodn-target"><span class="target" id="grammar-token-strategy_level"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-strategy_level"><span class="hole">strategy_level</span></a></span></div>
-<div class="prodn-cell-op docutils container">
-::=</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><span><span>opaque</span></span></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-</div>
-<div class="prodn-cell-op docutils container">
-|</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-integer"><span class="hole">integer</span></a></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-</div>
-<div class="prodn-cell-op docutils container">
-|</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><span><span>expand</span></span></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-</div>
-<div class="prodn-cell-op docutils container">
-|</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><span><span>transparent</span></span></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-<span class="prodn-target"><span class="target" id="grammar-token-strategy_level_or_var"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-strategy_level_or_var"><span class="hole">strategy_level_or_var</span></a></span></div>
-<div class="prodn-cell-op docutils container">
-::=</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><a class="reference internal" href="#grammar-token-strategy_level"><span class="hole">strategy_level</span></a></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-<div class="prodn-row docutils container">
-<div class="prodn-cell-nonterminal docutils container">
-</div>
-<div class="prodn-cell-op docutils container">
-|</div>
-<div class="prodn-cell-production docutils container">
-<span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole">ident</span></a></span></div>
-<div class="prodn-cell-tag docutils container">
-</div>
-</div>
-</div>
-</div>
-<p>This command accepts the <a class="reference internal" href="../language/core/modules.html#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> attribute, which limits its effect
-to the current section or module, in which case the section and module
-behavior is the same as <a class="reference internal" href="#coq:cmd.Opaque" title="Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Opaque</span></code></a> and <a class="reference internal" href="#coq:cmd.Transparent" title="Transparent"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Transparent</span></code></a> (without <a class="reference internal" href="../language/core/modules.html#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a>).</p>
-<p>This command generalizes the behavior of the <a class="reference internal" href="#coq:cmd.Opaque" title="Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Opaque</span></code></a> and <a class="reference internal" href="#coq:cmd.Transparent" title="Transparent"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Transparent</span></code></a>
-commands. It is used to fine-tune the strategy for unfolding
-constants, both at the tactic level and at the kernel level. This
-command associates a <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-strategy_level"><span class="hole"><span class="pre">strategy_level</span></span></a></span></code> with the qualified names in the <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-reference"><span class="hole"><span class="pre">reference</span></span></a></span></code>
-sequence. Whenever two
-expressions with two distinct head constants are compared (for
-instance, this comparison can be triggered by a type cast), the one
-with lower level is expanded first. In case of a tie, the second one
-(appearing in the cast type) is expanded.</p>
-<p>Levels can be one of the following (higher to lower):</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">opaque</span></code> : level of opaque constants. They cannot be expanded by
-tactics (behaves like +∞, see next item).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> : levels indexed by an integer. Level 0 corresponds to the
-default behavior, which corresponds to transparent constants. This
-level can also be referred to as <code class="docutils literal notranslate"><span class="pre">transparent</span></code>. Negative levels
-correspond to constants to be expanded before normal transparent
-constants, while positive levels correspond to constants to be
-expanded after normal transparent constants.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">expand</span></code> : level of constants that should be expanded first (behaves
-like −∞)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transparent</span></code> : Equivalent to level 0</p></li>
-</ul>
-</div></blockquote>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Print-Strategy">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Print</span></span> <span><span>Strategy</span></span> <a class="reference internal" href="#grammar-token-reference"><span class="hole">reference</span></a></span></code><a class="headerlink" href="#coq:cmd.Print-Strategy" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command prints the strategy currently associated with <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-reference"><span class="hole"><span class="pre">reference</span></span></a></span></code>. It
-fails if <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-reference"><span class="hole"><span class="pre">reference</span></span></a></span></code> is not an unfoldable reference, that is, neither a
-variable nor a constant.</p>
-<dl class="exn">
-<dt id="coq:exn.The-reference-is-not-unfoldable">
-<em class="property"><span class="sigannot">Error</span></em> <code class="sig-name descname"><span class="notation"><span><span>The</span></span> <span><span>reference</span></span> <span><span>is</span></span> <span><span>not</span></span> <span><span>unfoldable.</span></span></span></code><a class="headerlink" href="#coq:exn.The-reference-is-not-unfoldable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Print-Strategies">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Print</span></span> <span><span>Strategies</span></span></span></code><a class="headerlink" href="#coq:cmd.Print-Strategies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print all the currently non-transparent strategies.</p>
-</dd></dl>
-
-<dl class="cmd">
-<dt id="coq:cmd.Declare-Reduction">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Declare</span></span> <span><span>Reduction</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole">ident</span></a> <span><span>:=</span></span> <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#grammar-token-red_expr"><span class="hole">red_expr</span></a></span></code><a class="headerlink" href="#coq:cmd.Declare-Reduction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Declares a short name for the reduction expression <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#grammar-token-red_expr"><span class="hole"><span class="pre">red_expr</span></span></a></span></code>, for
-instance <code class="docutils literal notranslate"><span class="pre">lazy</span> <span class="pre">beta</span> <span class="pre">delta</span> <span class="pre">[foo</span> <span class="pre">bar]</span></code>. This short name can then be used
-in <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Eval</span></span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">in</span></span></span></span></code> or <code class="docutils literal notranslate"><span class="pre">eval</span></code> constructs. This command
-accepts the <a class="reference internal" href="../language/core/modules.html#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> attribute, which indicates that the reduction
-will be discarded at the end of the
-file or module. The name is not qualified. In
-particular declaring the same name in several modules or in several
-functor applications will be rejected if these declarations are not
-local. The name <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code> cannot be used directly as an Ltac tactic, but
-nothing prevents the user from also performing a
-<code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Ltac</span></span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">:=</span></span></span> <a class="reference internal" href="../proofs/writing-proofs/rewriting.html#grammar-token-red_expr"><span class="hole"><span class="pre">red_expr</span></span></a></span></code>.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performingcomputations"><span class="std std-ref">Performing computations</span></a></p>
-</div>
-</dd></dl>
-
-</div>
 <div class="section" id="controlling-typing-flags">
-<span id="id10"></span><h2>Controlling Typing Flags<a class="headerlink" href="#controlling-typing-flags" title="Permalink to this headline">¶</a></h2>
+<span id="id9"></span><h2>Controlling Typing Flags<a class="headerlink" href="#controlling-typing-flags" title="Permalink to this headline">¶</a></h2>
 <dl class="flag">
 <dt id="coq:flag.Guard-Checking">
 <em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Guard</span></span> <span><span>Checking</span></span></span></code><a class="headerlink" href="#coq:flag.Guard-Checking" title="Permalink to this definition">¶</a></dt>
@@ -2966,12 +2743,12 @@ ack is recursively defined (guarded on 1st argument)
 </div>
 </div>
 <div class="section" id="internal-registration-commands">
-<span id="id11"></span><h2>Internal registration commands<a class="headerlink" href="#internal-registration-commands" title="Permalink to this headline">¶</a></h2>
+<span id="id10"></span><h2>Internal registration commands<a class="headerlink" href="#internal-registration-commands" title="Permalink to this headline">¶</a></h2>
 <p>Due to their internal nature, the commands that are presented in this section
 are not for general use. They are meant to appear only in standard libraries and
 in support libraries of plug-ins.</p>
 <div class="section" id="exposing-constants-to-ocaml-libraries">
-<span id="id12"></span><h3>Exposing constants to OCaml libraries<a class="headerlink" href="#exposing-constants-to-ocaml-libraries" title="Permalink to this headline">¶</a></h3>
+<span id="id11"></span><h3>Exposing constants to OCaml libraries<a class="headerlink" href="#exposing-constants-to-ocaml-libraries" title="Permalink to this headline">¶</a></h3>
 <dl class="cmd">
 <dt id="coq:cmd.Register">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Register</span></span> <a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole">qualid<sub>1</sub></span></a> <span><span>as</span></span> <a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole">qualid<sub>2</sub></span></a></span></code><a class="headerlink" href="#coq:cmd.Register" title="Permalink to this definition">¶</a></dt>

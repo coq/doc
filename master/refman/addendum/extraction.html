@@ -128,9 +128,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../language/core/conversion.html">Conversion rules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#conversion">α-conversion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#reduction">β-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#iota-reduction">ι-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction">δ-reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#zeta-reduction">ζ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#delta-reduction-sect">δ-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id4">ι-reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#id7">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#expansion">η-expansion</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/core/conversion.html#convertibility">Convertibility</a></li>
@@ -436,7 +436,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#quitting-and-debugging">Quitting and debugging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-display">Controlling display</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#printing-constructions-in-full">Printing constructions in full</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-the-reduction-strategies-and-the-conversion-algorithm">Controlling the reduction strategies and the conversion algorithm</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#controlling-typing-flags">Controlling Typing Flags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proof-engine/vernacular-commands.html#internal-registration-commands">Internal registration commands</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../proof-engine/vernacular-commands.html#exposing-constants-to-ocaml-libraries">Exposing constants to OCaml libraries</a></li>
@@ -502,10 +501,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html">Reasoning with equalities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-leibniz-and-setoid-equality">Rewriting with Leibniz and setoid equality</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#rewriting-with-definitional-equality">Rewriting with definitional equality</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#performing-computations">Performing computations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#conversion-tactics-applied-to-hypotheses">Conversion tactics applied to hypotheses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#applying-conversion-rules">Applying conversion rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#fast-reduction-tactics-vm-compute-and-native-compute">Fast reduction tactics: vm_compute and native_compute</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#computing-in-a-term-eval-and-eval">Computing in a term: eval and Eval</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/rewriting.html#controlling-reduction-strategies-and-the-conversion-algorithm">Controlling reduction strategies and the conversion algorithm</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../proof-engine/ssreflect-proof-language.html">The <span class="smallcaps">SSReflect</span> proof language</a><ul>
@@ -1281,7 +1282,7 @@ directly available without any preliminary <code class="docutils literal notrans
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In the following, a qualified identifier <a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><code class="xref std std-token docutils literal notranslate"><span class="pre">qualid</span></code></a>
-can be used to refer to any kind of Coq global &quot;object&quot; : constant,
+can be used to refer to any kind of Coq global &quot;object&quot; : <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a>,
 inductive type, inductive constructor or module name.</p>
 </div>
 <p>The next two commands are meant to be used for rapid preview of
@@ -1436,7 +1437,7 @@ wants to generate an OCaml program. The optimizations can be split in two
 groups: the type-preserving ones (essentially constant inlining and
 reductions) and the non type-preserving ones (some function
 abstractions of dummy types are removed when it is deemed safe in order
-to have more elegant types). Therefore some constants may not appear in the
+to have more elegant types). Therefore some <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a> may not appear in the
 resulting monolithic OCaml program. In the case of modular extraction,
 even if some inlining is done, the inlined constants are nevertheless
 printed, to ensure session-independent programs.</p>
@@ -1478,8 +1479,8 @@ optimization when one wishes to preserve the inductive structure of types.</p>
 <dl class="flag">
 <dt id="coq:flag.Extraction-AutoInline">
 <em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Extraction</span></span> <span><span>AutoInline</span></span></span></code><a class="headerlink" href="#coq:flag.Extraction-AutoInline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default is on. The extraction mechanism inlines the bodies of
-some defined constants, according to some heuristics
+<dd><p>Default is on. The extraction mechanism inlines the <a class="reference internal" href="../language/core/definitions.html#term-body"><span class="xref std std-term">bodies</span></a> of
+some defined <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a>, according to some heuristics
 like size of bodies, uselessness of some arguments, etc.
 Those heuristics are not always perfect; if you want to disable
 this feature, turn this flag off.</p>
@@ -1488,7 +1489,7 @@ this feature, turn this flag off.</p>
 <dl class="cmd">
 <dt id="coq:cmd.Extraction-Inline">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Extraction</span></span> <span><span>Inline</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole">qualid</span></a></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.Extraction-Inline" title="Permalink to this definition">¶</a></dt>
-<dd><p>In addition to the automatic inline feature, the constants
+<dd><p>In addition to the automatic inline feature, the <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a>
 mentioned by this command will always be inlined during extraction.</p>
 </dd></dl>
 
@@ -1514,24 +1515,24 @@ previous commands).</p>
 </dd></dl>
 
 <p><strong>Inlining and printing of a constant declaration:</strong></p>
-<p>The user can explicitly ask for a constant to be extracted by two means:</p>
+<p>The user can explicitly ask for a <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> to be extracted by two means:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>by mentioning it on the extraction command line</p></li>
-<li><p>by extracting the whole Coq module of this constant.</p></li>
+<li><p>by extracting the whole Coq module of this <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a>.</p></li>
 </ul>
 </div></blockquote>
-<p>In both cases, the declaration of this constant will be present in the
-produced file. But this same constant may or may not be inlined in
+<p>In both cases, the declaration of this <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> will be present in the
+produced file. But this same <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> may or may not be inlined in
 the following terms, depending on the automatic/custom inlining mechanism.</p>
-<p>For the constants non-explicitly required but needed for dependency
+<p>For the <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a> non-explicitly required but needed for dependency
 reasons, there are two cases:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>If an inlining decision is taken, whether automatically or not,
-all occurrences of this constant are replaced by its extracted body,
-and this constant is not declared in the generated file.</p></li>
-<li><p>If no inlining decision is taken, the constant is normally
+all occurrences of this <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> are replaced by its extracted <a class="reference internal" href="../language/core/definitions.html#term-body"><span class="xref std std-term">body</span></a>,
+and this <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> is not declared in the generated file.</p></li>
+<li><p>If no inlining decision is taken, the <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a> is normally
 declared in the produced file.</p></li>
 </ul>
 </div></blockquote>
@@ -1586,7 +1587,7 @@ what ML term corresponds to a given axiom.</p>
 <dl class="cmd">
 <dt id="coq:cmd.Extract-Constant">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Extract</span></span> <span><span>Constant</span></span> <a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole">qualid</span></a> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string<sub>tv</sub></span></a></span><span class="notation-sup">*</span></span> <span><span>=&gt;</span></span> <span class="alternative"><span class="alternative-block"><a class="reference internal" href="../language/core/basic.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="alternative-separator">​</span><span class="alternative-block"><a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a></span></span></span></code><a class="headerlink" href="#coq:cmd.Extract-Constant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Give an ML extraction for the given constant.</p>
+<dd><p>Give an ML extraction for the given <a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constant</span></a>.</p>
 <dl>
 <dt><code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole"><span class="pre">string</span><sub><span class="pre">tv</span></sub></span></a></span></code></dt><dd><p>If the type scheme axiom is an arity (a sequence of products followed
 by a sort), then some type
