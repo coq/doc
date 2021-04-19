@@ -132,6 +132,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id4">ι-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id7">ζ-reduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expansion">η-expansion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#proof-irrelevance">Proof Irrelevance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#convertibility">Convertibility</a></li>
 </ul>
@@ -1241,10 +1242,89 @@
 <div class="section" id="conversion-rules">
 <span id="id1"></span><h1>Conversion rules<a class="headerlink" href="#conversion-rules" title="Permalink to this headline">¶</a></h1>
 <p>Coq has conversion rules that can be used to determine if two
-terms are equal by definition, or <a class="reference internal" href="#term-convertible"><span class="xref std std-term">convertible</span></a>.
+terms are equal by definition in CIC, or <a class="reference internal" href="#term-convertible"><span class="xref std std-term">convertible</span></a>.
 Conversion rules consist of reduction rules and expansion rules.
-See <a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#applyingconversionrules"><span class="std std-ref">Applying conversion rules</span></a>,
-which describes tactics that apply these conversion rules.</p>
+Equality is determined by
+converting both terms to a normal form, then verifying they are syntactically
+equal (ignoring differences in the names of bound variables by
+<a class="reference internal" href="#term-alpha-convertible"><span class="xref std std-term">alpha-conversion</span></a>).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#applyingconversionrules"><span class="std std-ref">Applying conversion rules</span></a>, which describes tactics that apply these conversion rules.</p>
+</div>
+<p><span class="term-defn"><span class="target" id="term-reduction"></span>Reductions</span> convert terms to something that is incrementally
+closer to its normal form.  For example, <a class="reference internal" href="#term-zeta-reduction"><span class="xref std std-term">zeta-reduction</span></a> removes
+<code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">let</span></span></span> <a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">:=</span></span></span> <a class="reference internal" href="basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span><sub><span class="pre">1</span></sub></span></a> <span><span><span class="pre">in</span></span></span> <a class="reference internal" href="basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span><sub><span class="pre">2</span></sub></span></a></span></code> constructs from a term by replacing
+<code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code> with <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span><sub><span class="pre">1</span></sub></span></a></span></code> wherever <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code> appears in <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span><sub><span class="pre">2</span></sub></span></a></span></code>.
+The resulting term may be longer or shorter than the original.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-tactic">cbv</span><span> </span><span class="coqdoc-keyword">zeta</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-keyword">let</span><span> </span><span class="coqdoc-var">i</span><span> := 1 </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">i</span><span> + </span><span class="coqdoc-var">i</span><span>.</span><span>
+</span></dt><dd><span>     = 1</span><span> +</span><span> 1
+     : nat
+</span></dd>
+</dl>
+</div>
+<p><span class="term-defn"><span class="target" id="term-expansion"></span>Expansions</span> are reductions applied in the opposite direction,
+for example expanding <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">2</span></code> to <code class="docutils literal notranslate"><span class="pre">let</span> <span class="pre">i</span> <span class="pre">:=</span> <span class="pre">2</span> <span class="pre">in</span> <span class="pre">i</span> <span class="pre">+</span> <span class="pre">i</span></code>.  While applying
+reductions gives a unique result, the associated
+expansion may not be unique.  For example, <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">2</span></code> could also be
+expanded to <code class="docutils literal notranslate"><span class="pre">let</span> <span class="pre">i</span> <span class="pre">:=</span> <span class="pre">2</span> <span class="pre">in</span> <span class="pre">i</span> <span class="pre">+</span> <span class="pre">2</span></code>.  Reductions that have a unique inverse
+expansion are also referred to as <span class="term-defn"><span class="target" id="term-contraction"></span>contractions</span>.</p>
+<p>The normal form is defined as the result of applying a particular
+set of conversion rules (beta-, delta-, iota- and zeta-reduction and eta-expansion)
+repeatedly until it's no longer possible to apply any of them.</p>
+<p>Sometimes the result of a reduction tactic will be a simple value, for example reducing
+<code class="docutils literal notranslate"><span class="pre">2*3+4</span></code> with <code class="docutils literal notranslate"><span class="pre">cbv</span> <span class="pre">beta</span> <span class="pre">delta</span> <span class="pre">iota</span></code> to <code class="docutils literal notranslate"><span class="pre">10</span></code>, which requires applying several
+reduction rules repeatedly.  In other cases, it may yield an expression containing
+variables, axioms or opaque contants that can't be reduced.</p>
+<p>The useful conversion rules are shown below.  All of them except for eta-expansion
+can be applied with conversion tactics such as <a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#coq:tacn.cbv" title="cbv"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbv</span></code></a>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Conversion name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>beta-reduction</p></td>
+<td><p>eliminates <code class="docutils literal notranslate"><span class="pre">fun</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>delta-reduction</p></td>
+<td><p>replaces a defined variable or constant with its definition</p></td>
+</tr>
+<tr class="row-even"><td><p>zeta-reduction</p></td>
+<td><p>eliminates <code class="docutils literal notranslate"><span class="pre">let</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>eta-expansion</p></td>
+<td><p>replaces a term <code class="docutils literal notranslate"><span class="pre">f</span></code> of type <code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">a</span> <span class="pre">:</span> <span class="pre">A,</span> <span class="pre">B</span></code> with <code class="docutils literal notranslate"><span class="pre">fun</span> <span class="pre">x</span> <span class="pre">:</span> <span class="pre">A</span> <span class="pre">=&gt;</span> <span class="pre">f</span> <span class="pre">x</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>match-reduction</p></td>
+<td><p>eliminates <code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>fix-reduction</p></td>
+<td><p>replaces a <code class="docutils literal notranslate"><span class="pre">fix</span></code> with a <a class="reference internal" href="#term-beta-redex"><span class="xref std std-term">beta-redex</span></a>;
+recursive calls to the symbol are replaced with the <code class="docutils literal notranslate"><span class="pre">fix</span></code> term</p></td>
+</tr>
+<tr class="row-even"><td><p>cofix-reduction</p></td>
+<td><p>replaces a <code class="docutils literal notranslate"><span class="pre">cofix</span></code> with a <a class="reference internal" href="#term-beta-redex"><span class="xref std std-term">beta-redex</span></a>;
+recursive calls to the symbol are replaced with the <code class="docutils literal notranslate"><span class="pre">cofix</span></code> term</p></td>
+</tr>
+<tr class="row-odd"><td><p>iota-reduction</p></td>
+<td><p>match-, fix- and cofix-reduction together</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><a class="reference internal" href="../../proofs/writing-proofs/rewriting.html#applyingconversionrules"><span class="std std-ref">Applying conversion rules</span></a>
+describes tactics that only apply conversion rules.
+(Other tactics may use conversion rules in addition
+to other changes to the proof state.)</p>
 <div class="section" id="conversion">
 <h2>α-conversion<a class="headerlink" href="#conversion" title="Permalink to this headline">¶</a></h2>
 <p>Two terms are <span class="term-defn"><span class="target" id="term-alpha-convertible"></span>α-convertible</span> if they are syntactically
@@ -1353,7 +1433,7 @@ term <span class="math notranslate nohighlight">\(t\)</span> of functional type 
 <p>We deliberately do not define η-reduction:</p>
 <div class="math notranslate nohighlight">
 \[λ x:T.~(t~x)~\not\triangleright_η~t\]</div>
-<p>This is because, in general, the type of <span class="math notranslate nohighlight">\(t\)</span> need not to be convertible
+<p>This is because, in general, the type of <span class="math notranslate nohighlight">\(t\)</span> need not be convertible
 to the type of <span class="math notranslate nohighlight">\(λ x:T.~(t~x)\)</span>. E.g., if we take <span class="math notranslate nohighlight">\(f\)</span> such that:</p>
 <div class="math notranslate nohighlight">
 \[f ~:~ ∀ x:\Type(2),~\Type(1)\]</div>
@@ -1366,6 +1446,106 @@ to the type of <span class="math notranslate nohighlight">\(λ x:T.~(t~x)\)</spa
 <p>because the type of the reduced term <span class="math notranslate nohighlight">\(∀ x:\Type(2),~\Type(1)\)</span> would not be
 convertible to the type of the original term <span class="math notranslate nohighlight">\(∀ x:\Type(1),~\Type(1)\)</span>.</p>
 </div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Example: Simple delta, fix, beta and match reductions</p>
+<p><code class="docutils literal notranslate"><span class="pre">+</span></code> is a <a class="reference internal" href="../../user-extensions/syntax-extensions.html#notations"><span class="std std-ref">notation</span></a> for <code class="docutils literal notranslate"><span class="pre">Nat.add</span></code>, which is defined
+with a <a class="reference internal" href="inductive.html#coq:cmd.Fixpoint" title="Fixpoint"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Fixpoint</span></code></a>.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">Nat.add</span><span>.</span><span>
+</span></dt><dd><span>Nat.add = 
+fix add (n m : nat) {</span><span class="ansi-bold">struct</span><span> n} : nat :=
+  </span><span class="ansi-bold">match</span><span> n </span><span class="ansi-bold">with</span><span>
+  | 0 =&gt; m
+  | S p =&gt; S (add p m)
+  </span><span class="ansi-bold">end</span><span>
+     : nat</span><span> -&gt;</span><span> nat</span><span> -&gt;</span><span> nat
+
+Arguments </span><span class="ansi-fg-light-magenta">Nat</span><span>.</span><span class="ansi-fg-light-green">add</span><span> (_ _)%nat_scope
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> 1 + 1 = 2.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  1</span><span> +</span><span> 1</span><span> =</span><span> 2
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">cbv</span><span> </span><span class="coqdoc-keyword">delta</span><span>.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  (fix add (n m : nat) {</span><span class="ansi-bold">struct</span><span> n} : nat :=
+     </span><span class="ansi-bold">match</span><span> n </span><span class="ansi-bold">with</span><span>
+     | 0 =&gt; m
+     | S p =&gt; S (add p m)
+     </span><span class="ansi-bold">end</span><span>) 1 1</span><span> =</span><span> 2
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">cbv</span><span> </span><span class="coqdoc-keyword">fix</span><span>.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  (</span><span class="ansi-bold">fun</span><span> n m : nat =&gt;
+   </span><span class="ansi-bold">match</span><span> n </span><span class="ansi-bold">with</span><span>
+   | 0 =&gt; m
+   | S p =&gt;
+       S
+         ((fix add (n0 m0 : nat) {</span><span class="ansi-bold">struct</span><span> n0} : nat :=
+             </span><span class="ansi-bold">match</span><span> n0 </span><span class="ansi-bold">with</span><span>
+             | 0 =&gt; m0
+             | S p0 =&gt; S (add p0 m0)
+             </span><span class="ansi-bold">end</span><span>) p m)
+   </span><span class="ansi-bold">end</span><span>) 1 1</span><span> =</span><span> 2
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">cbv</span><span> </span><span class="coqdoc-keyword">beta</span><span>.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  </span><span class="ansi-bold">match</span><span> 1 </span><span class="ansi-bold">with</span><span>
+  | 0 =&gt; 1
+  | S p =&gt;
+      S
+        ((fix add (n m : nat) {</span><span class="ansi-bold">struct</span><span> n} : nat :=
+            </span><span class="ansi-bold">match</span><span> n </span><span class="ansi-bold">with</span><span>
+            | 0 =&gt; m
+            | S p0 =&gt; S (add p0 m)
+            </span><span class="ansi-bold">end</span><span>) p 1)
+  </span><span class="ansi-bold">end</span><span> =</span><span> 2
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">cbv</span><span> </span><span class="coqdoc-keyword">match</span><span>.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  S
+    ((fix add (n m : nat) {</span><span class="ansi-bold">struct</span><span> n} : nat :=
+        </span><span class="ansi-bold">match</span><span> n </span><span class="ansi-bold">with</span><span>
+        | 0 =&gt; m
+        | S p =&gt; S (add p m)
+        </span><span class="ansi-bold">end</span><span>) 0 1)</span><span> =</span><span> 2
+</span></dd>
+</dl>
+</div>
+<p>The term can be fully reduced with <code class="docutils literal notranslate"><span class="pre">cbv</span></code>:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> 1 + 1 = 2.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  1</span><span> +</span><span> 1</span><span> =</span><span> 2
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">cbv</span><span>.</span><span>
+</span></dt><dd><span>1 goal
+  
+  ============================
+  2</span><span> =</span><span> 2
+</span></dd>
+</dl>
+</div>
+</div>
+</div></blockquote>
 </div>
 <div class="section" id="proof-irrelevance">
 <span id="id8"></span><h2>Proof Irrelevance<a class="headerlink" href="#proof-irrelevance" title="Permalink to this headline">¶</a></h2>
