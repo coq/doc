@@ -1,0 +1,536 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="//coq.inria.fr/sites/all/themes/coq/coqdoc.css" />
+
+<title>Standard Library | The Coq Proof Assistant</title>
+
+</head>
+
+<body>
+
+<div id="container">
+  <div id="headertop">
+    <div id="nav">
+      <ul class="links-menu">
+        <li><a href="//coq.inria.fr/" class="active">Home</a></li>
+        <li><a href="//coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>
+        <li><a href="//coq.inria.fr/download">Get Coq</a></li>
+        <li><a href="//coq.inria.fr/documentation">Documentation</a></li>
+        <li><a href="//coq.inria.fr/community">Community</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="header">
+    <div id="logoWrapper">
+      <div id="logo"><a href="//coq.inria.fr/" title="Home"><img src="//coq.inria.fr/files/barron_logo.png" alt="Home" /></a>
+      </div>
+      <div id="siteName"><a href="//coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+<h1 class="libtitle">Library Coq.Init.Tactics</h1>
+
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Init.Notations.html#"><span class="id" title="library">Notations</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Init.Ltac.html#"><span class="id" title="library">Ltac</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Init.Logic.html#"><span class="id" title="library">Logic</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.Init.Specif.html#"><span class="id" title="library">Specif</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab594"></a><h1 class="section">Useful tactics</h1>
+
+<div class="paragraph"> </div>
+
+ Ex falso quodlibet : a tactic for proving False instead of the current goal.
+    This is just a nicer name for tactics such as <span class="inlinecode"><span class="id" title="tactic">elimtype</span></span> <span class="inlinecode"><span class="id" title="var">False</span></span>
+    and other <span class="inlinecode"><span class="id" title="tactic">cut</span></span> <span class="inlinecode"><span class="id" title="var">False</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">exfalso</span> := <span class="id" title="tactic">elimtype</span> <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A tactic for proof by contradiction. With contradict H,
+<ul class="doclist">
+<li>   H:~A |-  B    gives       |-  A
+
+</li>
+<li>   H:~A |- ~B    gives  H: B |-  A
+
+</li>
+<li>   H: A |-  B    gives       |- ~A
+
+</li>
+<li>   H: A |- ~B    gives  H: B |- ~A
+
+</li>
+<li>   H:False leads to a resolved subgoal.
+
+</li>
+</ul>
+   Moreover, negations may be in unfolded forms,
+   and A or B may live in Type 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">contradict</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">save</span> <span class="id" title="var">tac</span> <span class="id" title="var">H</span> := <span class="id" title="keyword">let</span> <span class="id" title="var">x</span>:=<span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">intro</span> <span class="id" title="var">x</span>; <span class="id" title="var">tac</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">rename</span> <span class="id" title="var">x</span> <span class="id" title="var">into</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">negpos</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">case</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">negneg</span> <span class="id" title="var">H</span> := <span class="id" title="var">save</span> <span class="id" title="var">negpos</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">pospos</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">A</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span> (<span class="id" title="var">exfalso</span>; <span class="id" title="var">revert</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">fold</span> (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><span class="id" title="var">A</span>))<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">posneg</span> <span class="id" title="var">H</span> := <span class="id" title="var">save</span> <span class="id" title="var">pospos</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">neg</span> <span class="id" title="var">H</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| |- (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><span class="id" title="var">_</span>) =&gt; <span class="id" title="var">negneg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| |- (<span class="id" title="var">_</span><a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>) =&gt; <span class="id" title="var">negneg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">negpos</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">pos</span> <span class="id" title="var">H</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| |- (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><span class="id" title="var">_</span>) =&gt; <span class="id" title="var">posneg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| |- (<span class="id" title="var">_</span><a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>) =&gt; <span class="id" title="var">posneg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">pospos</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| (<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><span class="id" title="var">_</span>) =&gt; <span class="id" title="var">neg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span><a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><a class="idref" href="Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>) =&gt; <span class="id" title="var">neg</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; (<span class="id" title="tactic">elim</span> <span class="id" title="var">H</span>;<span class="id" title="tactic">fail</span>) || <span class="id" title="var">pos</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">absurd_hyp</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">idtac</span> "absurd_hyp is OBSOLETE: use contradict instead.";<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">absurd</span> <span class="id" title="var">T</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">false_hyp</span> <span class="id" title="var">H</span> <span class="id" title="var">G</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span> <span class="id" title="var">absurd</span> <span class="id" title="var">T</span>; [ <span class="id" title="tactic">apply</span> <span class="id" title="var">G</span> | <span class="id" title="tactic">assumption</span> ].<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">case_eq</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">generalize</span> (<a class="idref" href="Coq.Init.Logic.html#eq_refl"><span class="id" title="constructor">eq_refl</span></a> <span class="id" title="var">x</span>); <span class="id" title="tactic">pattern</span> <span class="id" title="var">x</span> <span class="id" title="tactic">at</span> -1; <span class="id" title="tactic">case</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">destr_eq</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">discriminate</span> <span class="id" title="var">H</span> || (<span class="id" title="tactic">try</span> (<span class="id" title="tactic">injection</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [= <span class="id" title="var">H</span>])).<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "destruct_with_eqn" <span class="id" title="keyword">constr</span>(<span class="id" title="var">x</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">x</span> <span class="id" title="var">eqn</span>:?.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "destruct_with_eqn" <span class="id" title="var">ident</span>(<span class="id" title="var">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">intros</span> <span class="id" title="tactic">until</span> <span class="id" title="var">n</span>; <span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span> <span class="id" title="var">eqn</span>:?.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "destruct_with_eqn" ":" <span class="id" title="var">ident</span>(<span class="id" title="var">H</span>) <span class="id" title="keyword">constr</span>(<span class="id" title="var">x</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">x</span> <span class="id" title="var">eqn</span>:<span class="id" title="var">H</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "destruct_with_eqn" ":" <span class="id" title="var">ident</span>(<span class="id" title="var">H</span>) <span class="id" title="var">ident</span>(<span class="id" title="var">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">intros</span> <span class="id" title="tactic">until</span> <span class="id" title="var">n</span>; <span class="id" title="tactic">destruct</span> <span class="id" title="var">n</span> <span class="id" title="var">eqn</span>:<span class="id" title="var">H</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Break every hypothesis of a certain type 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">destruct_all</span> <span class="id" title="var">t</span> :=<br/>
+&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">x</span> : <span class="id" title="var">t</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">x</span>; <span class="id" title="var">destruct_all</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">idtac</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "rewrite_all" <span class="id" title="keyword">constr</span>(<span class="id" title="var">eq</span>) := <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">rewrite</span> <span class="id" title="var">eq</span> <span class="id" title="tactic">in</span> *.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "rewrite_all" "&lt;-" <span class="id" title="keyword">constr</span>(<span class="id" title="var">eq</span>) := <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">eq</span> <span class="id" title="tactic">in</span> *.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Tactics for applying equivalences.
+
+<div class="paragraph"> </div>
+
+The following code provides tactics "apply -&gt; t", "apply &lt;- t",
+"apply -&gt; t in H" and "apply &lt;- t in H". Here t is a term whose type
+consists of nested dependent and nondependent products with an
+equivalence A &lt;-&gt; B as the conclusion. The tactics with "-&gt;" in their
+names apply A -&gt; B while those with "&lt;-" in the name apply B -&gt; A. 
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">find_equiv</span> <span class="id" title="var">H</span> :=<br/>
+<span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span><br/>
+<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span><br/>
+| ?<span class="id" title="var">A</span> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> ?<span class="id" title="var">B</span> =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H1</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H2</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">cut</span> <span class="id" title="var">A</span>;<br/>
+&nbsp;&nbsp;[<span class="id" title="tactic">intro</span> <span class="id" title="var">H1</span>; <span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">H</span> <span class="id" title="var">H1</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">H2</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span> <span class="id" title="var">H1</span>;<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rename</span> <span class="id" title="var">H2</span> <span class="id" title="var">into</span> <span class="id" title="var">H</span>; <span class="id" title="var">find_equiv</span> <span class="id" title="var">H</span> |<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>]<br/>
+| <span class="id" title="keyword">forall</span> <a id="x:2" class="idref" href="#x:2"><span class="id" title="binder">x</span></a> : ?<span class="id" title="var">t</span>, <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">a</span> := <span class="id" title="tactic">fresh</span> "a" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H1</span> := <span class="id" title="tactic">fresh</span> "H" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">evar</span> (<span class="id" title="var">a</span> : <span class="id" title="var">t</span>); <span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">H</span> <span class="id" title="var">a</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">H1</span>; <span class="id" title="tactic">unfold</span> <span class="id" title="var">a</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">clear</span> <span class="id" title="var">a</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">rename</span> <span class="id" title="var">H1</span> <span class="id" title="var">into</span> <span class="id" title="var">H</span>; <span class="id" title="var">find_equiv</span> <span class="id" title="var">H</span><br/>
+| ?<span class="id" title="var">A</span> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'&lt;-&gt;'_x"><span class="id" title="notation">&lt;-&gt;</span></a> ?<span class="id" title="var">B</span> =&gt; <span class="id" title="tactic">idtac</span><br/>
+| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">fail</span> "The given statement does not seem to end with an equivalence."<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">bapply</span> <span class="id" title="var">lemma</span> <span class="id" title="var">todo</span> :=<br/>
+<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> <span class="id" title="var">lemma</span> <span class="id" title="keyword">as</span> <span class="id" title="var">H</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="var">find_equiv</span> <span class="id" title="var">H</span>; [<span class="id" title="var">todo</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span> | .. ].<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "apply" "-&gt;" <span class="id" title="keyword">constr</span>(<span class="id" title="var">lemma</span>) :=<br/>
+<span class="id" title="var">bapply</span> <span class="id" title="var">lemma</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">H</span> <span class="id" title="var">_</span>]; <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "apply" "&lt;-" <span class="id" title="keyword">constr</span>(<span class="id" title="var">lemma</span>) :=<br/>
+<span class="id" title="var">bapply</span> <span class="id" title="var">lemma</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">_</span> <span class="id" title="var">H</span>]; <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "apply" "-&gt;" <span class="id" title="keyword">constr</span>(<span class="id" title="var">lemma</span>) "in" <span class="id" title="var">hyp</span>(<span class="id" title="var">J</span>) :=<br/>
+<span class="id" title="var">bapply</span> <span class="id" title="var">lemma</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">H</span> <span class="id" title="var">_</span>]; <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span> <span class="id" title="var">J</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "apply" "&lt;-" <span class="id" title="keyword">constr</span>(<span class="id" title="var">lemma</span>) "in" <span class="id" title="var">hyp</span>(<span class="id" title="var">J</span>) :=<br/>
+<span class="id" title="var">bapply</span> <span class="id" title="var">lemma</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">_</span> <span class="id" title="var">H</span>]; <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span> <span class="id" title="var">J</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An experimental tactic simpler than auto that is useful for ending
+    proofs "in one step" 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">easy</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">use_hyp</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">exact</span> <span class="id" title="var">H</span> || <span class="id" title="var">destruct_hyp</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [<span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">do_intro</span> := <span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">intro</span> <span class="id" title="var">H</span>; <span class="id" title="var">use_hyp</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">destruct_hyp</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">case</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="var">do_intro</span>; <span class="id" title="var">do_intro</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">use_hyps</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span>  =&gt; <span class="id" title="tactic">exact</span> <span class="id" title="var">H</span> || (<span class="id" title="var">destruct_hyp</span> <span class="id" title="var">H</span>; <span class="id" title="var">use_hyps</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">solve</span> [<span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">idtac</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">do_atom</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">solve</span> [ <span class="id" title="tactic">trivial</span> <span class="id" title="keyword">with</span> <span class="id" title="var">eq_true</span> | <span class="id" title="tactic">reflexivity</span> | <span class="id" title="tactic">symmetry</span>; <span class="id" title="tactic">trivial</span> | <span class="id" title="var">contradiction</span> ] <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">do_ccl</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">do_atom</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> (<span class="id" title="var">do_intro</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">do_atom</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">solve</span> [ <span class="id" title="tactic">split</span>; <span class="id" title="var">do_ccl</span> ] <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">solve</span> [ <span class="id" title="var">do_atom</span> | <span class="id" title="var">use_hyps</span>; <span class="id" title="var">do_ccl</span> ] ||<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">fail</span> "Cannot solve this goal".<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "now" <span class="id" title="var">tactic</span>(<span class="id" title="var">t</span>) := <span class="id" title="var">t</span>; <span class="id" title="var">easy</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Slightly more than <span class="inlinecode"><span class="id" title="var">easy</span></span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">easy'</span> := <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">split</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="var">easy</span> || <span class="id" title="var">now</span> <span class="id" title="tactic">destruct</span> 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A tactic to document or check what is proved at some point of a script 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">now_show</span> <span class="id" title="var">c</span> := <span class="id" title="tactic">change</span> <span class="id" title="var">c</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Support for rewriting decidability statements 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="decide_left" class="idref" href="#decide_left"><span class="id" title="lemma">decide_left</span></a> : <span class="id" title="keyword">forall</span> (<a id="C:3" class="idref" href="#C:3"><span class="id" title="binder">C</span></a>:<span class="id" title="keyword">Prop</span>) (<a id="decide:4" class="idref" href="#decide:4"><span class="id" title="binder">decide</span></a>:<a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}+{</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a>),<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <a id="P:5" class="idref" href="#P:5"><span class="id" title="binder">P</span></a>:<a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}+{</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <a id="H:6" class="idref" href="#H:6"><span class="id" title="binder">H</span></a>:<a class="idref" href="Coq.Init.Tactics.html#C:3"><span class="id" title="variable">C</span></a>, <a class="idref" href="Coq.Init.Tactics.html#P:5"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Specif.html#left"><span class="id" title="constructor">left</span></a> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Tactics.html#H:6"><span class="id" title="variable">H</span></a>)<a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Tactics.html#P:5"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Init.Tactics.html#decide:4"><span class="id" title="variable">decide</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="decide_right" class="idref" href="#decide_right"><span class="id" title="lemma">decide_right</span></a> : <span class="id" title="keyword">forall</span> (<a id="C:7" class="idref" href="#C:7"><span class="id" title="binder">C</span></a>:<span class="id" title="keyword">Prop</span>) (<a id="decide:8" class="idref" href="#decide:8"><span class="id" title="binder">decide</span></a>:<a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}+{</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a>),<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">forall</span> <a id="P:9" class="idref" href="#P:9"><span class="id" title="binder">P</span></a>:<a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">{</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}+{</span></a><a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a><a class="idref" href="Coq.Init.Specif.html#87727981cdc1579fef00b9d9c1d3b9da"><span class="id" title="notation">}</span></a><a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><span class="id" title="keyword">Prop</span>, <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><span class="id" title="keyword">forall</span> <a id="H:10" class="idref" href="#H:10"><span class="id" title="binder">H</span></a>:<a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="Coq.Init.Tactics.html#C:7"><span class="id" title="variable">C</span></a>, <a class="idref" href="Coq.Init.Tactics.html#P:9"><span class="id" title="variable">P</span></a> (<a class="idref" href="Coq.Init.Specif.html#right"><span class="id" title="constructor">right</span></a> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Tactics.html#H:10"><span class="id" title="variable">H</span></a>)<a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Tactics.html#P:9"><span class="id" title="variable">P</span></a> <a class="idref" href="Coq.Init.Tactics.html#decide:8"><span class="id" title="variable">decide</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "decide" <span class="id" title="keyword">constr</span>(<span class="id" title="var">lemma</span>) "with" <span class="id" title="keyword">constr</span>(<span class="id" title="var">H</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">try_to_merge_hyps</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> (<span class="id" title="tactic">clear</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intro</span> <span class="id" title="var">H</span>) ||<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">let</span> <span class="id" title="var">H'</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">H</span> "bis" <span class="id" title="tactic">in</span> <span class="id" title="tactic">intro</span> <span class="id" title="var">H'</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">clear</span> <span class="id" title="var">H'</span>) ||<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">let</span> <span class="id" title="var">H'</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span> <span class="id" title="tactic">intro</span> <span class="id" title="var">H'</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">clear</span> <span class="id" title="var">H'</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> ?<span class="id" title="var">C</span> =&gt; <span class="id" title="tactic">apply</span> (<a class="idref" href="Coq.Init.Tactics.html#decide_right"><span class="id" title="lemma">decide_right</span></a> <span class="id" title="var">lemma</span> <span class="id" title="var">H</span>); <span class="id" title="var">try_to_merge_hyps</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| ?<span class="id" title="var">C</span> <a class="idref" href="Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a> =&gt; <span class="id" title="tactic">apply</span> (<a class="idref" href="Coq.Init.Tactics.html#decide_right"><span class="id" title="lemma">decide_right</span></a> <span class="id" title="var">lemma</span> <span class="id" title="var">H</span>); <span class="id" title="var">try_to_merge_hyps</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">apply</span> (<a class="idref" href="Coq.Init.Tactics.html#decide_left"><span class="id" title="lemma">decide_left</span></a> <span class="id" title="var">lemma</span> <span class="id" title="var">H</span>); <span class="id" title="var">try_to_merge_hyps</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Clear an hypothesis and its dependencies 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "clear" "dependent" <span class="id" title="var">hyp</span>(<span class="id" title="var">h</span>) :=<br/>
+&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">depclear</span> <span class="id" title="var">h</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">clear</span> <span class="id" title="var">h</span> ||<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="keyword">context</span> [ <span class="id" title="var">h</span> ] |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">depclear</span> <span class="id" title="var">H</span>; <span class="id" title="var">depclear</span> <span class="id" title="var">h</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> := <span class="id" title="keyword">context</span> [ <span class="id" title="var">h</span> ] |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">depclear</span> <span class="id" title="var">H</span>; <span class="id" title="var">depclear</span> <span class="id" title="var">h</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> ||<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">fail</span> "hypothesis to clear is used in the conclusion (maybe indirectly)"<br/>
+&nbsp;<span class="id" title="tactic">in</span> <span class="id" title="var">depclear</span> <span class="id" title="var">h</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Revert an hypothesis and its dependencies :
+    this is actually generalize dependent... 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "revert" "dependent" <span class="id" title="var">hyp</span>(<span class="id" title="var">h</span>) :=<br/>
+&nbsp;<span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">h</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Provide an error message for dependent induction/dependent destruction that
+    reports an import is required to use it. Importing Coq.Program.Equality will
+    shadow this notation with the actual tactics. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "dependent" "induction" <span class="id" title="var">ident</span>(<span class="id" title="var">H</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">fail</span> "To use dependent induction, first [Require Import Coq.Program.Equality.]".<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "dependent" "destruction" <span class="id" title="var">ident</span>(<span class="id" title="var">H</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">fail</span> "To use dependent destruction, first [Require Import Coq.Program.Equality.]".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab595"></a><h3 class="section"><span class="inlinecode"><span class="id" title="var">inversion_sigma</span></span></h3>
+ The built-in <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> will frequently leave equalities of
+    dependent pairs.  When the first type in the pair is an hProp or
+    otherwise simplifies, <span class="inlinecode"><span class="id" title="var">inversion_sigma</span></span> is useful; it will replace
+    the equality of pairs with a pair of equalities, one involving a
+    term casted along the other.  This might also prove useful for
+    writing a version of <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> / <span class="inlinecode"><span class="id" title="tactic">dependent</span></span> <span class="inlinecode"><span class="id" title="tactic">destruction</span></span> which
+    does not lose information, i.e., does not turn a goal which is
+    provable into one which requires axiom K / UIP.  
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">lookup_inversion_sigma_rect</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex_rect_ex_intro"><span class="id" title="definition">eq_ex_rect_ex_intro</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#exist"><span class="id" title="constructor">exist</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#exist"><span class="id" title="constructor">exist</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig_rect_exist"><span class="id" title="definition">eq_sig_rect_exist</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT_rect_existT"><span class="id" title="definition">eq_sigT_rect_existT</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex_rect_ex_intro_r"><span class="id" title="definition">eq_ex_rect_ex_intro_r</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#exist"><span class="id" title="constructor">exist</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig_rect_exist_r"><span class="id" title="definition">eq_sig_rect_exist_r</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT_rect_existT_r"><span class="id" title="definition">eq_sigT_rect_existT_r</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#ex_intro"><span class="id" title="constructor">ex_intro</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex_rect_ex_intro_l"><span class="id" title="definition">eq_ex_rect_ex_intro_l</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#exist"><span class="id" title="constructor">exist</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig_rect_exist_l"><span class="id" title="definition">eq_sig_rect_exist_l</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" title="constructor">existT</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT_rect_existT_l"><span class="id" title="definition">eq_sigT_rect_existT_l</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#ex_intro2"><span class="id" title="constructor">ex_intro2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro2"><span class="id" title="constructor">ex_intro2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex2_rect_ex_intro2"><span class="id" title="definition">eq_ex2_rect_ex_intro2</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#exist2"><span class="id" title="constructor">exist2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#exist2"><span class="id" title="constructor">exist2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig2_rect_exist2"><span class="id" title="definition">eq_sig2_rect_exist2</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#existT2"><span class="id" title="constructor">existT2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT2"><span class="id" title="constructor">existT2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT2_rect_existT2"><span class="id" title="definition">eq_sigT2_rect_existT2</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Logic.html#ex_intro2"><span class="id" title="constructor">ex_intro2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex2_rect_ex_intro2_r"><span class="id" title="definition">eq_ex2_rect_ex_intro2_r</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#exist2"><span class="id" title="constructor">exist2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig2_rect_exist2_r"><span class="id" title="definition">eq_sig2_rect_exist2_r</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Coq.Init.Specif.html#existT2"><span class="id" title="constructor">existT2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT2_rect_existT2_r"><span class="id" title="definition">eq_sigT2_rect_existT2_r</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Logic.html#ex_intro2"><span class="id" title="constructor">ex_intro2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Logic.html#eq_ex2_rect_ex_intro2_l"><span class="id" title="definition">eq_ex2_rect_ex_intro2_l</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#exist2"><span class="id" title="constructor">exist2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sig2_rect_exist2_l"><span class="id" title="definition">eq_sig2_rect_exist2_l</span></a>)<br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Specif.html#existT2"><span class="id" title="constructor">existT2</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="var">uconstr</span>:(<a class="idref" href="Coq.Init.Specif.html#eq_sigT2_rect_existT2_l"><span class="id" title="definition">eq_sigT2_rect_existT2_l</span></a>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#b8b2ebc8e1a8b9aa935c0702efb5dccf"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span> <a class="idref" href="Coq.Init.Logic.html#b8b2ebc8e1a8b9aa935c0702efb5dccf"><span class="id" title="notation">:&gt;</span></a> ?<span class="id" title="var">T</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">sig</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Specif.html#sig"><span class="id" title="inductive">sig</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">sig2</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Specif.html#sig2"><span class="id" title="inductive">sig2</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">sigT</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Specif.html#sigT"><span class="id" title="inductive">sigT</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">sigT2</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Specif.html#sigT2"><span class="id" title="inductive">sigT2</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ex</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Logic.html#ex"><span class="id" title="inductive">ex</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ex2</span> := <span class="id" title="var">uconstr</span>:(@<a class="idref" href="Coq.Init.Logic.html#ex2"><span class="id" title="inductive">ex2</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">fail</span> 0 "Type" "of" <span class="id" title="var">H</span> "is" "not" "an" "equality" "of" "recognized" "Σ" "types:" "expected" "one" "of" <span class="id" title="var">sig</span> <span class="id" title="var">sig2</span> <span class="id" title="var">sigT</span> <span class="id" title="var">sigT2</span> <span class="id" title="var">ex</span> "or" <span class="id" title="var">ex2</span> "but" "got" <span class="id" title="var">T</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;=&gt; <span class="id" title="tactic">fail</span> 0 <span class="id" title="var">H</span> "is" "not" "an" "equality" "of" "Σ" "types"<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inversion_sigma_on_as</span> <span class="id" title="var">H</span> <span class="id" title="var">ip</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">rect</span> := <span class="id" title="var">lookup_inversion_sigma_rect</span> <span class="id" title="var">H</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> <span class="id" title="var">ip</span> <span class="id" title="keyword">using</span> <span class="id" title="var">rect</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inversion_sigma_on</span> <span class="id" title="var">H</span> := <span class="id" title="var">inversion_sigma_on_as</span> <span class="id" title="var">H</span> <span class="id" title="var">ipattern</span>:([]).<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inversion_sigma_step</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [ <span class="id" title="var">H</span> : <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> ] =&gt; <span class="id" title="var">inversion_sigma_on</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">inversion_sigma</span> := <span class="id" title="tactic">repeat</span> <span class="id" title="var">inversion_sigma_step</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "inversion_sigma" := <span class="id" title="var">inversion_sigma</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "inversion_sigma" <span class="id" title="var">hyp</span>(<span class="id" title="var">H</span>) := <span class="id" title="var">inversion_sigma_on</span> <span class="id" title="var">H</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "inversion_sigma" <span class="id" title="var">hyp</span>(<span class="id" title="var">H</span>) "as" <span class="id" title="var">simple_intropattern</span>(<span class="id" title="var">ip</span>) := <span class="id" title="var">inversion_sigma_on_as</span> <span class="id" title="var">H</span> <span class="id" title="var">ip</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A version of <span class="inlinecode"><span class="id" title="var">time</span></span> that works for constrs 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">time_constr</span> <span class="id" title="var">tac</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">eval_early</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">restart_timer</span> <span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ret</span> := <span class="id" title="var">tac</span> () <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">eval_early</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">finish_timing</span> ( "Tactic evaluation" ) <span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">ret</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Useful combinators 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">assert_fails</span> <span class="id" title="var">tac</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">tryif</span> (<span class="id" title="var">once</span> <span class="id" title="var">tac</span>) <span class="id" title="keyword">then</span> <span class="id" title="var">gfail</span> 0 <span class="id" title="var">tac</span> "succeeds" <span class="id" title="keyword">else</span> <span class="id" title="tactic">idtac</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">assert_succeeds</span> <span class="id" title="var">tac</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">tryif</span> (<span class="id" title="var">assert_fails</span> <span class="id" title="var">tac</span>) <span class="id" title="keyword">then</span> <span class="id" title="var">gfail</span> 0 <span class="id" title="var">tac</span> "fails" <span class="id" title="keyword">else</span> <span class="id" title="tactic">idtac</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "assert_succeeds" <span class="id" title="var">tactic3</span>(<span class="id" title="var">tac</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">assert_succeeds</span> <span class="id" title="var">tac</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "assert_fails" <span class="id" title="var">tactic3</span>(<span class="id" title="var">tac</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">assert_fails</span> <span class="id" title="var">tac</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Create HintDb</span> <span class="id" title="tactic">rewrite</span> <span class="id" title="var">discriminated</span>.<br/>
+#[<span class="id" title="var">global</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Variables</span> <span class="id" title="keyword">Opaque</span> : <span class="id" title="tactic">rewrite</span>.<br/>
+<span class="id" title="keyword">Create HintDb</span> <span class="id" title="var">typeclass_instances</span> <span class="id" title="var">discriminated</span>.<br/>
+</div>
+    <div id="sidebarWrapper">
+      <div id="sidebar">
+        <div class="block">
+          <h2 class="title">Navigation</h2>
+          <div class="content">
+            <ul class="menu">
+              <li class="leaf">Standard Library
+                <ul class="menu">
+                  <li><a href="index.html">Table of contents</a></li>
+                  <li><a href="genindex.html">Index</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="footer">
+    <div id="nav-footer">
+      <ul class="links-menu-footer">
+        <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+        <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+        <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
