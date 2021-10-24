@@ -64,8 +64,7 @@ Extraction of <span class="inlinecode"><span class="id" title="var">nat</span></
 </div>
 
 <div class="doc">
-NB: The extracted code should be linked with <span class="inlinecode"><span class="id" title="var">zarith.cm</span>(<span class="id" title="var">x</span>)<span class="id" title="var">a</span></span> and with
-    the <span class="inlinecode"><span class="id" title="var">big.ml</span></span> wrapper. The latter can be found in the sources of Coq. 
+NB: The extracted code depends on <span class="inlinecode"><span class="id" title="var">zarith</span></span> package. 
 <div class="paragraph"> </div>
 
  Disclaimer: trying to obtain efficient certified programs
@@ -74,14 +73,16 @@ NB: The extracted code should be linked with <span class="inlinecode"><span clas
 
 <div class="paragraph"> </div>
 
- Mapping of <span class="inlinecode"><span class="id" title="var">nat</span></span> into <span class="inlinecode"><span class="id" title="var">big_int</span></span>. The last string corresponds to
-    a <span class="inlinecode"><span class="id" title="var">nat_case</span></span>, see documentation of <span class="inlinecode"><span class="id" title="keyword">Extract</span></span> <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span>. 
+ Mapping of <span class="inlinecode"><span class="id" title="var">nat</span></span> into <span class="inlinecode"><span class="id" title="var">big_int</span></span>.
+    See documentation of <span class="inlinecode"><span class="id" title="keyword">Extract</span></span> <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span>. 
 </div>
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> =&gt; "Big.big_int" [ "Big.zero" "Big.succ" ]<br/>
-&nbsp;"Big.nat_case".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> =&gt; "Big_int_Z.big_int"<br/>
+&nbsp;[ "Big_int_Z.zero_big_int" "Big_int_Z.succ_big_int" ]<br/>
+&nbsp;"(fun fO fS n -&gt; if Big_int_Z.sign_big_int n &lt;= 0 then fO ()
+  else fS (Big_int_Z.pred_big_int n))".<br/>
 
 <br/>
 </div>
@@ -92,38 +93,45 @@ Efficient (but uncertified) versions for usual <span class="inlinecode"><span cl
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">plus</span> =&gt; "Big.add".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">mult</span> =&gt; "Big.mult".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">pred</span> =&gt; "fun n -&gt; Big.max Big.zero (Big.pred n)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">minus</span> =&gt; "fun n m -&gt; Big.max Big.zero (Big.sub n m)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">max</span> =&gt; "Big.max".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">min</span> =&gt; "Big.min".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">EqNat.beq_nat</span> =&gt; "Big.eq".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">EqNat.eq_nat_decide</span> =&gt; "Big.eq".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">plus</span> =&gt; "Big_int_Z.add_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">mult</span> =&gt; "Big_int_Z.mult_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">pred</span> =&gt;<br/>
+&nbsp;"(fun n -&gt; Big_int_Z.max_big_int Big_int_Z.zero_big_int
+  (Big_int_Z.pred_big_int n))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">minus</span> =&gt;<br/>
+&nbsp;"(fun n m -&gt; Big_int_Z.max_big_int Big_int_Z.zero_big_int
+  (Big_int_Z.sub_big_int n m))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">max</span> =&gt; "Big_int_Z.max_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">min</span> =&gt; "Big_int_Z.min_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">EqNat.beq_nat</span> =&gt; "Big_int_Z.eq_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">EqNat.eq_nat_decide</span> =&gt; "Big_int_Z.eq_big_int".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Peano_dec.eq_nat_dec</span> =&gt; "Big.eq".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Peano_dec.eq_nat_dec</span> =&gt; "Big_int_Z.eq_big_int".<br/>
 
 <br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Nat.compare</span> =&gt;<br/>
-&nbsp;"Big.compare_case Eq Lt Gt".<br/>
+&nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Compare_dec.leb</span> =&gt; "Big.le".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Compare_dec.le_lt_dec</span> =&gt; "Big.le".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Compare_dec.leb</span> =&gt; "Big_int_Z.le_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Compare_dec.le_lt_dec</span> =&gt; "Big_int_Z.le_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Compare_dec.lt_eq_lt_dec</span> =&gt;<br/>
-&nbsp;"Big.compare_case (Some false) (Some true) None".<br/>
+&nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then (Some false) else if s &lt; 0 then (Some true) else None)".<br/>
 
 <br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Even.even_odd_dec</span> =&gt;<br/>
-&nbsp;"fun n -&gt; Big.sign (Big.mod n Big.two) = 0".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Div2.div2</span> =&gt; "fun n -&gt; Big.div n Big.two".<br/>
+&nbsp;"(fun n -&gt; Big_int_Z.sign_big_int
+  (Big_int_Z.mod_big_int n (Big_int_Z.big_int_of_int 2)) = 0)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Div2.div2</span> =&gt; "(fun n -&gt; Big_int_Z.div_big_int n (Big_int_Z.big_int_of_int 2))".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Arith.Euclid.html#diveucl"><span class="id" title="inductive">Euclid.diveucl</span></a> =&gt; "(Big.big_int * Big.big_int)" [""].<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.eucl_dev</span> =&gt; "fun n m -&gt; Big.quomod m n".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.quotient</span> =&gt; "fun n m -&gt; Big.div m n".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.modulo</span> =&gt; "fun n m -&gt; Big.modulo m n".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Arith.Euclid.html#diveucl"><span class="id" title="inductive">Euclid.diveucl</span></a> =&gt; "(Big_int_Z.big_int * Big_int_Z.big_int)" [""].<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.eucl_dev</span> =&gt; "(fun n m -&gt; Big_int_Z.quomod_big_int m n)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.quotient</span> =&gt; "(fun n m -&gt; Big_int_Z.div_big_int m n)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Euclid.modulo</span> =&gt; "(fun n m -&gt; Big_int_Z.mod_big_int m n)".<br/>
 
 <br/>
 </div>

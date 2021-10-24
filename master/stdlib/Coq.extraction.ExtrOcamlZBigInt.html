@@ -61,11 +61,13 @@ Extraction of <span class="inlinecode"><span class="id" title="var">positive</sp
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Coq.extraction.ExtrOcamlBasic.html#"><span class="id" title="library">ExtrOcamlBasic</span></a>.<br/>
 
 <br/>
+<span class="id" title="keyword">Extraction</span> <span class="id" title="var">Blacklist</span> <span class="id" title="var">Z</span> <span class="id" title="var">Big_int_Z</span>.<br/>
+
+<br/>
 </div>
 
 <div class="doc">
-NB: The extracted code should be linked with <span class="inlinecode"><span class="id" title="var">zarith.cm</span>(<span class="id" title="var">x</span>)<span class="id" title="var">a</span></span> and with
-    the <span class="inlinecode"><span class="id" title="var">big.ml</span></span> wrapper. The latter can be found in the sources of Coq. 
+NB: The extracted code depends on <span class="inlinecode"><span class="id" title="var">zarith</span></span> package. 
 <div class="paragraph"> </div>
 
  Disclaimer: trying to obtain efficient certified programs
@@ -73,22 +75,31 @@ NB: The extracted code should be linked with <span class="inlinecode"><span clas
     See the Disclaimer in <span class="inlinecode"><span class="id" title="var">ExtrOcamlNatInt</span></span>. 
 <div class="paragraph"> </div>
 
- Mapping of <span class="inlinecode"><span class="id" title="var">positive</span></span>, <span class="inlinecode"><span class="id" title="var">Z</span></span>, <span class="inlinecode"><span class="id" title="var">N</span></span> into <span class="inlinecode"><span class="id" title="var">big_int</span></span>. The last strings
+ Mapping of <span class="inlinecode"><span class="id" title="var">positive</span></span>, <span class="inlinecode"><span class="id" title="var">Z</span></span>, <span class="inlinecode"><span class="id" title="var">N</span></span> into <span class="inlinecode"><span class="id" title="var">Z</span></span>. The last strings
     emulate the matching, see documentation of <span class="inlinecode"><span class="id" title="keyword">Extract</span></span> <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span>. 
 </div>
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#positive"><span class="id" title="inductive">positive</span></a> =&gt; "Big.big_int"<br/>
-&nbsp;[ "Big.doubleplusone" "Big.double" "Big.one" ] "Big.positive_case".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#positive"><span class="id" title="inductive">positive</span></a> =&gt; "Big_int_Z.big_int"<br/>
+&nbsp;[ "(fun x -&gt; Big_int_Z.succ_big_int (Big_int_Z.mult_int_big_int 2 x))"<br/>
+&nbsp;&nbsp;&nbsp;"Big_int_Z.mult_int_big_int 2" "Big_int_Z.unit_big_int" ]<br/>
+&nbsp;"(fun f2p1 f2p f1 p -&gt;
+  if Big_int_Z.le_big_int p Big_int_Z.unit_big_int then f1 () else
+  let (q,r) = Big_int_Z.quomod_big_int p (Big_int_Z.big_int_of_int 2) in
+  if Big_int_Z.eq_big_int r Big_int_Z.zero_big_int then f2p q else f2p1 q)".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#Z"><span class="id" title="inductive">Z</span></a> =&gt; "Big.big_int"<br/>
-&nbsp;[ "Big.zero" "" "Big.opp" ] "Big.z_case".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#Z"><span class="id" title="inductive">Z</span></a> =&gt; "Big_int_Z.big_int"<br/>
+&nbsp;[ "Big_int_Z.zero_big_int" "" "Big_int_Z.minus_big_int" ]<br/>
+&nbsp;"(fun fO fp fn z -&gt; let s = Big_int_Z.sign_big_int z in
+  if s = 0 then fO () else if s &gt; 0 then fp z
+  else fn (Big_int_Z.minus_big_int z))".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#N"><span class="id" title="inductive">N</span></a> =&gt; "Big.big_int"<br/>
-&nbsp;[ "Big.zero" "" ] "Big.n_case".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <a class="idref" href="Coq.Numbers.BinNums.html#N"><span class="id" title="inductive">N</span></a> =&gt; "Big_int_Z.big_int"<br/>
+&nbsp;[ "Big_int_Z.zero_big_int" "" ]<br/>
+&nbsp;"(fun fO fp n -&gt; if Big_int_Z.sign_big_int n &lt;= 0 then fO () else fp n)".<br/>
 
 <br/>
 </div>
@@ -102,47 +113,63 @@ Nota: the "" above is used as an identity function "(fun p-&gt;p)"
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.add</span> =&gt; "Big.add".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.succ</span> =&gt; "Big.succ".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.pred</span> =&gt; "fun n -&gt; Big.max Big.one (Big.pred n)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.sub</span> =&gt; "fun n m -&gt; Big.max Big.one (Big.sub n m)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.mul</span> =&gt; "Big.mult".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.min</span> =&gt; "Big.min".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.max</span> =&gt; "Big.max".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.add</span> =&gt; "Big_int_Z.add_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.succ</span> =&gt; "Big_int_Z.succ_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.pred</span> =&gt;<br/>
+&nbsp;"(fun n -&gt; Big_int_Z.max_big_int Big_int_Z.unit_big_int
+  (Big_int_Z.pred_big_int n))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.sub</span> =&gt;<br/>
+&nbsp;"(fun n m -&gt; Big_int_Z.max_big_int
+  Big_int_Z.unit_big_int (Big_int_Z.sub_big_int n m))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.mul</span> =&gt; "Big_int_Z.mult_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.min</span> =&gt; "Big_int_Z.min_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.max</span> =&gt; "Big_int_Z.max_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.compare</span> =&gt;<br/>
-&nbsp;"fun x y -&gt; Big.compare_case Eq Lt Gt x y".<br/>
+&nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Pos.compare_cont</span> =&gt;<br/>
-&nbsp;"fun c x y -&gt; Big.compare_case c Lt Gt x y".<br/>
+&nbsp;"(fun c x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then c else if s &lt; 0 then Lt else Gt)".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.add</span> =&gt; "Big.add".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.succ</span> =&gt; "Big.succ".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.pred</span> =&gt; "fun n -&gt; Big.max Big.zero (Big.pred n)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.sub</span> =&gt; "fun n m -&gt; Big.max Big.zero (Big.sub n m)".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.mul</span> =&gt; "Big.mult".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.min</span> =&gt; "Big.min".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.max</span> =&gt; "Big.max".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.add</span> =&gt; "Big_int_Z.add_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.succ</span> =&gt; "Big_int_Z.succ_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.pred</span> =&gt;<br/>
+&nbsp;"(fun n -&gt; Big_int_Z.max_big_int Big_int_Z.zero_big_int
+  (Big_int_Z.pred_big_int n))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.sub</span> =&gt;<br/>
+&nbsp;"(fun n m -&gt; Big_int_Z.max_big_int Big_int_Z.zero_big_int
+  (Big_int_Z.sub_big_int n m))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.mul</span> =&gt; "Big_int_Z.mult_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.min</span> =&gt; "Big_int_Z.min_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.max</span> =&gt; "Big_int_Z.max_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.div</span> =&gt;<br/>
-&nbsp;"fun a b -&gt; if Big.eq b Big.zero then Big.zero else Big.div a b".<br/>
+&nbsp;"(fun a b -&gt; if Big_int_Z.eq_big_int b Big_int_Z.zero_big_int
+  then Big_int_Z.zero_big_int else Big_int_Z.div_big_int a b)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.modulo</span> =&gt;<br/>
-&nbsp;"fun a b -&gt; if Big.eq b Big.zero then a else Big.modulo a b".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.compare</span> =&gt; "Big.compare_case Eq Lt Gt".<br/>
+&nbsp;"(fun a b -&gt; if Big_int_Z.eq_big_int b Big_int_Z.zero_big_int
+  then a else Big_int_Z.mod_big_int a b)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.compare</span> =&gt;<br/>
+&nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.add</span> =&gt; "Big.add".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.succ</span> =&gt; "Big.succ".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.pred</span> =&gt; "Big.pred".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.sub</span> =&gt; "Big.sub".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.mul</span> =&gt; "Big.mult".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.opp</span> =&gt; "Big.opp".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.abs</span> =&gt; "Big.abs".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.min</span> =&gt; "Big.min".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.max</span> =&gt; "Big.max".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.compare</span> =&gt; "Big.compare_case Eq Lt Gt".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.add</span> =&gt; "Big_int_Z.add_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.succ</span> =&gt; "Big_int_Z.succ_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.pred</span> =&gt; "Big_int_Z.pred_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.sub</span> =&gt; "Big_int_Z.sub_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.mul</span> =&gt; "Big_int_Z.mult_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.opp</span> =&gt; "Big_int_Z.minus_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.abs</span> =&gt; "Big_int_Z.abs_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.min</span> =&gt; "Big_int_Z.min_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.max</span> =&gt; "Big_int_Z.max_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.compare</span> =&gt;<br/>
+&nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
+  if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
 
 <br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.of_N</span> =&gt; "fun p -&gt; p".<br/>
-<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.abs_N</span> =&gt; "Big.abs".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.of_N</span> =&gt; "(fun p -&gt; p)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.abs_N</span> =&gt; "Big_int_Z.abs_big_int".<br/>
 
 <br/>
 </div>
