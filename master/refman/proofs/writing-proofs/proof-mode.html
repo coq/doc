@@ -472,6 +472,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#show-proof-differences">&quot;Show Proof&quot; differences</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#delaying-solving-unification-constraints">Delaying solving unification constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proof-maintenance">Proof maintenance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#controlling-proof-mode">Controlling proof mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#controlling-memory-usage">Controlling memory usage</a></li>
 </ul>
@@ -490,8 +492,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#controlling-the-proof-flow">Controlling the proof flow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#checking-properties-of-terms">Checking properties of terms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#classical-tactics">Classical tactics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#delaying-solving-unification-constraints">Delaying solving unification constraints</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#proof-maintenance">Proof maintenance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../proof-engine/tactics.html#performance-oriented-tactic-variants">Performance-oriented tactic variants</a></li>
 </ul>
 </li>
@@ -1277,7 +1277,7 @@ and a <span class="term-defn"><span class="target" id="term-local-context"></spa
 (which are propositions), variables and local definitions that can be used in
 proving the conclusion.  The proof may also use <em>constants</em> from the <a class="reference internal" href="#term-global-environment"><span class="xref std std-term">global environment</span></a>
 such as definitions and proven theorems.</p>
-<p>(Note that <em>conclusion</em> is also used to refer to the last part of an implication.
+<p id="conclusion-meaning-2">(Note that <em>conclusion</em> is also used to refer to the last part of an implication.
 For example, in <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">-&gt;</span> <span class="pre">B</span> <span class="pre">-&gt;</span> <span class="pre">C</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> are <a class="reference internal" href="../../language/core/assumptions.html#term-premise"><span class="xref std std-term">premises</span></a> and <code class="docutils literal notranslate"><span class="pre">C</span></code>
 is the conclusion.)</p>
 <p>The term &quot;<span class="term-defn"><span class="target" id="term-goal"></span>goal</span>&quot; may refer to an entire goal or to the conclusion
@@ -1285,7 +1285,8 @@ of a goal, depending on the context.</p>
 <p>The conclusion appears below a line and the local context appears above the line.
 The conclusion is a type.  Each item in the local context begins with a name
 and ends, after a colon, with an associated type.
-Local definitions are shown in the form <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">:=</span> <span class="pre">0</span> <span class="pre">:</span> <span class="pre">nat</span></code>, for example, in which <code class="docutils literal notranslate"><span class="pre">nat</span></code> is the
+<span class="term-defn"><span class="target" id="term-context-local-definition"></span>Local definitions</span>
+are shown in the form <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">:=</span> <span class="pre">0</span> <span class="pre">:</span> <span class="pre">nat</span></code>, for example, in which <code class="docutils literal notranslate"><span class="pre">nat</span></code> is the
 type of <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
 <p>The local context of a goal contains items specific to the goal as well
 as section-local variables and hypotheses (see <a class="reference internal" href="../../language/core/assumptions.html#gallina-assumptions"><span class="std std-ref">Assumptions</span></a>) defined
@@ -1418,6 +1419,18 @@ proj1 =
 Arguments </span><span class="ansi-fg-light-green">proj1</span><span> [A B]%type_scope _
 </span></dd>
 </dl>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Many tactics accept <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code>s as arguments and frequently
+refer to them with wording such as &quot;the type of <a class="reference internal" href="../../language/core/basic.html#grammar-token-term"><code class="xref std std-token docutils literal notranslate"><span class="pre">term</span></code></a>&quot;.
+When <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code> is the name of a theorem or lemma, this wording
+refers to the type of the proof term, which is what's given in the
+<a class="reference internal" href="../../language/core/definitions.html#coq:cmd.Theorem" title="Theorem"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Theorem</span></code></a> statement.  When <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code> is the name of a hypothesis,
+the wording refers to the type shown in the context for the hypothesis
+(i.e., after the colon).
+For terms that are more complex than just an <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>,
+you can use <a class="reference internal" href="../../proof-engine/vernacular-commands.html#coq:cmd.Check" title="Check"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Check</span></code></a> <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-term"><span class="hole"><span class="pre">term</span></span></a></span></code> to display their type.</p>
 </div>
 </div>
 <div class="section" id="entering-and-exiting-proof-mode">
@@ -2786,6 +2799,58 @@ will not be shown.</p>
 </li>
 </ul>
 </div>
+</div>
+<div class="section" id="delaying-solving-unification-constraints">
+<h2>Delaying solving unification constraints<a class="headerlink" href="#delaying-solving-unification-constraints" title="Permalink to this headline">¶</a></h2>
+<dl class="coq tacn">
+<dt id="coq:tacn.solve_constraints">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>solve</span></span><span><span>_</span></span><span><span>constraints</span></span></span></code><a class="headerlink" href="#coq:tacn.solve_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="coq flag">
+<dt id="coq:flag.Solve-Unification-Constraints">
+<em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Solve</span></span> <span><span>Unification</span></span> <span><span>Constraints</span></span></span></code><a class="headerlink" href="#coq:flag.Solve-Unification-Constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>By default, after each tactic application, postponed typechecking unification
+problems are resolved using heuristics. Unsetting this <a class="reference internal" href="../../language/core/basic.html#term-flag"><span class="xref std std-term">flag</span></a> disables this
+behavior, allowing tactics to leave unification constraints unsolved. Use the
+<a class="reference internal" href="#coq:tacn.solve_constraints" title="solve_constraints"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">solve_constraints</span></code></a> tactic at any point to solve the constraints.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="proof-maintenance">
+<h2>Proof maintenance<a class="headerlink" href="#proof-maintenance" title="Permalink to this headline">¶</a></h2>
+<p><em>Experimental.</em>  Many tactics, such as <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacv.intros" title="intros"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">intros</span></code></a>, can automatically generate names, such
+as &quot;H0&quot; or &quot;H1&quot; for a new hypothesis introduced from a goal.  Subsequent proof steps
+may explicitly refer to these names.  However, future versions of Coq may not assign
+names exactly the same way, which could cause the proof to fail because the
+new names don't match the explicit references in the proof.</p>
+<p>The following <a class="reference internal" href="#coq:flag.Mangle-Names" title="Mangle Names"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Mangle</span> <span class="pre">Names</span></code></a> settings let users find all the
+places where proofs rely on automatically generated names, which can
+then be named explicitly to avoid any incompatibility.  These
+settings cause Coq to generate different names, producing errors for
+references to automatically generated names.</p>
+<dl class="coq flag">
+<dt id="coq:flag.Mangle-Names">
+<em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Mangle</span></span> <span><span>Names</span></span></span></code><a class="headerlink" href="#coq:flag.Mangle-Names" title="Permalink to this definition">¶</a></dt>
+<dd><p>When this <a class="reference internal" href="../../language/core/basic.html#term-flag"><span class="xref std std-term">flag</span></a> is set (it is off by default),
+generated names use the prefix specified in the following
+option instead of the default prefix.</p>
+</dd></dl>
+
+<dl class="coq opt">
+<dt id="coq:opt.Mangle-Names-Prefix">
+<em class="property"><span class="sigannot">Option</span></em> <code class="sig-name descname"><span class="notation"><span><span>Mangle</span></span> <span><span>Names</span></span> <span><span>Prefix</span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a></span></code><a class="headerlink" href="#coq:opt.Mangle-Names-Prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference internal" href="../../language/core/basic.html#term-option"><span class="xref std std-term">option</span></a> specifies the prefix to use when generating names.</p>
+</dd></dl>
+
+<dl class="coq flag">
+<dt id="coq:flag.Mangle-Names-Light">
+<em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Mangle</span></span> <span><span>Names</span></span> <span><span>Light</span></span></span></code><a class="headerlink" href="#coq:flag.Mangle-Names-Light" title="Permalink to this definition">¶</a></dt>
+<dd><p>When this <a class="reference internal" href="../../language/core/basic.html#term-flag"><span class="xref std std-term">flag</span></a> is set (it is off by default),
+the names generated by <a class="reference internal" href="#coq:flag.Mangle-Names" title="Mangle Names"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Mangle</span> <span class="pre">Names</span></code></a> only add
+the <a class="reference internal" href="#coq:opt.Mangle-Names-Prefix" title="Mangle Names Prefix"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Mangle</span> <span class="pre">Names</span> <span class="pre">Prefix</span></code></a> to the original name.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="controlling-proof-mode">
 <h2>Controlling proof mode<a class="headerlink" href="#controlling-proof-mode" title="Permalink to this headline">¶</a></h2>
