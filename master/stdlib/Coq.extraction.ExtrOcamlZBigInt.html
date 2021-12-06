@@ -143,15 +143,25 @@ Nota: the "" above is used as an identity function "(fun p-&gt;p)"
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.mul</span> =&gt; "Big_int_Z.mult_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.min</span> =&gt; "Big_int_Z.min_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.max</span> =&gt; "Big_int_Z.max_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.div_eucl</span> =&gt;<br/>
+&nbsp;&nbsp;"Big_int_Z.(fun x y -&gt;
+    if eq_big_int zero_big_int y then (zero_big_int, x) else
+    quomod_big_int x y)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.div</span> =&gt;<br/>
 &nbsp;"(fun a b -&gt; if Big_int_Z.eq_big_int b Big_int_Z.zero_big_int
   then Big_int_Z.zero_big_int else Big_int_Z.div_big_int a b)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.modulo</span> =&gt;<br/>
 &nbsp;"(fun a b -&gt; if Big_int_Z.eq_big_int b Big_int_Z.zero_big_int
   then a else Big_int_Z.mod_big_int a b)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.eqb</span> =&gt; "Big_int_Z.eq_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.eq_dec</span> =&gt; "Big_int_Z.eq_big_int".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.compare</span> =&gt;<br/>
 &nbsp;"(fun x y -&gt; let s = Big_int_Z.compare_big_int x y in
   if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
+
+<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.shiftl</span> =&gt; "Big_int_Z.(fun x y -&gt; shift_left_big_int x (int_of_big_int y))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">N.shiftr</span> =&gt; "Big_int_Z.(fun x y -&gt; shift_right_big_int x (int_of_big_int y))".<br/>
 
 <br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.add</span> =&gt; "Big_int_Z.add_big_int".<br/>
@@ -168,18 +178,45 @@ Nota: the "" above is used as an identity function "(fun p-&gt;p)"
   if s = 0 then Eq else if s &lt; 0 then Lt else Gt)".<br/>
 
 <br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.eqb</span> =&gt; "Big_int_Z.eq_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.eq_dec</span> =&gt; "Big_int_Z.eq_big_int".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.to_N</span> =&gt; "Big_int_Z.(fun p -&gt; if sign_big_int p &lt; 0 then zero_big_int else p)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.of_N</span> =&gt; "(fun p -&gt; p)".<br/>
 <span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.abs_N</span> =&gt; "Big_int_Z.abs_big_int".<br/>
+
+<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.div_eucl</span> =&gt; "Big_int_Z.(fun x y -&gt;
+  match sign_big_int y with
+  | 0 -&gt; (zero_big_int, x)
+  | 1 -&gt; quomod_big_int x y
+  | _ -&gt; let (q, r) = quomod_big_int (add_int_big_int (-1) x) y in
+          (add_int_big_int (-1) q, add_big_int (add_int_big_int 1 y) r))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.div</span> =&gt; "Big_int_Z.(fun x y -&gt;
+  match sign_big_int y with
+  | 0 -&gt; zero_big_int
+  | 1 -&gt; div_big_int x y
+  | _ -&gt; add_int_big_int (-1) (div_big_int (add_int_big_int (-1) x) y))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.modulo</span> =&gt; "Big_int_Z.(fun x y -&gt;
+  match sign_big_int y with
+  | 0 -&gt; x
+  | 1 -&gt; mod_big_int x y
+  | _ -&gt; add_big_int y (add_int_big_int 1 (mod_big_int (add_int_big_int (-1) x) y)))".<br/>
+
+<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.shiftl</span> =&gt; "Big_int_Z.(fun x y -&gt;
+  let y = int_of_big_int y in
+  if y &lt; 0 then shift_right_big_int x (-y)
+  else shift_left_big_int x y)".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Z.shiftr</span> =&gt; "Big_int_Z.(fun x y -&gt;
+  let y = int_of_big_int y in
+  if y &lt; 0 then shift_left_big_int x (-y)
+  else shift_right_big_int x y)".<br/>
 
 <br/>
 </div>
 
 <div class="doc">
-Z.div and Z.modulo are quite complex to define in terms of (/) and (mod).
-    For the moment we don't even try 
-<div class="paragraph"> </div>
-
- Test:
+Test:
 Require Import ZArith NArith.
 
 <div class="paragraph"> </div>
