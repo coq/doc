@@ -1374,10 +1374,14 @@ the annotation <code class="code Coq docutils literal notranslate"><span class="
 constraints they must verify (for <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">pidentity</span></span></code> there are no constraints).</p>
 <p>Inductive types can also be declared universes polymorphic on
 universes appearing in their parameters or fields. A typical example
-is given by monoids:</p>
+is given by monoids. We first put ourselves in a mode where every declaration
+is universe-polymorphic:</p>
 <div class="coqtop literal-block docutils container">
+<span></span><dl class="simple">
+<dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Universe</span><span> </span><span class="coqdoc-var">Polymorphism</span><span>.</span><span>
+</span></dt></dl>
 <span></span><dl>
-<dt><span></span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">Monoid</span><span> := { </span><span class="coqdoc-var">mon_car</span><span> :&gt; </span><span class="coqdoc-keyword">Type</span><span>; </span><span class="coqdoc-var">mon_unit</span><span> : </span><span class="coqdoc-var">mon_car</span><span>;</span><span>
+<dt><span></span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">Monoid</span><span> := { </span><span class="coqdoc-var">mon_car</span><span> :&gt; </span><span class="coqdoc-keyword">Type</span><span>; </span><span class="coqdoc-var">mon_unit</span><span> : </span><span class="coqdoc-var">mon_car</span><span>;</span><span>
   </span><span class="coqdoc-var">mon_op</span><span> : </span><span class="coqdoc-var">mon_car</span><span> -&gt; </span><span class="coqdoc-var">mon_car</span><span> -&gt; </span><span class="coqdoc-var">mon_car</span><span> }.</span><span>
 </span></dt><dd class="coqtop-hidden"><span>Monoid is defined
 mon_car is defined
@@ -1385,9 +1389,13 @@ mon_unit is defined
 mon_op is defined
 </span></dd>
 </dl>
+</div>
+<p>A monoid is here defined by a carrier type, a unit in this type
+and a binary operation.</p>
+<div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">Monoid</span><span>.</span><span>
-</span></dt><dd class="coqtop-hidden"><span class="ansi-fg-light-red ansi-bold">Record</span><span> Monoid&#64;{u} : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u+1} := Build_Monoid
+</span></dt><dd><span class="ansi-fg-light-red ansi-bold">Record</span><span> Monoid&#64;{u} : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u+1} := Build_Monoid
   { mon_car : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u};
     mon_unit : mon_car;
     mon_op : mon_car</span><span> -&gt;</span><span> mon_car</span><span> -&gt;</span><span> mon_car }.
@@ -1399,45 +1407,74 @@ Arguments </span><span class="ansi-fg-light-green">Build_Monoid</span><span> mon
 </div>
 <p>The Monoid's carrier universe is polymorphic, hence it is possible to
 instantiate it for example with <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">Monoid</span></span></code> itself. First we build the
-trivial unit monoid in <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code>:</p>
+trivial unit monoid in any universe <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">i</span></span> <span class="operator"><span class="pre">&gt;=</span></span> <span class="keyword namespace"><span class="pre">Set</span></span></code>:</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">unit_monoid</span><span> : </span><span class="coqdoc-var">Monoid</span><span> :=</span><span>
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">unit_monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} :=</span><span>
   {| </span><span class="coqdoc-var">mon_car</span><span> := </span><span class="coqdoc-var">unit</span><span>; </span><span class="coqdoc-var">mon_unit</span><span> := </span><span class="coqdoc-var">tt</span><span>; </span><span class="coqdoc-var">mon_op</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> := </span><span class="coqdoc-var">tt</span><span> |}.</span><span>
 </span></dt><dd class="coqtop-hidden"><span>unit_monoid is defined
 </span></dd>
 </dl>
 </div>
-<p>From this we can build a definition for the monoid of <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code>-monoids
-(where multiplication would be given by the product of monoids).</p>
+<p>Here we are using the fact that <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">unit</span></span> <span class="operator"><span class="pre">:</span></span> <span class="keyword namespace"><span class="pre">Set</span></span></code> and by cumulativity,
+any polymorphic universe is greater or equal to <code class="docutils literal notranslate"><span class="pre">Set</span></code>.</p>
+<p>From this we can build a definition for the monoid of monoids,
+where multiplication is given by the product of monoids. To do so, we
+first need to define a universe-polymorphic variant of pairs:</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
-<dt><span></span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">monoid_monoid</span><span> : </span><span class="coqdoc-var">Monoid</span><span>.</span><span>
-</span></dt><dd class="coqtop-hidden"><span>1 goal
-  
-  ============================
-  Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.9</span><span>}
+<dt><span></span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">pprod&#64;</span><span>{</span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span>} (</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}) (</span><span class="coqdoc-var">B</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">j</span><span>}) : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">max</span><span>(</span><span class="coqdoc-var">i</span><span>,</span><span class="coqdoc-var">j</span><span>)} :=</span><span>
+  </span><span class="coqdoc-var">ppair</span><span> { </span><span class="coqdoc-var">pfst</span><span> : </span><span class="coqdoc-var">A</span><span>; </span><span class="coqdoc-var">psnd</span><span> : </span><span class="coqdoc-var">B</span><span> }.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>pprod is defined
+pfst is defined
+psnd is defined
 </span></dd>
-<dt><span>  </span><span class="coqdoc-tactic">refine</span><span> (&#64;</span><span class="coqdoc-var">Build_Monoid</span><span> </span><span class="coqdoc-var">Monoid</span><span> </span><span class="coqdoc-var">unit_monoid</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> =&gt; </span><span class="coqdoc-var">x</span><span>)).</span><span>
-</span></dt><dd class="coqtop-hidden"><span>No more goals.
-</span></dd>
-<dt><span></span><span class="coqdoc-keyword">Defined</span><span>.</span><span>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Arguments</span><span> </span><span class="coqdoc-var">ppair</span><span> {</span><span class="coqdoc-var">A</span><span>} {</span><span class="coqdoc-var">B</span><span>}.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Infix</span><span> &quot;**&quot; := </span><span class="coqdoc-var">pprod</span><span> (</span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 40, </span><span class="coqdoc-tactic">left</span><span> </span><span class="coqdoc-keyword">associativity</span><span>) : </span><span class="coqdoc-var">type_scope</span><span>.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Notation</span><span> &quot;( x ; y ; .. ; z )&quot; := (</span><span class="coqdoc-var">ppair</span><span> .. (</span><span class="coqdoc-var">ppair</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span>) .. </span><span class="coqdoc-var">z</span><span>) (</span><span class="coqdoc-tactic">at</span><span> </span><span class="coqdoc-keyword">level</span><span> 0) : </span><span class="coqdoc-var">core_scope</span><span>.</span><span>
 </span></dt></dl>
+</div>
+<p>The monoid of monoids uses the cartesian product of monoids as its operation:</p>
+<div class="coqtop literal-block docutils container">
 <span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">monoid_monoid</span><span>.</span><span>
-</span></dt><dd><span>monoid_monoid&#64;{u} = 
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">monoid_op&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} (</span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">m'</span><span> : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}) (</span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> : </span><span class="coqdoc-var">mon_car</span><span> </span><span class="coqdoc-var">m</span><span> ** </span><span class="coqdoc-var">mon_car</span><span> </span><span class="coqdoc-var">m'</span><span>) :</span><span>
+   </span><span class="coqdoc-var">mon_car</span><span> </span><span class="coqdoc-var">m</span><span> ** </span><span class="coqdoc-var">mon_car</span><span> </span><span class="coqdoc-var">m'</span><span> :=</span><span>
+  </span><span class="coqdoc-keyword">let</span><span> (</span><span class="coqdoc-var">l</span><span>, </span><span class="coqdoc-var">r</span><span>) := </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-tactic">in</span><span>
+  </span><span class="coqdoc-keyword">let</span><span> (</span><span class="coqdoc-var">l'</span><span>, </span><span class="coqdoc-var">r'</span><span>) := </span><span class="coqdoc-var">y</span><span> </span><span class="coqdoc-tactic">in</span><span>
+  (</span><span class="coqdoc-var">mon_op</span><span> </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">l</span><span> </span><span class="coqdoc-var">l'</span><span>; </span><span class="coqdoc-var">mon_op</span><span> </span><span class="coqdoc-var">m'</span><span> </span><span class="coqdoc-var">r</span><span> </span><span class="coqdoc-var">r'</span><span>).</span><span>
+</span></dt><dd class="coqtop-hidden"><span>monoid_op is defined
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">prod_monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} (</span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">m'</span><span> : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}): </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} :=</span><span>
+  {| </span><span class="coqdoc-var">mon_car</span><span> := (</span><span class="coqdoc-var">m</span><span> ** </span><span class="coqdoc-var">m'</span><span>)%</span><span class="coqdoc-keyword">type</span><span>;</span><span>
+     </span><span class="coqdoc-var">mon_unit</span><span> := (</span><span class="coqdoc-var">mon_unit</span><span> </span><span class="coqdoc-var">m</span><span>; </span><span class="coqdoc-var">mon_unit</span><span> </span><span class="coqdoc-var">m'</span><span>);</span><span>
+     </span><span class="coqdoc-var">mon_op</span><span> := (</span><span class="coqdoc-var">monoid_op</span><span> </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">m'</span><span>) |}.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>prod_monoid is defined
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">monoids_monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span> | </span><span class="coqdoc-var">i</span><span> &lt; </span><span class="coqdoc-var">j</span><span>} : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">j</span><span>} :=</span><span>
+  {| </span><span class="coqdoc-var">mon_car</span><span> := </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>};</span><span>
+     </span><span class="coqdoc-var">mon_unit</span><span> := </span><span class="coqdoc-var">unit_monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>};</span><span>
+     </span><span class="coqdoc-var">mon_op</span><span> := </span><span class="coqdoc-var">prod_monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} |}.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>monoids_monoid is defined
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">monoids_monoid</span><span>.</span><span>
+</span></dt><dd><span>monoids_monoid&#64;{i j} = 
 {|
-  mon_car := Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">Set</span><span>};
-  mon_unit := unit_monoid;
-  mon_op := </span><span class="ansi-bold">fun</span><span> x _ : Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">Set</span><span>} =&gt; x
+  mon_car := Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>};
+  mon_unit := unit_monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>};
+  mon_op := prod_monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>}
 |}
-     : Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">u</span><span>}
-(* u |= Set &lt; u *)
+     : Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">j</span><span>}
+(* i j |= i &lt; j *)
 </span></dd>
 </dl>
 </div>
 <p>As one can see from the constraints, this monoid is “large”, it lives
-in a universe strictly higher than <code class="code Coq docutils literal notranslate"><span class="keyword namespace"><span class="pre">Set</span></span></code>.</p>
+in a universe strictly higher than its objects, monoids in the universes <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">i</span></span></code>.</p>
 </div>
 <div class="section" id="polymorphic-monomorphic">
 <h2>Polymorphic, Monomorphic<a class="headerlink" href="#polymorphic-monomorphic" title="Permalink to this headline">¶</a></h2>
@@ -1527,7 +1564,7 @@ used to override the default.  It has no effect on <em>monomorphic</em> inductiv
 
 <p>Consider the examples below.</p>
 <div class="coqtop literal-block docutils container">
-<span></span><dl>
+<span class="coqtop-reset"></span><dl>
 <dt><span></span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-keyword">Inductive</span><span> </span><span class="coqdoc-var">list</span><span> {</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-keyword">Type</span><span>} :=</span><span>
 | </span><span class="coqdoc-var">nil</span><span> : </span><span class="coqdoc-var">list</span><span>
 | </span><span class="coqdoc-var">cons</span><span> : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">list</span><span> -&gt; </span><span class="coqdoc-var">list</span><span>.</span><span>
@@ -1538,6 +1575,9 @@ list_rec is defined
 list_sind is defined
 </span></dd>
 </dl>
+<span></span><dl class="simple">
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Set Printing Universes</span><span>.</span><span>
+</span></dt></dl>
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">list</span><span>.</span><span>
 </span></dt><dd><span class="ansi-fg-light-red ansi-bold">Inductive</span><span> list&#64;{u} (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u}) : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{max(Set,u)} :=
@@ -1583,6 +1623,83 @@ Expands to: Inductive Top.packType
 <div class="math notranslate nohighlight">
 \[E[Γ] ⊢ \mathsf{packType}&#64;\{i\} =_{βδιζη}
 \mathsf{packType}&#64;\{j\}~\mbox{ whenever }~i ≤ j\]</div>
+<p>Looking back at the example of monoids, we can see that they are naturally
+covariant for cumulativity:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Universe</span><span> </span><span class="coqdoc-var">Polymorphism</span><span>.</span><span>
+</span></dt><dt><span></span><span>
+</span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">Monoid</span><span> := {</span><span>
+  </span><span class="coqdoc-var">mon_car</span><span> :&gt; </span><span class="coqdoc-keyword">Type</span><span>;</span><span>
+  </span><span class="coqdoc-var">mon_unit</span><span> : </span><span class="coqdoc-var">mon_car</span><span>;</span><span>
+  </span><span class="coqdoc-var">mon_op</span><span> : </span><span class="coqdoc-var">mon_car</span><span> -&gt; </span><span class="coqdoc-var">mon_car</span><span> -&gt; </span><span class="coqdoc-var">mon_car</span><span> }.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>Monoid is defined
+mon_car is defined
+mon_unit is defined
+mon_op is defined
+</span></dd>
+</dl>
+<span></span><dl class="simple">
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Set Printing Universes</span><span>.</span><span>
+</span></dt></dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">Monoid</span><span>.</span><span>
+</span></dt><dd><span class="ansi-fg-light-red ansi-bold">Record</span><span> Monoid&#64;{u} : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u+1} := Build_Monoid
+  { mon_car : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{u};
+    mon_unit : mon_car;
+    mon_op : mon_car</span><span> -&gt;</span><span> mon_car</span><span> -&gt;</span><span> mon_car }.
+(* +u |=  *)
+
+Arguments </span><span class="ansi-fg-light-green">Build_Monoid</span><span> mon_car%type_scope mon_unit mon_op%function_scope
+</span></dd>
+</dl>
+</div>
+<p>This means that a monoid in a lower universe (like the unit monoid in set), can
+be seen as a monoid in any higher universe, without introducing explicit lifting.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">unit_monoid</span><span> : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-keyword">Set</span><span>} :=</span><span>
+  {| </span><span class="coqdoc-var">mon_car</span><span> := </span><span class="coqdoc-var">unit</span><span>; </span><span class="coqdoc-var">mon_unit</span><span> := </span><span class="coqdoc-var">tt</span><span>; </span><span class="coqdoc-var">mon_op</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> := </span><span class="coqdoc-var">tt</span><span> |}.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>unit_monoid is defined
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-var">Monomorphic</span><span> </span><span class="coqdoc-var">Universe</span><span> </span><span class="coqdoc-var">i</span><span>.</span><span>
+</span></dt><dt><span></span><span>
+</span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">unit_monoid</span><span> : </span><span class="coqdoc-var">Monoid&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}.</span><span>
+</span></dt><dd><span>unit_monoid : Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>}
+     : Monoid&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>}
+</span></dd>
+</dl>
+</div>
+<p>Finally, invariant universes appear when there is no possible subtyping relation
+between different instances of the inductive. Consider:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">monad&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} := {</span><span>
+   </span><span class="coqdoc-var">m</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} -&gt; </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>};</span><span>
+   </span><span class="coqdoc-var">unit</span><span> : </span><span class="coqdoc-keyword">forall</span><span> (</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}), </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">m</span><span> </span><span class="coqdoc-var">A</span><span> }.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>monad is defined
+m is defined
+unit is defined
+</span></dd>
+</dl>
+<span></span><dl class="simple">
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Set Printing Universes</span><span>.</span><span>
+</span></dt></dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">monad</span><span>.</span><span>
+</span></dt><dd><span class="ansi-fg-light-red ansi-bold">Record</span><span> monad&#64;{i} : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i+1} := Build_monad
+  { m : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i};  unit : </span><span class="ansi-bold">forall</span><span> A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i}, A</span><span> -&gt;</span><span> m A }.
+(* =i |=  *)
+
+Arguments </span><span class="ansi-fg-light-green">Build_monad</span><span> (m unit)%function_scope
+</span></dd>
+</dl>
+</div>
+<p>The universe of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">monad</span></span></code> is invariant due to its use on the left side of an arrow in
+the <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">m</span></span></code> field: one cannot lift or lower the level of the type constructor to build a
+monad in a higher or lower universe.</p>
 <div class="section" id="specifying-cumulativity">
 <h3>Specifying cumulativity<a class="headerlink" href="#specifying-cumulativity" title="Permalink to this headline">¶</a></h3>
 <p>The variance of the universe parameters for a cumulative inductive may be specified by the user.</p>
@@ -1613,7 +1730,7 @@ Expands to: Inductive Top.Dummy
 <span></span><dl>
 <dt><span></span><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-var">Cumulative</span><span> </span><span class="coqdoc-keyword">Record</span><span> </span><span class="coqdoc-var">bad&#64;</span><span>{*</span><span class="coqdoc-var">a</span><span>} := {</span><span class="coqdoc-var">p</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span>}}.</span><span>
 </span></dt><dd><span>The command has indeed failed with message:
-Incorrect variance for universe Top.45: expected * but cannot be less restrictive than +.
+Incorrect variance for universe Top.81: expected * but cannot be less restrictive than +.
 </span></dd>
 </dl>
 </div>
@@ -1719,6 +1836,7 @@ while it is expected to have type &quot;Covariant&#64;{</span><span class="ansi-
 <span class="coqtop-reset"></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Universe</span><span> </span><span class="coqdoc-var">Polymorphism</span><span>.</span><span>
 </span></dt><dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-var">Polymorphic</span><span> </span><span class="coqdoc-keyword">Inductive</span><span> </span><span class="coqdoc-var">Cumulativity</span><span>.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Set Printing Universes</span><span>.</span><span>
 </span></dt><dt><span></span><span>
 </span><span class="coqdoc-keyword">Inductive</span><span> </span><span class="coqdoc-var">eq&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} {</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>}} (</span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">A</span><span>) : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">i</span><span>} := </span><span class="coqdoc-var">eq_refl</span><span> : </span><span class="coqdoc-var">eq</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">x</span><span>.</span><span>
 </span></dt><dd class="coqtop-hidden"><span>eq is defined
@@ -1727,8 +1845,23 @@ eq_ind is defined
 eq_rec is defined
 eq_sind is defined
 </span></dd>
-<dt><span></span><span>
-</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">funext_type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span> </span><span class="coqdoc-var">b</span><span> </span><span class="coqdoc-var">e</span><span>} (</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span>}) (</span><span class="coqdoc-var">B</span><span> : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">b</span><span>})</span><span>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">eq</span><span>.</span><span>
+</span></dt><dd><span class="ansi-fg-light-red ansi-bold">Inductive</span><span> eq&#64;{i} (A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i}) (x : A) : A</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i} :=
+    eq_refl : eq&#64;{</span><span class="ansi-fg-yellow ansi-bold">i</span><span>} x x.
+(* *i |=  *)
+
+Arguments </span><span class="ansi-fg-light-green">eq</span><span> {A}%type_scope x _
+Arguments </span><span class="ansi-fg-light-green">eq_refl</span><span> {A}%type_scope x
+</span></dd>
+</dl>
+</div>
+<p>The universe of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">eq</span></span></code> is irrelevant here, hence proofs of equalities can
+inhabit any universe.  The universe must be big enough to fit <code class="docutils literal notranslate"><span class="pre">A</span></code>.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">funext_type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span> </span><span class="coqdoc-var">b</span><span> </span><span class="coqdoc-var">e</span><span>} (</span><span class="coqdoc-var">A</span><span> : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span>}) (</span><span class="coqdoc-var">B</span><span> : </span><span class="coqdoc-var">A</span><span> -&gt; </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">b</span><span>})</span><span>
 := </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">g</span><span> : (</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">a</span><span>, </span><span class="coqdoc-var">B</span><span> </span><span class="coqdoc-var">a</span><span>),</span><span>
                 (</span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span>, </span><span class="coqdoc-var">eq&#64;</span><span>{</span><span class="coqdoc-var">e</span><span>} (</span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">x</span><span>) (</span><span class="coqdoc-var">g</span><span> </span><span class="coqdoc-var">x</span><span>))</span><span>
                 -&gt; </span><span class="coqdoc-var">eq&#64;</span><span>{</span><span class="coqdoc-var">e</span><span>} </span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">g</span><span>.</span><span>
@@ -1742,11 +1875,11 @@ eq_sind is defined
       (</span><span class="coqdoc-var">H</span><span> : &#64;</span><span class="coqdoc-var">funext_type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span> </span><span class="coqdoc-var">b</span><span> </span><span class="coqdoc-var">e</span><span>} </span><span class="coqdoc-var">A</span><span> </span><span class="coqdoc-var">B</span><span>) : &#64;</span><span class="coqdoc-var">funext_type&#64;</span><span>{</span><span class="coqdoc-var">a</span><span> </span><span class="coqdoc-var">b</span><span> </span><span class="coqdoc-var">e'</span><span>} </span><span class="coqdoc-var">A</span><span> </span><span class="coqdoc-var">B</span><span>.</span><span>
 </span></dt><dd class="coqtop-hidden"><span>1 goal
   
-  A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>
-  B : A</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>
-  H : funext_type A B
+  A : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.125}
+  B : A</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.126}
+  H : funext_type&#64;{</span><span class="ansi-fg-yellow ansi-bold">a</span><span> </span><span class="ansi-fg-yellow ansi-bold">b</span><span> </span><span class="ansi-fg-yellow ansi-bold">e</span><span>} A B
   ============================
-  funext_type A B
+  funext_type&#64;{</span><span class="ansi-fg-yellow ansi-bold">a</span><span> </span><span class="ansi-fg-yellow ansi-bold">b</span><span> </span><span class="ansi-fg-yellow ansi-bold">e'</span><span>} A B
 </span></dd>
 <dt><span>    </span><span class="coqdoc-keyword">Proof</span><span>.</span><span>
 </span></dt><dt><span>      </span><span class="coqdoc-tactic">exact</span><span> </span><span class="coqdoc-var">H</span><span>.</span><span>
@@ -1957,7 +2090,7 @@ by adding a <code class="code Coq docutils literal notranslate"><span class="ope
 <span></span><dl>
 <dt><span></span><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">foobar&#64;</span><span>{</span><span class="coqdoc-var">u</span><span>} : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">u</span><span>} := </span><span class="coqdoc-keyword">Type</span><span>.</span><span>
 </span></dt><dd><span>The command has indeed failed with message:
-Universe Top.96 (Toplevel input, characters 2508-2512) is unbound.
+Universe Top.132 (Toplevel input, characters 3832-3836) is unbound.
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">foobar&#64;</span><span>{</span><span class="coqdoc-var">u</span><span> +} : </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">u</span><span>} := </span><span class="coqdoc-keyword">Type</span><span>.</span><span>
 </span></dt><dd><span>foobar is defined
@@ -1997,14 +2130,14 @@ underscore or by omitting the annotation to a polymorphic definition.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> =&gt; </span><span class="coqdoc-var">x</span><span>) : </span><span class="coqdoc-keyword">Type</span><span> -&gt; </span><span class="coqdoc-keyword">Type</span><span>.</span><span>
-</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.101} =&gt; x) : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.101}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.102}
-     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.101}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.102}
-(* {Top.102 Top.101} |= Top.101 &lt;= Top.102 *)
+</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.137} =&gt; x) : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.137}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.138}
+     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.137}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.138}
+(* {Top.138 Top.137} |= Top.137 &lt;= Top.138 *)
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> =&gt; </span><span class="coqdoc-var">x</span><span>) : </span><span class="coqdoc-keyword">Type</span><span> -&gt; </span><span class="coqdoc-var">Type&#64;</span><span>{</span><span class="coqdoc-var">_</span><span>}.</span><span>
-</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.103} =&gt; x) : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.103}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.103}
-     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.103}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.103}
-(* {Top.103} |=  *)
+</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.139} =&gt; x) : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.139}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.139}
+     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.139}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.139}
+(* {Top.139} |=  *)
 </span></dd>
 <dt><span></span><span>
 </span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">le&#64;</span><span>{</span><span class="coqdoc-var">k</span><span> </span><span class="coqdoc-var">_</span><span>}.</span><span>
@@ -2012,10 +2145,10 @@ underscore or by omitting the annotation to a polymorphic definition.</p>
      : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{k}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{k}
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">le</span><span>.</span><span>
-</span></dt><dd><span>le&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.106</span><span>
-</span><span class="ansi-fg-yellow ansi-bold">Top.106</span><span>}
-     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.106}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.106}
-(* {Top.106} |=  *)
+</span></dt><dd><span>le&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.142</span><span>
+</span><span class="ansi-fg-yellow ansi-bold">Top.142</span><span>}
+     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.142}</span><span> -&gt;</span><span> </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.142}
+(* {Top.142} |=  *)
 </span></dd>
 </dl>
 </div>
@@ -2053,12 +2186,12 @@ No more goals.
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Print</span><span> </span><span class="coqdoc-var">foo</span><span>.</span><span>
 </span></dt><dd><span>foo&#64;{i} = 
-</span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.109}
+</span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.145}
      : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{i}
 (* Public universes:
 i |= Set &lt; i
 Private universes:
-{Top.109} |= Top.109 &lt; i *)
+{Top.145} |= Top.145 &lt; i *)
 </span></dd>
 </dl>
 </div>
@@ -2071,9 +2204,9 @@ universe:</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">foo&#64;</span><span>{</span><span class="coqdoc-var">_</span><span>}.</span><span>
-</span></dt><dd><span>foo&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.110</span><span>}
-     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.110}
-(* {Top.110} |= Set &lt; Top.110 *)
+</span></dt><dd><span>foo&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.146</span><span>}
+     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.146}
+(* {Top.146} |= Set &lt; Top.146 *)
 </span></dd>
 </dl>
 </div>
@@ -2102,7 +2235,7 @@ be unset:</p>
 </span></dt><dd><span>1 goal
   
   ============================
-  </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.111}
+  </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.147}
 
 
 No more goals.
@@ -2121,10 +2254,10 @@ Expands to: Constant Top.bar
 Universe instance length is 1 but should be 2.
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">bar&#64;</span><span>{</span><span class="coqdoc-var">_</span><span> </span><span class="coqdoc-var">_</span><span>}.</span><span>
-</span></dt><dd><span>bar&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.114</span><span>
-</span><span class="ansi-fg-yellow ansi-bold">Top.115</span><span>}
-     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.114}
-(* {Top.115 Top.114} |= Top.115 &lt; Top.114 *)
+</span></dt><dd><span>bar&#64;{</span><span class="ansi-fg-yellow ansi-bold">Top.150</span><span>
+</span><span class="ansi-fg-yellow ansi-bold">Top.151</span><span>}
+     : </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>&#64;{Top.150}
+(* {Top.151 Top.150} |= Top.151 &lt; Top.150 *)
 </span></dd>
 </dl>
 </div>
