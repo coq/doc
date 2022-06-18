@@ -2090,17 +2090,30 @@ current Coq session.</p>
 <dl class="coq cmd">
 <dt id="coq:cmd.Declare-ML-Module">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Declare</span></span> <span><span>ML</span></span> <span><span>Module</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a></span><span class="notation-sup">+</span></span></span></code><a class="headerlink" href="#coq:cmd.Declare-ML-Module" title="Permalink to this definition">¶</a></dt>
-<dd><p>This commands dynamically loads OCaml plugins dynamically.  The string
-argument must be a valid <code class="docutils literal notranslate"><span class="pre">findlib</span> <span class="pre">&lt;http://projects.camlcity.org/projects/findlib.html&gt;</span></code>
-plugin name, for example <code class="docutils literal notranslate"><span class="pre">coq-core.plugins.ltac</span></code>. The first component of
-the plugin name is a package that has to be in scope of <code class="docutils literal notranslate"><span class="pre">findlib</span></code>.
-One can see the paths explored by <code class="docutils literal notranslate"><span class="pre">findlib</span></code> by running
-<code class="docutils literal notranslate"><span class="pre">ocamlfind</span> <span class="pre">printconf</span></code> and get the list of available packages
-by running <code class="docutils literal notranslate"><span class="pre">ocamlfind</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">coq</span></code> (Coq packages are typically named
-<code class="docutils literal notranslate"><span class="pre">coq-something</span></code>).</p>
+<dd><p>Load an OCaml &quot;plugin&quot; and its dependencies
+dynamically. <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole"><span class="pre">string</span></span></a></span></code> argument must be a valid <a class="reference external" href="http://projects.camlcity.org/projects/findlib.html">findlib</a> library name,
+for example <code class="docutils literal notranslate"><span class="pre">coq-core.plugins.ltac</span></code>. The first component of the
+plugin name is a package that has to be in scope of <code class="docutils literal notranslate"><span class="pre">findlib</span></code>'s
+search path. As of Coq 8.16, the command also support a &quot;legacy&quot;
+syntax compatible with the plugin loading system used in Coq
+8.0-8.15, see below.</p>
+<p>One can see the paths explored by <code class="docutils literal notranslate"><span class="pre">findlib</span></code> by running
+<code class="docutils literal notranslate"><span class="pre">ocamlfind</span> <span class="pre">printconf</span></code> and get the list of available libraries by
+running <code class="docutils literal notranslate"><span class="pre">ocamlfind</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">coq</span></code> (Coq libraries are typically
+named <code class="docutils literal notranslate"><span class="pre">coq-something</span></code>).</p>
 <p>This command is reserved for plugin developers, who should provide
-a .v file containing the command. Users of the plugins will then generally
-load the .v file.</p>
+a <code class="docutils literal notranslate"><span class="pre">.v</span></code> file containing the command. Users of the plugin will
+usually require the resulting <code class="docutils literal notranslate"><span class="pre">.vo</span></code> file which will then
+transitively load the required plugin.</p>
+<p>Note that the plugin loading system for Coq changed in 8.16 to use
+findlib. Previous Coq versions loaded OCaml dynamic objects by
+first locating the object file from <code class="docutils literal notranslate"><span class="pre">-I</span></code> directives, then
+directly invoking <code class="docutils literal notranslate"><span class="pre">Dynlink.loadfile</span></code>. For compatibility purposes,
+8.16 still supports this legacy method, with the syntax being
+<code class="docutils literal notranslate"><span class="pre">Declare</span> <span class="pre">ML</span> <span class="pre">Module</span> <span class="pre">&quot;foo_plugin:pkg.plugin.foo&quot;.</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">foo_plugin</span></code> is the name of the OCaml object file.</p>
+<p>This is useful if you are still using a third party build system
+such as Dune or your own.</p>
 <p>This command supports the <a class="reference internal" href="../language/core/modules.html#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> attribute.  If present,
 the listed files are not exported, even if they're outside a section.</p>
 <dl class="coq exn">
@@ -2113,9 +2126,8 @@ the listed files are not exported, even if they're outside a section.</p>
 <dl class="coq cmd">
 <dt id="coq:cmd.Print-ML-Modules">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Print</span></span> <span><span>ML</span></span> <span><span>Modules</span></span></span></code><a class="headerlink" href="#coq:cmd.Print-ML-Modules" title="Permalink to this definition">¶</a></dt>
-<dd><p>This prints the name of all OCaml modules loaded with <a class="reference internal" href="#coq:cmd.Declare-ML-Module" title="Declare ML Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Declare</span> <span class="pre">ML</span> <span class="pre">Module</span></code></a>.
-To know from where these module were loaded, the user
-should use the command <a class="reference internal" href="#coq:cmd.Locate-File" title="Locate File"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Locate</span> <span class="pre">File</span></code></a>.</p>
+<dd><p>Print the name of all findlib libraries loaded with
+<a class="reference internal" href="#coq:cmd.Declare-ML-Module" title="Declare ML Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Declare</span> <span class="pre">ML</span> <span class="pre">Module</span></code></a>.</p>
 </dd></dl>
 
 </div>
