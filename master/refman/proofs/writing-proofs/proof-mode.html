@@ -245,7 +245,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../language/extensions/index.html">Language extensions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../language/extensions/evars.html">Existential variables</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#inferable-subterms">Inferable subterms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#explicit-displaying-of-existential-instances-for-pretty-printing">Explicit displaying of existential instances for pretty-printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#e-tactics-that-can-create-existential-variables">e* tactics that can create existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#automatic-resolution-of-existential-variables">Automatic resolution of existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#explicit-display-of-existential-instances-for-pretty-printing">Explicit display of existential instances for pretty-printing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../language/extensions/evars.html#solving-existential-variables-using-tactics">Solving existential variables using tactics</a></li>
 </ul>
 </li>
@@ -454,10 +456,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#proof-modes">Proof modes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#navigation-in-the-proof-tree">Navigation in the proof tree</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#bullets">Bullets</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#modifying-the-order-of-goals">Modifying the order of goals</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#postponing-the-proof-of-some-goals">Postponing the proof of some goals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#managing-goals">Managing goals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#focusing-goals">Focusing goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#shelving-goals">Shelving goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reordering-goals">Reordering goals</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#proving-a-subgoal-as-a-separate-lemma-abstract">Proving a subgoal as a separate lemma: abstract</a></li>
@@ -1420,8 +1422,9 @@ term after using the <a class="reference internal" href="reasoning-inductives.ht
 </div>
 <p>The incomplete parts, the goals, are represented by
 <a class="reference internal" href="../../language/extensions/evars.html#term-existential-variable"><span class="xref std std-term">existential variables</span></a>
-with names that begin with <code class="docutils literal notranslate"><span class="pre">?Goal</span></code>.  The <a class="reference internal" href="#coq:cmd.Show-Existentials" title="Show Existentials"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Show</span> <span class="pre">Existentials</span></code></a> command
-shows each existential with the hypotheses and conclusion for the associated goal.</p>
+with names that begin with <code class="docutils literal notranslate"><span class="pre">?Goal</span></code>.  (Note that some existential variables
+are not goals.)  The <a class="reference internal" href="#coq:cmd.Show-Existentials" title="Show Existentials"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Show</span> <span class="pre">Existentials</span></code></a> command shows each existential with
+the hypotheses and conclusion for the associated goal.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Show</span><span> </span><span class="coqdoc-var">Existentials</span><span>.</span><span>
@@ -1430,6 +1433,16 @@ Existential 2 = ?Goal0 : [n : nat  m : nat  H : n</span><span> &gt;</span><span>
 </span></dd>
 </dl>
 </div>
+<p>Users can control which goals are displayed in the context by <a class="reference internal" href="#term-focus"><span class="xref std std-term">focusing</span></a>
+goals.  Focusing lets the user (initially) pick a single goal to work on.  Focusing
+operations can be nested.</p>
+<p>Tactics such as <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eapply" title="eapply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eapply</span></code></a> create existential variables as placeholders for
+undetermined variables that become <a class="reference internal" href="#term-shelved"><span class="xref std std-term">shelved</span></a> goals.
+Shelved goals are not shown in the context by default, but they can be unshelved
+to make them visible.  Other tactics may automatically resolve these goals
+(whether shelved or not); the purpose of shelving is to hide goals that the
+user usually doesn't need to think about.  See <a class="reference internal" href="../../language/extensions/evars.html#existential-variables"><span class="std std-ref">Existential variables</span></a>
+and <a class="reference internal" href="../../language/extensions/evars.html#automatic-evar-resolution"><span class="std std-ref">this example</span></a>.</p>
 <p>Coq's kernel verifies the correctness of proof terms when it exits
 proof mode by checking that the proof term is <a class="reference internal" href="../../language/core/basic.html#term-well-typed"><span class="xref std std-term">well-typed</span></a> and
 that its type is the same as the theorem statement.</p>
@@ -1899,9 +1912,15 @@ This value is only available after <a class="reference internal" href="../../pro
 activated with this command.</p>
 </dd></dl>
 
+<dl class="coq cmd">
+<dt id="coq:cmd.Proof-Mode">
+<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Proof</span></span> <span><span>Mode</span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a></span></code><a class="headerlink" href="#coq:cmd.Proof-Mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the proof mode within the current proof.</p>
+</dd></dl>
+
 </div>
-<div class="section" id="navigation-in-the-proof-tree">
-<h2>Navigation in the proof tree<a class="headerlink" href="#navigation-in-the-proof-tree" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="managing-goals">
+<h2>Managing goals<a class="headerlink" href="#managing-goals" title="Permalink to this headline">¶</a></h2>
 <dl class="coq cmd">
 <dt id="coq:cmd.Undo">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Undo</span></span> <span class="repeat-wrapper"><span class="repeat"><span class="repeat-wrapper"><span class="repeat"><span><span>To</span></span></span><span class="notation-sup">?</span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><span class="hole">natural</span></a></span><span class="notation-sup">?</span></span></span></code><a class="headerlink" href="#coq:cmd.Undo" title="Permalink to this definition">¶</a></dt>
@@ -1921,36 +1940,16 @@ If <a class="reference internal" href="../../language/core/basic.html#grammar-to
 
 </dd></dl>
 
-<dl class="coq cmd">
-<dt id="coq:cmd.Focus">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Focus</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><span class="hole">natural</span></a></span><span class="notation-sup">?</span></span></span></code><a class="headerlink" href="#coq:cmd.Focus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Focuses the attention on the first goal to prove or, if <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><code class="xref std std-token docutils literal notranslate"><span class="pre">natural</span></code></a> is
-specified, the <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><code class="xref std std-token docutils literal notranslate"><span class="pre">natural</span></code></a>-th.  The
-printing of the other goals is suspended until the focused goal
-is solved or unfocused.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 8.8: </span>Prefer the use of bullets or focusing brackets with a goal selector (see below).</p>
-</div>
-</dd></dl>
-
-<dl class="coq cmd">
-<dt id="coq:cmd.Unfocus">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Unfocus</span></span></span></code><a class="headerlink" href="#coq:cmd.Unfocus" title="Permalink to this definition">¶</a></dt>
-<dd><p>This command restores to focus the goal that were suspended by the
-last <a class="reference internal" href="#coq:cmd.Focus" title="Focus"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Focus</span></code></a> command.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 8.8.</span></p>
-</div>
-</dd></dl>
-
-<dl class="coq cmd">
-<dt id="coq:cmd.Unfocused">
-<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Unfocused</span></span></span></code><a class="headerlink" href="#coq:cmd.Unfocused" title="Permalink to this definition">¶</a></dt>
-<dd><p>Succeeds if the proof is fully unfocused, fails if there are some
-goals out of focus.</p>
-</dd></dl>
-
-<span class="target" id="curly-braces"></span><dl class="coq tacn">
+<div class="section" id="focusing-goals">
+<span id="focused-goals"></span><h3>Focusing goals<a class="headerlink" href="#focusing-goals" title="Permalink to this headline">¶</a></h3>
+<p><span class="term-defn"><span class="target" id="term-focus"></span>Focusing</span> lets you limit the context display to (initially) a
+single goal.  If a tactic creates additional goals from a focused goal, the
+subgoals are also focused.  The two focusing constructs are
+<a class="reference internal" href="#curly-braces"><span class="std std-ref">curly braces</span></a> (<code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code>) and <a class="reference internal" href="#bullets"><span class="std std-ref">bullets</span></a>
+(e.g. <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code> or <code class="docutils literal notranslate"><span class="pre">*</span></code>).  These constructs can be nested.</p>
+<div class="section" id="curly-braces">
+<span id="id6"></span><h4>Curly braces<a class="headerlink" href="#curly-braces" title="Permalink to this headline">¶</a></h4>
+<dl class="coq tacn">
 <dt id="coq:tacn.{">
 <em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><span class="alternative"><span class="alternative-block"><a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><span class="hole">natural</span></a></span><span class="alternative-separator">​</span><span class="alternative-block"><span><span>[</span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole">ident</span></a> <span><span>]</span></span></span></span> <span><span>:</span></span></span><span class="notation-sup">?</span></span> <span><span>{</span></span></span></code><a class="headerlink" href="#coq:tacn.{" title="Permalink to this definition">¶</a></dt>
 <dt id="coq:tacn.}">
@@ -1966,113 +1965,70 @@ or focus the next one.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><span class="hole"><span class="pre">natural</span></span></a><span><span><span class="pre">:</span></span></span></span></code></dt><dd><p>Focuses on the <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><code class="xref std std-token docutils literal notranslate"><span class="pre">natural</span></code></a>-th goal to prove.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">[</span></span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">]:</span></span></span> <span><span><span class="pre">{</span></span></span></span></code></dt><dd><p>Focuses on the named goal <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a>.</p>
+</dl>
+</dd></dl>
+
+<blockquote id="focus-shelved-goal">
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">[</span></span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">]:</span></span></span> <span><span><span class="pre">{</span></span></span></span></code></dt><dd><p>Focuses on the goal named <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><code class="xref std std-token docutils literal notranslate"><span class="pre">ident</span></code></a> even if the goal is not in focus.
+Goals are <a class="reference internal" href="../../language/extensions/evars.html#term-existential-variable"><span class="xref std std-term">existential variables</span></a>, which don't
+have names by default.  You can give a name to a goal by using
+<code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">refine</span></span></span> <span><span><span class="pre">?[</span></span></span><a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a><span><span><span class="pre">]</span></span></span></span></code>.</p>
 </dd>
 </dl>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Goals are just existential variables and existential variables do not
-get a name by default. You can give a name to a goal by using <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">refine</span></span></span> <span><span><span class="pre">?[</span></span></span><a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a><span><span><span class="pre">]</span></span></span></span></code>.
-You may also wrap this in an Ltac-definition like:</p>
+<p class="admonition-title">Example: Working with named goals</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Ltac</span><span> </span><span class="coqdoc-var">name_goal</span><span> </span><span class="coqdoc-var">name</span><span> := </span><span class="coqdoc-tactic">refine</span><span> ?[</span><span class="coqdoc-var">name</span><span>].</span><span>
-</span></dt><dd class="coqtop-hidden"><span>name_goal is defined
+<dt><span></span><span class="coqdoc-keyword">Ltac</span><span> </span><span class="coqdoc-var">name_goal</span><span> </span><span class="coqdoc-var">name</span><span> := </span><span class="coqdoc-tactic">refine</span><span> ?[</span><span class="coqdoc-var">name</span><span>]. </span><span class="coqdoc-comment">(* for convenience *)</span></dt><dd class="coqtop-hidden"><span>name_goal is defined
 </span></dd>
-</dl>
-</div>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="../../language/extensions/evars.html#existential-variables"><span class="std std-ref">Existential variables</span></a></p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Example</p>
-<p>This first example uses the Ltac definition above, and the named goals
-only serve for documentation.</p>
-<div class="coqtop literal-block docutils container">
+<dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">Names</span><span>. </span><span class="coqdoc-comment">(* show goal names, e.g. &quot;(?base)&quot; and &quot;(?step)&quot; *)</span></dt></dl>
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span>, </span><span class="coqdoc-var">n</span><span> + 0 = </span><span class="coqdoc-var">n</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+</span></dt><dd><span>1 goal (?Goal)
   
   ============================
   </span><span class="ansi-bold">forall</span><span> n : nat, n</span><span> +</span><span> 0</span><span> =</span><span> n
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Proof</span><span>.</span><span>
 </span></dt><dt><span></span><span class="coqdoc-tactic">induction</span><span> </span><span class="coqdoc-var">n</span><span>; [ </span><span class="coqdoc-var">name_goal</span><span> </span><span class="coqdoc-var">base</span><span> | </span><span class="coqdoc-var">name_goal</span><span> </span><span class="coqdoc-var">step</span><span> ].</span><span>
-</span></dt><dd><span>2 goals
+</span></dt><dd><span>2 goals, goal 1 (?base)
   
   ============================
   0</span><span> +</span><span> 0</span><span> =</span><span> 0
 
-goal 2 is:
+goal 2 (?step) is:
  S n</span><span> +</span><span> 0</span><span> =</span><span> S n
 </span></dd>
-<dt><span>[</span><span class="coqdoc-var">base</span><span>]: {</span></dt><dd><span>1 goal
+<dt><span></span><span class="coqdoc-comment">(* focus on the goal named &quot;base&quot; *)</span></dt><dt><span>[</span><span class="coqdoc-var">base</span><span>]: {</span><span>
+  </span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
+</span></dt><dd><span>1 goal (?base)
   
   ============================
   0</span><span> +</span><span> 0</span><span> =</span><span> 0
-</span></dd>
-</dl>
-<span></span><dl>
-<dt><span></span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
-</span></dt><dd><span>This subproof is complete, but there are some unfocused goals.
+
+This subproof is complete, but there are some unfocused goals.
 Try unfocusing with &quot;}&quot;.
 
 1 goal
 
-goal 1 is:
+goal 1 (?step) is:
  S n</span><span> +</span><span> 0</span><span> =</span><span> S n
 </span></dd>
 </dl>
 <span></span><dl>
-<dt><span>}</span></dt><dd class="coqtop-hidden"><span>1 goal
+<dt><span>}</span></dt><dd class="coqtop-hidden"><span>1 goal (?step)
   
   n : nat
   IHn : n</span><span> +</span><span> 0</span><span> =</span><span> n
   ============================
   S n</span><span> +</span><span> 0</span><span> =</span><span> S n
-</span></dd>
-</dl>
-<span></span><dl>
-<dt><span>[</span><span class="coqdoc-var">step</span><span>]: {</span></dt><dd><span>1 goal
-  
-  n : nat
-  IHn : n</span><span> +</span><span> 0</span><span> =</span><span> n
-  ============================
-  S n</span><span> +</span><span> 0</span><span> =</span><span> S n
-</span></dd>
-</dl>
-<span></span><dl>
-<dt><span></span><span class="coqdoc-tactic">simpl</span><span>.</span><span>
-</span></dt><dd><span>1 goal
-  
-  n : nat
-  IHn : n</span><span> +</span><span> 0</span><span> =</span><span> n
-  ============================
-  S (n</span><span> +</span><span> 0)</span><span> =</span><span> S n
-</span></dd>
-<dt><span></span><span class="coqdoc-tactic">f_equal</span><span>.</span><span>
-</span></dt><dd><span>1 goal
-  
-  n : nat
-  IHn : n</span><span> +</span><span> 0</span><span> =</span><span> n
-  ============================
-  n</span><span> +</span><span> 0</span><span> =</span><span> n
-</span></dd>
-<dt><span></span><span class="coqdoc-tactic">assumption</span><span>.</span><span>
-</span></dt><dd><span>No more goals.
-</span></dd>
-<dt><span>}</span><span>
-</span><span class="coqdoc-keyword">Qed</span><span>.</span><span>
-</span></dt><dd><span>No more goals.
-
 </span></dd>
 </dl>
 </div>
 <p>This can also be a way of focusing on a shelved goal, for instance:</p>
 <div class="coqtop literal-block docutils container">
-<span></span><dl>
+<span class="coqtop-reset"></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-tactic">exists</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>, </span><span class="coqdoc-var">n</span><span> = </span><span class="coqdoc-var">n</span><span>.</span><span>
 </span></dt><dd><span>1 goal
   
@@ -2127,215 +2083,103 @@ or by its name if it has one.</p>
 <p class="admonition-title">See also</p>
 <p>The error messages for bullets below.</p>
 </div>
-</dd></dl>
-
+</div></blockquote>
+</div>
 <div class="section" id="bullets">
-<span id="id6"></span><h3>Bullets<a class="headerlink" href="#bullets" title="Permalink to this headline">¶</a></h3>
+<span id="id7"></span><h4>Bullets<a class="headerlink" href="#bullets" title="Permalink to this headline">¶</a></h4>
 <p>Alternatively, proofs can be structured with bullets instead of <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code>. The
-use of a bullet <code class="docutils literal notranslate"><span class="pre">b</span></code> for the first time focuses on the first goal <code class="docutils literal notranslate"><span class="pre">g</span></code>, the
-same bullet cannot be used again until the proof of <code class="docutils literal notranslate"><span class="pre">g</span></code> is completed,
-then it is mandatory to focus the next goal with <code class="docutils literal notranslate"><span class="pre">b</span></code>. The consequence is
-that <code class="docutils literal notranslate"><span class="pre">g</span></code> and all goals present when <code class="docutils literal notranslate"><span class="pre">g</span></code> was focused are focused with the
+first use of a bullet <code class="docutils literal notranslate"><span class="pre">b</span></code> focuses on the first goal <code class="docutils literal notranslate"><span class="pre">g</span></code>.  The
+same bullet can't be used again until the proof of <code class="docutils literal notranslate"><span class="pre">g</span></code> is completed,
+then the next goal must be focused with another <code class="docutils literal notranslate"><span class="pre">b</span></code>. Thus,
+all the goals present just before the first use of the bullet must be focused with the
 same bullet <code class="docutils literal notranslate"><span class="pre">b</span></code>. See the example below.</p>
-<p>Different bullets can be used to nest levels. The scope of bullet does
-not go beyond enclosing <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code>, so bullets can be reused as further
-nesting levels provided they are delimited by these. Bullets are made of
-repeated <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code> or <code class="docutils literal notranslate"><span class="pre">*</span></code> symbols:</p>
-<span class="prodn-table"><span class="prodn-column-group"><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span></span><span class="prodn-row-group"><span class="prodn-row"><span class="prodn-cell-nonterminal"><span class="prodn-target"><span class="target" id="grammar-token-bullet"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-bullet"><span class="hole">bullet</span></a></span></span><span class="prodn-cell-op"><code class="docutils literal notranslate"><span class="pre">::=</span></code></span><span class="prodn-cell-production"><span class="notation"><span class="alternative"><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>-</span></span></span><span class="notation-sup">+</span></span></span><span class="alternative-separator">​</span><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>+</span></span></span><span class="notation-sup">+</span></span></span><span class="alternative-separator">​</span><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>*</span></span></span><span class="notation-sup">+</span></span></span></span></span></span><span class="prodn-cell-tag"><code class="docutils literal notranslate"></code></span></span></span></span><p>Note again that when a focused goal is proved a message is displayed
-together with a suggestion about the right bullet or <code class="docutils literal notranslate"><span class="pre">}</span></code> to unfocus it
-or focus the next one.</p>
+<p>Different bullets can be used to nest levels. The scope of each bullet
+is limited to the enclosing <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code>, so bullets can be reused as further
+nesting levels provided they are delimited by curly braces. Bullets are made from
+<code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code> or <code class="docutils literal notranslate"><span class="pre">*</span></code> characters (with no spaces and no period afterward):</p>
+<dl class="coq tacn">
+<dt id="coq:tacn.bullet">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><a class="reference internal" href="#grammar-token-bullet"><span class="hole">bullet</span></a></span></code><a class="headerlink" href="#coq:tacn.bullet" title="Permalink to this definition">¶</a></dt>
+<dd><span class="prodn-table"><span class="prodn-column-group"><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span></span><span class="prodn-row-group"><span class="prodn-row"><span class="prodn-cell-nonterminal"><span class="prodn-target"><span class="target" id="grammar-token-bullet"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-bullet"><span class="hole">bullet</span></a></span></span><span class="prodn-cell-op"><code class="docutils literal notranslate"><span class="pre">::=</span></code></span><span class="prodn-cell-production"><span class="notation"><span class="alternative"><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>-</span></span></span><span class="notation-sup">+</span></span></span><span class="alternative-separator">​</span><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>+</span></span></span><span class="notation-sup">+</span></span></span><span class="alternative-separator">​</span><span class="alternative-block"><span class="repeat-wrapper"><span class="repeat"><span><span>*</span></span></span><span class="notation-sup">+</span></span></span></span></span></span><span class="prodn-cell-tag"><code class="docutils literal notranslate"></code></span></span></span></span></dd></dl>
+
+<p>When a focused goal is proved, Coq displays a message suggesting use of
+<code class="docutils literal notranslate"><span class="pre">}</span></code> or the correct matching bullet to unfocus the goal or focus the next subgoal.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In Proof General (<code class="docutils literal notranslate"><span class="pre">Emacs</span></code> interface to Coq), you must use
-bullets with the priority ordering shown above to have a correct
-indentation. For example <code class="docutils literal notranslate"><span class="pre">-</span></code> must be the outer bullet and <code class="docutils literal notranslate"><span class="pre">**</span></code> the inner
+bullets with the priority ordering shown above to have correct
+indentation. For example <code class="docutils literal notranslate"><span class="pre">-</span></code> must be the outer bullet and <code class="docutils literal notranslate"><span class="pre">+</span></code> the inner
 one in the example below.</p>
 </div>
-<p>The following example script illustrates all these features:</p>
 <div class="admonition note">
-<p class="admonition-title">Example</p>
+<p class="admonition-title">Example: Use of bullets</p>
+<p>For the sake of brevity, the output for this example is summarized in comments.
+Note that the tactic following a bullet is frequently put on the same line with the bullet.
+Observe that this proof still works even if all the bullets in it are omitted.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Goal</span><span> (((</span><span class="coqdoc-var">True</span><span> /\ </span><span class="coqdoc-var">True</span><span>) /\ </span><span class="coqdoc-var">True</span><span>) /\ </span><span class="coqdoc-var">True</span><span>) /\ </span><span class="coqdoc-var">True</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> (1=1 /\ 2=2) /\ 3=3.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
   
   ============================
-  (((True</span><span> /\</span><span> True)</span><span> /\</span><span> True)</span><span> /\</span><span> True)</span><span> /\</span><span> True
+  (1</span><span> =</span><span> 1</span><span> /\</span><span> 2</span><span> =</span><span> 2)</span><span> /\</span><span> 3</span><span> =</span><span> 3
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Proof</span><span>.</span><span>
-</span></dt><dt><span></span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>2 goals
+</span></dt><dt><span></span><span class="coqdoc-tactic">split</span><span>. </span><span class="coqdoc-comment">(*     1 = 1 /\ 2 = 2 and 3 = 3 *)</span></dt><dd class="coqtop-hidden"><span>2 goals
   
   ============================
-  ((True</span><span> /\</span><span> True)</span><span> /\</span><span> True)</span><span> /\</span><span> True
+  1</span><span> =</span><span> 1</span><span> /\</span><span> 2</span><span> =</span><span> 2
 
 goal 2 is:
- True
+ 3</span><span> =</span><span> 3
 </span></dd>
-<dt><span>- </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span>-          </span><span class="coqdoc-comment">(* 1 = 1 /\ 2 = 2 *)</span></dt><dd class="coqtop-hidden"><span>1 goal
   
   ============================
-  ((True</span><span> /\</span><span> True)</span><span> /\</span><span> True)</span><span> /\</span><span> True
-
-2 goals
-  
-  ============================
-  (True</span><span> /\</span><span> True)</span><span> /\</span><span> True
-
-goal 2 is:
- True
+  1</span><span> =</span><span> 1</span><span> /\</span><span> 2</span><span> =</span><span> 2
 </span></dd>
-<dt><span>+ </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span> </span><span class="coqdoc-tactic">split</span><span>. </span><span class="coqdoc-comment">(*    1 = 1 and 2 = 2 *)</span></dt><dd class="coqtop-hidden"><span>2 goals
   
   ============================
-  (True</span><span> /\</span><span> True)</span><span> /\</span><span> True
-
-2 goals
-  
-  ============================
-  True</span><span> /\</span><span> True
+  1</span><span> =</span><span> 1
 
 goal 2 is:
- True
+ 2</span><span> =</span><span> 2
 </span></dd>
-<dt><span>** { </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span> +         </span><span class="coqdoc-comment">(* 1 = 1 *)</span></dt><dd class="coqtop-hidden"><span>1 goal
   
   ============================
-  True</span><span> /\</span><span> True
-
-1 goal
-  
-  ============================
-  True</span><span> /\</span><span> True
-
-2 goals
-  
-  ============================
-  True
-
-goal 2 is:
- True
+  1</span><span> =</span><span> 1
 </span></dd>
-<dt><span>- </span><span class="coqdoc-tactic">trivial</span><span>.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  True
-
-This subproof is complete, but there are some unfocused goals.
-Focus next goal with bullet -.
-
-4 goals
-
-goal 1 is:
- True
-goal 2 is:
- True
-goal 3 is:
- True
-goal 4 is:
- True
-</span></dd>
-<dt><span>- </span><span class="coqdoc-tactic">trivial</span><span>.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  True
-
-This subproof is complete, but there are some unfocused goals.
-Try unfocusing with &quot;}&quot;.
-
-3 goals
-
-goal 1 is:
- True
-goal 2 is:
- True
-goal 3 is:
- True
-</span></dd>
-<dt><span>}</span><span>
-** </span><span class="coqdoc-tactic">trivial</span><span>.</span><span>
-</span></dt><dd><span>This subproof is complete, but there are some unfocused goals.
-Focus next goal with bullet **.
-
-3 goals
-
-goal 1 is:
- True
-goal 2 is:
- True
-goal 3 is:
- True
-
-1 goal
-  
-  ============================
-  True
-
-This subproof is complete, but there are some unfocused goals.
+<dt><span>  </span><span class="coqdoc-tactic">trivial</span><span>. </span><span class="coqdoc-comment">(* subproof complete *)</span></dt><dd class="coqtop-hidden"><span>This subproof is complete, but there are some unfocused goals.
 Focus next goal with bullet +.
 
 2 goals
 
 goal 1 is:
- True
+ 2</span><span> =</span><span> 2
 goal 2 is:
- True
+ 3</span><span> =</span><span> 3
 </span></dd>
-<dt><span>+ </span><span class="coqdoc-tactic">trivial</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span> +         </span><span class="coqdoc-comment">(* 2 = 2 *)</span></dt><dd class="coqtop-hidden"><span>1 goal
   
   ============================
-  True
-
-This subproof is complete, but there are some unfocused goals.
+  2</span><span> =</span><span> 2
+</span></dd>
+<dt><span>  </span><span class="coqdoc-tactic">trivial</span><span>. </span><span class="coqdoc-comment">(* subproof complete *)</span></dt><dd class="coqtop-hidden"><span>This subproof is complete, but there are some unfocused goals.
 Focus next goal with bullet -.
 
 1 goal
 
 goal 1 is:
- True
+ 3</span><span> =</span><span> 3
 </span></dd>
-<dt><span>- </span><span class="coqdoc-tactic">assert</span><span> </span><span class="coqdoc-var">True</span><span>.</span><span>
-</span></dt><dd><span>1 goal
+<dt><span>-          </span><span class="coqdoc-comment">(* 3 = 3 *)</span></dt><dd class="coqtop-hidden"><span>1 goal
   
   ============================
-  True
-
-2 goals
-  
-  ============================
-  True
-
-goal 2 is:
- True
+  3</span><span> =</span><span> 3
 </span></dd>
-<dt><span>{ </span><span class="coqdoc-tactic">trivial</span><span>. }</span><span>
-</span><span class="coqdoc-tactic">assumption</span><span>.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  True
-
-This subproof is complete, but there are some unfocused goals.
-Try unfocusing with &quot;}&quot;.
-
-1 goal
-
-goal 1 is:
- True
-
-1 goal
-  
-  H : True
-  ============================
-  True
-
-No more goals.
+<dt><span> </span><span class="coqdoc-tactic">trivial</span><span>. </span><span class="coqdoc-comment">(*  No more subgoals *)</span></dt><dd class="coqtop-hidden"><span>No more goals.
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Qed</span><span>.</span><span>
 </span></dt></dl>
@@ -2364,19 +2208,17 @@ Using <code class="docutils literal notranslate"><span class="notation"><a class
 </dd></dl>
 
 <dl class="coq exn">
-<dt>
-<em class="property"><span class="sigannot">Error</span></em> <code class="sig-name descname"><span class="notation"><span><span>No</span></span> <span><span>such</span></span> <span><span>goal.</span></span> <span><span>Try</span></span> <span><span>unfocusing</span></span> <span><span>with</span></span> <span><span>}</span></span><span><span>.</span></span></span></code></dt>
+<dt id="coq:exn.No-such-goal.-Try-unfocusing-with-}">
+<em class="property"><span class="sigannot">Error</span></em> <code class="sig-name descname"><span class="notation"><span><span>No</span></span> <span><span>such</span></span> <span><span>goal.</span></span> <span><span>Try</span></span> <span><span>unfocusing</span></span> <span><span>with</span></span> <span><span>}</span></span><span><span>.</span></span></span></code><a class="headerlink" href="#coq:exn.No-such-goal.-Try-unfocusing-with-}" title="Permalink to this definition">¶</a></dt>
 <dd><p>You just finished a goal focused by <code class="docutils literal notranslate"><span class="pre">{</span></code>, you must unfocus it with <code class="docutils literal notranslate"><span class="pre">}</span></code>.</p>
 </dd></dl>
 
-<div class="section" id="mandatory-bullets">
-<h4>Mandatory Bullets<a class="headerlink" href="#mandatory-bullets" title="Permalink to this headline">¶</a></h4>
-<p>Using <a class="reference internal" href="../../proof-engine/tactics.html#coq:opt.Default-Goal-Selector" title="Default Goal Selector"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Default</span> <span class="pre">Goal</span> <span class="pre">Selector</span></code></a> with the <code class="docutils literal notranslate"><span class="pre">!</span></code> selector forces
-tactic scripts to keep focus to exactly one goal (e.g. using bullets)
-or use explicit goal selectors.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use <a class="reference internal" href="../../proof-engine/tactics.html#coq:opt.Default-Goal-Selector" title="Default Goal Selector"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Default</span> <span class="pre">Goal</span> <span class="pre">Selector</span></code></a> with the <code class="docutils literal notranslate"><span class="pre">!</span></code> selector to force
+the use of focusing mechanisms (bullets, braces) and goal selectors so
+that it is always explicit to which goal(s) a tactic is applied.</p>
 </div>
-<div class="section" id="set-bullet-behavior">
-<h4>Set Bullet Behavior<a class="headerlink" href="#set-bullet-behavior" title="Permalink to this headline">¶</a></h4>
 <dl class="coq opt">
 <dt id="coq:opt.Bullet-Behavior">
 <em class="property"><span class="sigannot">Option</span></em> <code class="sig-name descname"><span class="notation"><span><span>Bullet</span></span> <span><span>Behavior</span></span> <span class="alternative"><span class="alternative-block"><span><span>&quot;None&quot;</span></span></span><span class="alternative-separator">​</span><span class="alternative-block"><span><span>&quot;Strict</span></span> <span><span>Subproofs&quot;</span></span></span></span></span></code><a class="headerlink" href="#coq:opt.Bullet-Behavior" title="Permalink to this definition">¶</a></dt>
@@ -2388,223 +2230,60 @@ or use explicit goal selectors.</p>
 </dd></dl>
 
 </div>
-</div>
-<div class="section" id="modifying-the-order-of-goals">
-<h3>Modifying the order of goals<a class="headerlink" href="#modifying-the-order-of-goals" title="Permalink to this headline">¶</a></h3>
-<dl class="coq tacn">
-<dt id="coq:tacn.cycle">
-<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>cycle</span></span> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a></span></code><a class="headerlink" href="#coq:tacn.cycle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reorders the selected goals so that the first <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> goals appear after the
-other selected goals.
-If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> is negative, it puts the last <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> goals at the
-beginning of the list.
-The tactic is only useful with a goal selector, most commonly <code class="docutils literal notranslate"><span class="pre">all:</span></code>.
-Note that other selectors reorder goals; <code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">cycle</span> <span class="pre">1</span></code> is not equivalent
-to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">cycle</span> <span class="pre">1</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
+<div class="section" id="other-focusing-commands">
+<h4>Other focusing commands<a class="headerlink" href="#other-focusing-commands" title="Permalink to this headline">¶</a></h4>
+<dl class="coq cmd">
+<dt id="coq:cmd.Unfocused">
+<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Unfocused</span></span></span></code><a class="headerlink" href="#coq:cmd.Unfocused" title="Permalink to this definition">¶</a></dt>
+<dd><p>Succeeds if there are no unfocused goals.  Otherwise the command fails.</p>
 </dd></dl>
 
-<div class="admonition note">
-<p class="admonition-title">Example</p>
-<div class="coqtop literal-block docutils container">
-<span class="coqtop-reset"></span><dl>
-<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">P</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-keyword">Prop</span><span>.</span><span>
-</span></dt><dd class="coqtop-hidden"><span>P is declared
-</span></dd>
-</dl>
-<span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 1
-
-goal 2 is:
- P 2
-goal 3 is:
- P 3
-goal 4 is:
- P 4
-goal 5 is:
- P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">cycle</span><span> 2.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 3
-
-goal 2 is:
- P 4
-goal 3 is:
- P 5
-goal 4 is:
- P 1
-goal 5 is:
- P 2
-</span></dd>
-<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">cycle</span><span> -3.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 5
-
-goal 2 is:
- P 1
-goal 3 is:
- P 2
-goal 4 is:
- P 3
-goal 5 is:
- P 4
-</span></dd>
-</dl>
+<dl class="coq cmd">
+<dt id="coq:cmd.Focus">
+<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Focus</span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><span class="hole">natural</span></a></span><span class="notation-sup">?</span></span></span></code><a class="headerlink" href="#coq:cmd.Focus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Focuses the attention on the first goal to prove or, if <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><code class="xref std std-token docutils literal notranslate"><span class="pre">natural</span></code></a> is
+specified, the <a class="reference internal" href="../../language/core/basic.html#grammar-token-natural"><code class="xref std std-token docutils literal notranslate"><span class="pre">natural</span></code></a>-th.  The
+printing of the other goals is suspended until the focused goal
+is solved or unfocused.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 8.8: </span>Prefer the use of bullets or focusing braces with a goal selector (see above).</p>
 </div>
-</div>
-<dl class="coq tacn">
-<dt id="coq:tacn.swap">
-<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>swap</span></span> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a></span></code><a class="headerlink" href="#coq:tacn.swap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exchanges the position of the specified goals.
-Negative values for <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> indicate counting goals
-backward from the end of the list of selected goals. Goals are indexed from 1.
-The tactic is only useful with a goal selector, most commonly <code class="docutils literal notranslate"><span class="pre">all:</span></code>.
-Note that other selectors reorder goals; <code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">swap</span> <span class="pre">1</span> <span class="pre">3</span></code> is not equivalent
-to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">swap</span> <span class="pre">1</span> <span class="pre">3</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
 </dd></dl>
 
-<div class="admonition note">
-<p class="admonition-title">Example</p>
-<div class="coqtop literal-block docutils container">
-<span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 1
-
-goal 2 is:
- P 2
-goal 3 is:
- P 3
-goal 4 is:
- P 4
-goal 5 is:
- P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">swap</span><span> 1 3.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 3
-
-goal 2 is:
- P 2
-goal 3 is:
- P 1
-goal 4 is:
- P 4
-goal 5 is:
- P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">swap</span><span> 1 -1.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 5
-
-goal 2 is:
- P 2
-goal 3 is:
- P 1
-goal 4 is:
- P 4
-goal 5 is:
- P 3
-</span></dd>
-</dl>
-</div>
-</div>
-<dl class="coq tacn">
-<dt id="coq:tacn.revgoals">
-<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>revgoals</span></span></span></code><a class="headerlink" href="#coq:tacn.revgoals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reverses the order of the selected goals.  The tactic is only useful with a goal
-selector, most commonly <code class="docutils literal notranslate"><span class="pre">all</span> <span class="pre">:</span></code>.   Note that other selectors reorder goals;
-<code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">revgoals</span></code> is not equivalent to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">revgoals</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Example</p>
-<div class="coqtop literal-block docutils container">
-<span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
-</span></dt><dd><span>1 goal
-  
-  ============================
-  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 1
-
-goal 2 is:
- P 2
-goal 3 is:
- P 3
-goal 4 is:
- P 4
-goal 5 is:
- P 5
-</span></dd>
-<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">revgoals</span><span>.</span><span>
-</span></dt><dd><span>5 goals
-  
-  ============================
-  P 5
-
-goal 2 is:
- P 4
-goal 3 is:
- P 3
-goal 4 is:
- P 2
-goal 5 is:
- P 1
-</span></dd>
-</dl>
-</div>
+<dl class="coq cmd">
+<dt id="coq:cmd.Unfocus">
+<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Unfocus</span></span></span></code><a class="headerlink" href="#coq:cmd.Unfocus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restores to focus the goals that were suspended by the last <a class="reference internal" href="#coq:cmd.Focus" title="Focus"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Focus</span></code></a> command.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 8.8.</span></p>
 </div>
 </dd></dl>
 
 </div>
-<div class="section" id="postponing-the-proof-of-some-goals">
-<h3>Postponing the proof of some goals<a class="headerlink" href="#postponing-the-proof-of-some-goals" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="shelving-goals">
+<span id="shelved-goals"></span><h3>Shelving goals<a class="headerlink" href="#shelving-goals" title="Permalink to this headline">¶</a></h3>
 <p>Goals can be <span class="term-defn"><span class="target" id="term-shelved"></span>shelved</span> so they are no longer displayed in the proof state.
-They can then be <span class="term-defn"><span class="target" id="term-unshelved"></span>unshelved</span> to make them visible again.</p>
+Shelved goals can be unshelved with the <a class="reference internal" href="#coq:cmd.Unshelve" title="Unshelve"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Unshelve</span></code></a> command, which
+makes all shelved goals visible in the proof state.  You can use
+the goal selector <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">[</span></span></span> <a class="reference internal" href="../../language/core/basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a> <span><span><span class="pre">]:</span></span></span> <span><span><span class="pre">{</span></span></span></span></code> to focus on a single shelved goal
+(see <a class="reference internal" href="#focus-shelved-goal"><span class="std std-ref">here</span></a>).  Currently there's no single command or
+tactic that unshelves goals by name.</p>
 <dl class="coq tacn">
 <dt id="coq:tacn.shelve">
 <em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>shelve</span></span></span></code><a class="headerlink" href="#coq:tacn.shelve" title="Permalink to this definition">¶</a></dt>
-<dd><p>This tactic moves all goals under focus to a shelf. While on the
-shelf, goals will not be focused on. They can be solved by
-unification, or they can be called back into focus with the command
-<a class="reference internal" href="#coq:cmd.Unshelve" title="Unshelve"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Unshelve</span></code></a>.</p>
+<dd><p>Moves the focused goals to the shelf.  They will no longer be displayed in
+the context.  The <a class="reference internal" href="#coq:cmd.Show-Existentials" title="Show Existentials"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Show</span> <span class="pre">Existentials</span></code></a> command will still show
+these goals, which will be marked &quot;(shelved)&quot;.</p>
+</dd></dl>
+
 <dl class="coq tacn">
 <dt id="coq:tacn.shelve_unifiable">
 <em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>shelve</span></span><span><span>_</span></span><span><span>unifiable</span></span></span></code><a class="headerlink" href="#coq:tacn.shelve_unifiable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shelves only the goals under focus that are mentioned in other goals.
 Goals that appear in the type of other goals can be solved by unification.</p>
 <div class="admonition note">
-<p class="admonition-title">Example</p>
+<p class="admonition-title">Example: shelve_unifiable</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-tactic">exists</span><span> </span><span class="coqdoc-var">n</span><span>, </span><span class="coqdoc-var">n</span><span>=0.</span><span>
@@ -2628,8 +2307,6 @@ Goals that appear in the type of other goals can be solved by unification.</p>
 </div>
 </dd></dl>
 
-</dd></dl>
-
 <dl class="coq cmd">
 <dt id="coq:cmd.Unshelve">
 <em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Unshelve</span></span></span></code><a class="headerlink" href="#coq:cmd.Unshelve" title="Permalink to this definition">¶</a></dt>
@@ -2646,13 +2323,204 @@ shelf by the execution of <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="coq tacn">
+<dt id="coq:tacn.admit">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>admit</span></span></span></code><a class="headerlink" href="#coq:tacn.admit" title="Permalink to this definition">¶</a></dt>
 <dt id="coq:tacn.give_up">
 <em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>give</span></span><span><span>_</span></span><span><span>up</span></span></span></code><a class="headerlink" href="#coq:tacn.give_up" title="Permalink to this definition">¶</a></dt>
-<dd><p>This tactic removes the focused goals from the proof. They are not
-solved, and cannot be solved later in the proof. As the goals are not
-solved, the proof cannot be closed.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">give_up</span></code> tactic can be used while editing a proof, to choose to
-write the proof script in a non-sequential order.</p>
+<dd><p>Allows skipping a subgoal to permit further progress on the rest of the
+proof.  The selected goals are removed from the context.  They are not
+solved and cannot be solved later in the proof. Since the goals are not
+solved, the proof cannot be closed with <a class="reference internal" href="#coq:cmd.Qed" title="Qed"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Qed</span></code></a> but only with <a class="reference internal" href="#coq:cmd.Admitted" title="Admitted"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Admitted</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="reordering-goals">
+<h3>Reordering goals<a class="headerlink" href="#reordering-goals" title="Permalink to this headline">¶</a></h3>
+<dl class="coq tacn">
+<dt id="coq:tacn.cycle">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>cycle</span></span> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a></span></code><a class="headerlink" href="#coq:tacn.cycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorders the selected goals so that the first <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> goals appear after the
+other selected goals.
+If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> is negative, it puts the last <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> goals at the
+beginning of the list.
+The tactic is only useful with a goal selector, most commonly <code class="docutils literal notranslate"><span class="pre">all:</span></code>.
+Note that other selectors reorder goals; <code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">cycle</span> <span class="pre">1</span></code> is not equivalent
+to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">cycle</span> <span class="pre">1</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Example: cycle</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">P</span><span> : </span><span class="coqdoc-var">nat</span><span> -&gt; </span><span class="coqdoc-keyword">Prop</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>P is declared
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  ============================
+  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>. </span><span class="coqdoc-comment">(*  P 1, P 2, P 3, P 4, P 5 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 1
+
+goal 2 is:
+ P 2
+goal 3 is:
+ P 3
+goal 4 is:
+ P 4
+goal 5 is:
+ P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">cycle</span><span> 2. </span><span class="coqdoc-comment">(*  P 3, P 4, P 5, P 1, P 2 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 3
+
+goal 2 is:
+ P 4
+goal 3 is:
+ P 5
+goal 4 is:
+ P 1
+goal 5 is:
+ P 2
+</span></dd>
+<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">cycle</span><span> -3. </span><span class="coqdoc-comment">(* P 5, P 1, P 2, P 3, P 4 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 5
+
+goal 2 is:
+ P 1
+goal 3 is:
+ P 2
+goal 4 is:
+ P 3
+goal 5 is:
+ P 4
+</span></dd>
+</dl>
+</div>
+</div>
+</dd></dl>
+
+<dl class="coq tacn">
+<dt id="coq:tacn.swap">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>swap</span></span> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a> <a class="reference internal" href="../../proof-engine/ltac.html#grammar-token-int_or_var"><span class="hole">int_or_var</span></a></span></code><a class="headerlink" href="#coq:tacn.swap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exchanges the position of the specified goals.
+Negative values for <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="../../language/core/basic.html#grammar-token-integer"><span class="hole"><span class="pre">integer</span></span></a></span></code> indicate counting goals
+backward from the end of the list of selected goals. Goals are indexed from 1.
+The tactic is only useful with a goal selector, most commonly <code class="docutils literal notranslate"><span class="pre">all:</span></code>.
+Note that other selectors reorder goals; <code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">swap</span> <span class="pre">1</span> <span class="pre">3</span></code> is not equivalent
+to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">swap</span> <span class="pre">1</span> <span class="pre">3</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Example: swap</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  ============================
+  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>. </span><span class="coqdoc-comment">(*   P 1, P 2, P 3, P 4, P 5 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 1
+
+goal 2 is:
+ P 2
+goal 3 is:
+ P 3
+goal 4 is:
+ P 4
+goal 5 is:
+ P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">swap</span><span> 1 3. </span><span class="coqdoc-comment">(*  P 3, P 2, P 1, P 4, P 5 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 3
+
+goal 2 is:
+ P 2
+goal 3 is:
+ P 1
+goal 4 is:
+ P 4
+goal 5 is:
+ P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">swap</span><span> 1 -1. </span><span class="coqdoc-comment">(* P 5, P 2, P 1, P 4, P 3 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 5
+
+goal 2 is:
+ P 2
+goal 3 is:
+ P 1
+goal 4 is:
+ P 4
+goal 5 is:
+ P 3
+</span></dd>
+</dl>
+</div>
+</div>
+</dd></dl>
+
+<dl class="coq tacn">
+<dt id="coq:tacn.revgoals">
+<em class="property"><span class="sigannot">Tactic</span></em> <code class="sig-name descname"><span class="notation"><span><span>revgoals</span></span></span></code><a class="headerlink" href="#coq:tacn.revgoals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses the order of the selected goals.  The tactic is only useful with a goal
+selector, most commonly <code class="docutils literal notranslate"><span class="pre">all</span> <span class="pre">:</span></code>.   Note that other selectors reorder goals;
+<code class="docutils literal notranslate"><span class="pre">1,3:</span> <span class="pre">revgoals</span></code> is not equivalent to <code class="docutils literal notranslate"><span class="pre">all:</span> <span class="pre">revgoals</span></code>.  See <a class="reference internal" href="../../proof-engine/ltac.html#coq:tacn.…-:-…-(goal-selector)" title="… : … (goal selector)"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">…</span> <span class="pre">:</span> <span class="pre">…</span> <span class="pre">(goal</span> <span class="pre">selector)</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Example: revgoals</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">P</span><span> 1 /\ </span><span class="coqdoc-var">P</span><span> 2 /\ </span><span class="coqdoc-var">P</span><span> 3 /\ </span><span class="coqdoc-var">P</span><span> 4 /\ </span><span class="coqdoc-var">P</span><span> 5.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  ============================
+  P 1</span><span> /\</span><span> P 2</span><span> /\</span><span> P 3</span><span> /\</span><span> P 4</span><span> /\</span><span> P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">repeat</span><span> </span><span class="coqdoc-tactic">split</span><span>. </span><span class="coqdoc-comment">(*  P 1, P 2, P 3, P 4, P 5 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 1
+
+goal 2 is:
+ P 2
+goal 3 is:
+ P 3
+goal 4 is:
+ P 4
+goal 5 is:
+ P 5
+</span></dd>
+<dt><span></span><span class="coqdoc-var">all</span><span>: </span><span class="coqdoc-var">revgoals</span><span>. </span><span class="coqdoc-comment">(* P 5, P 4, P 3, P 2, P 1 *)</span></dt><dd class="coqtop-hidden"><span>5 goals
+  
+  ============================
+  P 5
+
+goal 2 is:
+ P 4
+goal 3 is:
+ P 3
+goal 4 is:
+ P 2
+goal 5 is:
+ P 1
+</span></dd>
+</dl>
+</div>
+</div>
 </dd></dl>
 
 </div>
@@ -2777,7 +2645,7 @@ question mark followed by an identifier.</p>
 current and previous proof step.  By default, the command shows the
 output once with additions highlighted.  Including “removed” shows
 the output twice: once showing removals and once showing additions.
-It does not examine the <a class="reference internal" href="#coq:opt.Diffs" title="Diffs"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Diffs</span></code></a> option.  See <a class="reference internal" href="#id9"><span class="std std-ref">&quot;Show Proof&quot; differences</span></a>.</p>
+It does not examine the <a class="reference internal" href="#coq:opt.Diffs" title="Diffs"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Diffs</span></code></a> option.  See <a class="reference internal" href="#id10"><span class="std std-ref">&quot;Show Proof&quot; differences</span></a>.</p>
 </dd></dl>
 
 <dl class="coq cmd">
@@ -2943,7 +2811,7 @@ it to—the one it is derived from or is the same as.  Match the hypotheses by
 name (order is ignored), handling compacted items specially.</p></li>
 <li><p>For each hypothesis and conclusion (the “items”) in each goal, pass
 them as strings to the lexer to break them into tokens.  Then apply the
-Myers diff algorithm <a class="reference internal" href="../../zebibliography.html#myers" id="id8">[Mye86]</a> on the tokens and add appropriate highlighting.</p></li>
+Myers diff algorithm <a class="reference internal" href="../../zebibliography.html#myers" id="id9">[Mye86]</a> on the tokens and add appropriate highlighting.</p></li>
 </ol>
 <p>Notes:</p>
 <ul class="simple">
@@ -2965,7 +2833,7 @@ in a compacted hypotheses:</p>
 </div></blockquote>
 </div>
 <div class="section" id="show-proof-differences">
-<span id="id9"></span><h3>&quot;Show Proof&quot; differences<a class="headerlink" href="#show-proof-differences" title="Permalink to this headline">¶</a></h3>
+<span id="id10"></span><h3>&quot;Show Proof&quot; differences<a class="headerlink" href="#show-proof-differences" title="Permalink to this headline">¶</a></h3>
 <p>To show differences in the proof term:</p>
 <ul>
 <li><p>In coqtop and Proof General, use the <a class="reference internal" href="#coq:cmd.Show-Proof" title="Show Proof"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Show</span> <span class="pre">Proof</span></code></a> <code class="docutils literal notranslate"><span class="pre">Diffs</span></code> command.</p></li>
@@ -3001,7 +2869,7 @@ behavior, allowing tactics to leave unification constraints unsolved. Use the
 
 </div>
 <div class="section" id="proof-maintenance">
-<span id="id10"></span><h2>Proof maintenance<a class="headerlink" href="#proof-maintenance" title="Permalink to this headline">¶</a></h2>
+<span id="id11"></span><h2>Proof maintenance<a class="headerlink" href="#proof-maintenance" title="Permalink to this headline">¶</a></h2>
 <p><em>Experimental.</em>  Many tactics, such as <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.intros" title="intros"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">intros</span></code></a>, can automatically generate names, such
 as &quot;H0&quot; or &quot;H1&quot; for a new hypothesis introduced from a goal.  Subsequent proof steps
 may explicitly refer to these names.  However, future versions of Coq may not assign

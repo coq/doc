@@ -245,7 +245,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Language extensions</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Existential variables</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#inferable-subterms">Inferable subterms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#explicit-displaying-of-existential-instances-for-pretty-printing">Explicit displaying of existential instances for pretty-printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#e-tactics-that-can-create-existential-variables">e* tactics that can create existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-resolution-of-existential-variables">Automatic resolution of existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#explicit-display-of-existential-instances-for-pretty-printing">Explicit display of existential instances for pretty-printing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#solving-existential-variables-using-tactics">Solving existential variables using tactics</a></li>
 </ul>
 </li>
@@ -454,10 +456,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#proof-modes">Proof modes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#navigation-in-the-proof-tree">Navigation in the proof tree</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#bullets">Bullets</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#modifying-the-order-of-goals">Modifying the order of goals</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#postponing-the-proof-of-some-goals">Postponing the proof of some goals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#managing-goals">Managing goals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#focusing-goals">Focusing goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#shelving-goals">Shelving goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#reordering-goals">Reordering goals</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../proofs/writing-proofs/proof-mode.html#proving-a-subgoal-as-a-separate-lemma-abstract">Proving a subgoal as a separate lemma: abstract</a></li>
@@ -1340,7 +1342,7 @@ how the variables of its defining context are instantiated.
 Only the variables that are defined in another context are displayed:
 this is why an existential variable used in the same context as its
 context of definition is written with no instance.
-This behavior may be changed: see <a class="reference internal" href="#explicit-display-existentials"><span class="std std-ref">Explicit displaying of existential instances for pretty-printing</span></a>.</p>
+This behavior may be changed: see <a class="reference internal" href="#explicit-display-existentials"><span class="std std-ref">Explicit display of existential instances for pretty-printing</span></a>.</p>
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> =&gt; </span><span class="coqdoc-var">_</span><span>) 0 1.</span><span>
@@ -1362,34 +1364,288 @@ with a named-goal selector, see <a class="reference internal" href="../../proof-
 automatically inferred by Coq can be replaced by the symbol <code class="docutils literal notranslate"><span class="pre">_</span></code> and Coq will
 guess the missing piece of information.</p>
 </div>
-<div class="section" id="explicit-displaying-of-existential-instances-for-pretty-printing">
-<span id="explicit-display-existentials"></span><h2>Explicit displaying of existential instances for pretty-printing<a class="headerlink" href="#explicit-displaying-of-existential-instances-for-pretty-printing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="e-tactics-that-can-create-existential-variables">
+<h2>e* tactics that can create existential variables<a class="headerlink" href="#e-tactics-that-can-create-existential-variables" title="Permalink to this headline">¶</a></h2>
+<p>A number of tactics have companion tactics that create existential variables
+when the base tactic would fail because of uninstantiated variables.
+The companion tactic names begin with an <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">e</span></span></span></span></code> followed by the name of the
+base tactic.
+For example, <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eapply" title="eapply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eapply</span></code></a> works the same way as <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.apply" title="apply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">apply</span></code></a>, except that
+it will create new existential variable(s) when <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.apply" title="apply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">apply</span></code></a> would fail.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Example: apply vs eapply</p>
+<p>Both tactics unify the goal with <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">n</span></span></span> <span><span><span class="pre">&lt;</span></span></span> <span><span><span class="pre">p</span></span></span></span></code> in the theorem.  <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">m</span></span></span></span></code> is
+unspecified.  This makes <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.apply" title="apply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">apply</span></code></a> fail, while <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eapply" title="eapply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eapply</span></code></a>
+creates a new existential variable <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?m</span></span></span></span></code>.</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">Arith</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>[Loading ML file ring_plugin.cmxs (using legacy method) ... done]
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">i</span><span> </span><span class="coqdoc-var">j</span><span>, </span><span class="coqdoc-var">i</span><span> &lt; </span><span class="coqdoc-var">j</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  ============================
+  </span><span class="ansi-bold">forall</span><span> i j : nat, i</span><span> &lt;</span><span> j
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-tactic">intros</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  i, j : nat
+  ============================
+  i</span><span> &lt;</span><span> j
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-comment">(* Theorem lt_trans : forall n m p, n &lt; m -&gt; m &lt; p -&gt; n &lt; p. *)</span></dt><dt><span></span><span>
+</span><span class="coqdoc-var">Fail</span><span> </span><span class="coqdoc-tactic">apply</span><span> </span><span class="coqdoc-var">Nat.lt_trans</span><span>.</span><span>
+</span></dt><dd><span>The command has indeed failed with message:
+Unable to find an instance for the variable m.
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">eapply</span><span> </span><span class="coqdoc-var">Nat.lt_trans</span><span>.</span><span>
+</span></dt><dd><span>2 focused goals (shelved: 1)
+  
+  i, j : nat
+  ============================
+  i</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?m</span><span>
+
+goal 2 is:
+ </span><span class="ansi-fg-light-blue">?m</span><span> &lt;</span><span> j
+</span></dd>
+</dl>
+</div>
+</div>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">e*</span></span></span></span></code> tactics include:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eapply" title="eapply"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eapply</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eassert" title="eassert"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eassert</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eassumption" title="eassumption"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eassumption</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/automatic-tactics/auto.html#coq:tacn.eauto" title="eauto"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eauto</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.ecase" title="ecase"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">ecase</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.econstructor" title="econstructor"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">econstructor</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.edestruct" title="edestruct"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">edestruct</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.ediscriminate" title="ediscriminate"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">ediscriminate</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.eelim" title="eelim"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eelim</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eenough" title="eenough"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eenough</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eexact" title="eexact"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eexact</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.eexists" title="eexists"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eexists</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.einduction" title="einduction"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">einduction</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.einjection" title="einjection"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">einjection</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eintros" title="eintros"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eintros</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.eleft" title="eleft"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eleft</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.epose" title="epose"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">epose</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eremember" title="eremember"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eremember</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/equality.html#coq:tacn.erewrite" title="erewrite"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">erewrite</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.eright" title="eright"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eright</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eset" title="eset"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eset</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.esimplify_eq" title="esimplify_eq"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">esimplify_eq</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/reasoning-inductives.html#coq:tacn.esplit" title="esplit"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">esplit</span></code></a></p></td>
+<td><p><a class="reference internal" href="../../proofs/writing-proofs/equality.html#coq:tacn.etransitivity" title="etransitivity"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">etransitivity</span></code></a></p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Note that <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.eassumption" title="eassumption"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eassumption</span></code></a> and <a class="reference internal" href="../../proofs/automatic-tactics/auto.html#coq:tacn.eauto" title="eauto"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eauto</span></code></a> behave differently from the
+others.</p>
+</div>
+<div class="section" id="automatic-resolution-of-existential-variables">
+<h2>Automatic resolution of existential variables<a class="headerlink" href="#automatic-resolution-of-existential-variables" title="Permalink to this headline">¶</a></h2>
+<p>Existential variables that are used in other goals are generally resolved
+automatically as a side effect of other tactics.</p>
+<div class="admonition note" id="automatic-evar-resolution">
+<p class="admonition-title">Example: Automatic resolution of existential variables</p>
+<p><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?x</span></span></span></span></code> and <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?m</span></span></span></span></code> are used in other goals.  The <a class="reference internal" href="../../proof-engine/tactics.html#coq:tacn.exact" title="exact"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">exact</span></code></a>
+shown below determines the values of these variables by unification,
+which resolves them.</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">Arith</span><span>.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">Names</span><span>.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span>, </span><span class="coqdoc-var">n</span><span> &lt;= </span><span class="coqdoc-var">m</span><span> -&gt; ~ </span><span class="coqdoc-var">m</span><span> &lt; </span><span class="coqdoc-var">n</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal (?Goal)
+  
+  ============================
+  </span><span class="ansi-bold">forall</span><span> n m : nat, n</span><span> &lt;=</span><span> m</span><span> -&gt;</span><span> </span><span>~</span><span> m</span><span> &lt;</span><span> n
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-tactic">intros</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> </span><span class="coqdoc-var">H1</span><span> </span><span class="coqdoc-var">H2</span><span>.</span><span>
+</span></dt><dd><span>1 goal (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  False
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">eapply</span><span> </span><span class="coqdoc-var">Nat.lt_irrefl</span><span>. </span><span class="coqdoc-comment">(* creates ?x : nat as a shelved goal *)</span></dt><dd><span>1 focused goal (shelved: 1) (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">eapply</span><span> </span><span class="coqdoc-var">Nat.le_lt_trans</span><span>. </span><span class="coqdoc-comment">(* creates ?m : nat as a shelved goal *)</span></dt><dd><span>2 focused goals (shelved: 2), goal 1 (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;=</span><span> </span><span class="ansi-fg-light-blue">?m</span><span>
+
+goal 2 (?Goal0) is:
+ </span><span class="ansi-fg-light-blue">?m</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+</span></dd>
+<dt><span></span><span class="coqdoc-var">Unshelve</span><span>. </span><span class="coqdoc-comment">(* moves the shelved goals into focus--not needed and usually not done *)</span></dt><dd><span>4 goals, goal 1 (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;=</span><span> </span><span class="ansi-fg-light-blue">?m</span><span>
+
+goal 2 (?Goal0) is:
+ </span><span class="ansi-fg-light-blue">?m</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+goal 3 (?x) is:
+ nat
+goal 4 (?m) is:
+ nat
+</span></dd>
+<dt><span></span><span class="coqdoc-tactic">exact</span><span> </span><span class="coqdoc-var">H1</span><span>. </span><span class="coqdoc-comment">(* resolves the first goal and by side effect ?x and ?m *)</span></dt><dd><span>1 goal (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  y</span><span> &lt;</span><span> x
+</span></dd>
+</dl>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?x</span></span></span></span></code> and <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?m</span></span></span></span></code> goals ask for proof that <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">nat</span></span></span></span></code> has a
+<a class="reference internal" href="../core/basic.html#term-witness"><span class="xref std std-term">witness</span></a>, i.e. it is not an empty type.  This can be proved directly
+by applying a constructor of <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">nat</span></span></span></span></code>, which assigns values for <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?x</span></span></span></span></code> and
+<code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">?m</span></span></span></span></code>.  However if you choose poorly, you can end up with unprovable goals
+(in this case <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">0</span></span></span> <span><span><span class="pre">&lt;</span></span></span> <span><span><span class="pre">0</span></span></span></span></code>).  Like this:</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-keyword">Import</span><span> </span><span class="coqdoc-var">Arith</span><span>.</span><span>
+</span></dt><dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-var">Names</span><span>.</span><span>
+</span></dt><dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span>, </span><span class="coqdoc-var">n</span><span> &lt;= </span><span class="coqdoc-var">m</span><span> -&gt; ~ </span><span class="coqdoc-var">m</span><span> &lt; </span><span class="coqdoc-var">n</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal (?Goal)
+  
+  ============================
+  </span><span class="ansi-bold">forall</span><span> n m : nat, n</span><span> &lt;=</span><span> m</span><span> -&gt;</span><span> </span><span>~</span><span> m</span><span> &lt;</span><span> n
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-tactic">intros</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> </span><span class="coqdoc-var">H1</span><span> </span><span class="coqdoc-var">H2</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  False
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-tactic">eapply</span><span> </span><span class="coqdoc-var">Nat.lt_irrefl</span><span>. </span><span class="coqdoc-comment">(* creates ?x : nat as a shelved goal *)</span></dt><dd class="coqtop-hidden"><span>1 focused goal (shelved: 1) (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-tactic">eapply</span><span> </span><span class="coqdoc-var">Nat.le_lt_trans</span><span>. </span><span class="coqdoc-comment">(* creates ?m : nat as a shelved goal *)</span></dt><dd class="coqtop-hidden"><span>2 focused goals (shelved: 2), goal 1 (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;=</span><span> </span><span class="ansi-fg-light-blue">?m</span><span>
+
+goal 2 (?Goal0) is:
+ </span><span class="ansi-fg-light-blue">?m</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+</span></dd>
+</dl>
+<span></span><dl>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-var">Unshelve</span><span>. </span><span class="coqdoc-comment">(* moves the shelved goals into focus--not needed and usually not done *)</span></dt><dd><span>4 goals, goal 1 (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  </span><span class="ansi-fg-light-blue">?x</span><span> &lt;=</span><span> </span><span class="ansi-fg-light-blue">?m</span><span>
+
+goal 2 (?Goal0) is:
+ </span><span class="ansi-fg-light-blue">?m</span><span> &lt;</span><span> </span><span class="ansi-fg-light-blue">?x</span><span>
+goal 3 (?x) is:
+ nat
+goal 4 (?m) is:
+ nat
+</span></dd>
+</dl>
+<span></span><dl>
+<dt><span>3-4: </span><span class="coqdoc-tactic">apply</span><span> 0. </span><span class="coqdoc-comment">(* assigns values to ?x and ?m *)</span></dt><dd><span>2 goals, goal 1 (?Goal)
+  
+  x, y : nat
+  H1 : x</span><span> &lt;=</span><span> y
+  H2 : y</span><span> &lt;</span><span> x
+  ============================
+  0</span><span> &lt;=</span><span> 0
+
+goal 2 (?Goal0) is:
+ 0</span><span> &lt;</span><span> 0
+</span></dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="section" id="explicit-display-of-existential-instances-for-pretty-printing">
+<span id="explicit-display-existentials"></span><h2>Explicit display of existential instances for pretty-printing<a class="headerlink" href="#explicit-display-of-existential-instances-for-pretty-printing" title="Permalink to this headline">¶</a></h2>
 <dl class="coq flag">
 <dt id="coq:flag.Printing-Existential-Instances">
 <em class="property"><span class="sigannot">Flag</span></em> <code class="sig-name descname"><span class="notation"><span><span>Printing</span></span> <span><span>Existential</span></span> <span><span>Instances</span></span></span></code><a class="headerlink" href="#coq:flag.Printing-Existential-Instances" title="Permalink to this definition">¶</a></dt>
-<dd><p>This <a class="reference internal" href="../core/basic.html#term-flag"><span class="xref std std-term">flag</span></a> (off by default) activates the full display of how the
+<dd><p>Activates the full display of how the
 context of an existential variable is instantiated at each of the
-occurrences of the existential variable.</p>
+occurrences of the existential variable.  Off by default.</p>
 </dd></dl>
 
 <div class="coqtop literal-block docutils container">
 <span></span><dl>
 <dt><span></span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> =&gt; </span><span class="coqdoc-var">_</span><span>) 0 1.</span><span>
-</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x y : nat =&gt; </span><span class="ansi-fg-light-blue">?y</span><span>) 0 1
-     : </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x:=0; y:=1}
+</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x0 y0 : nat =&gt; </span><span class="ansi-fg-light-blue">?y</span><span>&#64;{x0:=x; y0:=y; x:=x0; y:=y0}) 0 1
+     : </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x0:=x; y0:=y; x:=0; y:=1}
 where
-?T : [x : nat  y : nat |- </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>]
-?y : [x : nat  y : nat |- </span><span class="ansi-fg-light-blue">?T</span><span>]
+?T : [x0 : nat  y0 : nat  H1 : x0</span><span> &lt;=</span><span> y0  H2 : y0</span><span> &lt;</span><span> x0  x : nat  y : nat
+     |- </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>]
+?y : [x0 : nat  y0 : nat  H1 : x0</span><span> &lt;=</span><span> y0  H2 : y0</span><span> &lt;</span><span> x0  x : nat  y : nat
+     |- </span><span class="ansi-fg-light-blue">?T</span><span>]
 </span></dd>
 <dt><span></span><span>
 </span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-var">Existential</span><span> </span><span class="coqdoc-var">Instances</span><span>.</span><span>
 </span></dt><dt><span></span><span>
 </span><span class="coqdoc-keyword">Check</span><span> (</span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> =&gt; </span><span class="coqdoc-var">_</span><span>) 0 1.</span><span>
-</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x y : nat =&gt; </span><span class="ansi-fg-light-blue">?y</span><span>&#64;{x:=x; y:=y}) 0 1
-     : </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x:=0; y:=1}
+</span></dt><dd><span>(</span><span class="ansi-bold">fun</span><span> x0 y0 : nat =&gt; </span><span class="ansi-fg-light-blue">?y</span><span>&#64;{x0:=x; y0:=y; H1:=H1; H2:=H2; x:=x0; y:=y0}) 0 1
+     : </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x0:=x; y0:=y; H1:=H1; H2:=H2; x:=0; y:=1}
 where
-?T : [x : nat  y : nat |- </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>]
-?y : [x : nat  y : nat |- </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x:=x; y:=y}]
+?T : [x0 : nat  y0 : nat  H1 : x0</span><span> &lt;=</span><span> y0  H2 : y0</span><span> &lt;</span><span> x0  x : nat  y : nat
+     |- </span><span class="ansi-fg-yellow ansi-bold">Type</span><span>]
+?y : [x0 : nat  y0 : nat  H1 : x0</span><span> &lt;=</span><span> y0  H2 : y0</span><span> &lt;</span><span> x0  x : nat  y : nat
+     |- </span><span class="ansi-fg-light-blue">?T</span><span>&#64;{x0:=x0; y0:=y0; H1:=H1; H2:=H2; x:=x; y:=y}]
 </span></dd>
 </dl>
 </div>

@@ -245,7 +245,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../language/extensions/index.html">Language extensions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../language/extensions/evars.html">Existential variables</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#inferable-subterms">Inferable subterms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#explicit-displaying-of-existential-instances-for-pretty-printing">Explicit displaying of existential instances for pretty-printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#e-tactics-that-can-create-existential-variables">e* tactics that can create existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#automatic-resolution-of-existential-variables">Automatic resolution of existential variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#explicit-display-of-existential-instances-for-pretty-printing">Explicit display of existential instances for pretty-printing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../language/extensions/evars.html#solving-existential-variables-using-tactics">Solving existential variables using tactics</a></li>
 </ul>
 </li>
@@ -454,10 +456,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#proof-modes">Proof modes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#navigation-in-the-proof-tree">Navigation in the proof tree</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#bullets">Bullets</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#modifying-the-order-of-goals">Modifying the order of goals</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#postponing-the-proof-of-some-goals">Postponing the proof of some goals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#managing-goals">Managing goals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#focusing-goals">Focusing goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#shelving-goals">Shelving goals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#reordering-goals">Reordering goals</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../proofs/writing-proofs/proof-mode.html#proving-a-subgoal-as-a-separate-lemma-abstract">Proving a subgoal as a separate lemma: abstract</a></li>
@@ -2629,12 +2631,12 @@ complex notations of the form <code class="docutils literal notranslate"><span c
 nested with correct precedences. Especially, every notation involving
 a pattern of the form <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">x</span> <span class="pre">}&quot;</span></code> is parsed as a notation where the
 pattern <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">x</span> <span class="pre">}&quot;</span></code> has been simply replaced by <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> and the curly
-brackets are parsed separately. E.g. <code class="docutils literal notranslate"><span class="pre">&quot;y</span> <span class="pre">+</span> <span class="pre">{</span> <span class="pre">z</span> <span class="pre">}&quot;</span></code> is not parsed as a
+braces are parsed separately. E.g. <code class="docutils literal notranslate"><span class="pre">&quot;y</span> <span class="pre">+</span> <span class="pre">{</span> <span class="pre">z</span> <span class="pre">}&quot;</span></code> is not parsed as a
 term of the given form but as a term of the form <code class="docutils literal notranslate"><span class="pre">&quot;y</span> <span class="pre">+</span> <span class="pre">z&quot;</span></code> where <code class="docutils literal notranslate"><span class="pre">z</span></code>
 has been parsed using the rule parsing <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">x</span> <span class="pre">}&quot;</span></code>. Especially, level
 and precedences for a rule including patterns of the form <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">x</span> <span class="pre">}&quot;</span></code>
 are relative not to the textual notation but to the notation where the
-curly brackets have been removed (e.g. the level and the associativity
+curly braces have been removed (e.g. the level and the associativity
 given to some notation, say <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">y</span> <span class="pre">}</span> <span class="pre">&amp;</span> <span class="pre">{</span> <span class="pre">z</span> <span class="pre">}&quot;</span></code> in fact applies to the
 underlying <code class="docutils literal notranslate"><span class="pre">&quot;{</span> <span class="pre">x</span> <span class="pre">}&quot;</span></code>-free rule which is <code class="docutils literal notranslate"><span class="pre">&quot;y</span> <span class="pre">&amp;</span> <span class="pre">z&quot;</span></code>).</p>
 </div>
@@ -3983,6 +3985,11 @@ can be used: entry is either <code class="docutils literal notranslate"><span cl
 <code class="docutils literal notranslate"><span class="pre">strategy_level_or_var</span></code>, or <code class="docutils literal notranslate"><span class="pre">int_or_var</span></code>.</p>
 </div>
 </dd></dl>
+
+<dl class="coq cmd">
+<dt id="coq:cmd.Format-Notation">
+<em class="property"><span class="sigannot">Command</span></em> <code class="sig-name descname"><span class="notation"><span><span>Format</span></span> <span><span>Notation</span></span> <a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a> <a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a> <a class="reference internal" href="../language/core/basic.html#grammar-token-string"><span class="hole">string</span></a></span></code><a class="headerlink" href="#coq:cmd.Format-Notation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <p class="rubric">Footnotes</p>
 <dl class="footnote brackets">
