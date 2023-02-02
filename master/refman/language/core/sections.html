@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Section mechanism &mdash; Coq 8.18+alpha documentation</title>
+  <title>Sections &mdash; Coq 8.18+alpha documentation</title>
   
 
   
@@ -141,7 +141,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../cic.html#the-terms">The terms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../cic.html#id6">Typing rules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../cic.html#subtyping-rules">Subtyping rules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../cic.html#admissible-rules-for-global-environments">Admissible rules for global environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../cic.html#the-calculus-of-inductive-constructions-with-impredicative-set">The Calculus of Inductive Constructions with impredicative Set</a></li>
 </ul>
 </li>
@@ -193,7 +192,10 @@
 <li class="toctree-l3"><a class="reference internal" href="coinductive.html#top-level-definitions-of-corecursive-functions">Top-level definitions of corecursive functions</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Section mechanism</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Sections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#typing-rules-used-at-the-end-of-a-section">Typing rules used at the end of a section</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">The Module System</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#modules-and-module-types">Modules and module types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#using-modules">Using modules</a><ul>
@@ -1206,7 +1208,7 @@
         
           <li><a href="index.html">Core language</a> &raquo;</li>
         
-      <li>Section mechanism</li>
+      <li>Sections</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -1298,8 +1300,8 @@
 \newcommand{\WTM}[3]{\WT{#1}{}{#2}{#3}}
 \newcommand{\zeroone}[1]{[{#1}]}
 \end{split}\]</div>
-<div class="section" id="section-mechanism">
-<span id="id1"></span><h1>Section mechanism<a class="headerlink" href="#section-mechanism" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sections">
+<span id="section-mechanism"></span><h1>Sections<a class="headerlink" href="#sections" title="Permalink to this headline">¶</a></h1>
 <p>Sections are naming scopes that permit creating section-local declarations that can
 be used by other declarations in the section.  Declarations made
 with <a class="reference internal" href="assumptions.html#coq:cmd.Variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a>, <a class="reference internal" href="assumptions.html#coq:cmd.Hypothesis" title="Hypothesis"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Hypothesis</span></code></a>, <a class="reference internal" href="#coq:cmd.Context" title="Context"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Context</span></code></a>,
@@ -1446,6 +1448,78 @@ Arguments </span><span class="ansi-fg-light-green">x''</span><span> (x y)%nat_sc
 </div>
 <p>Notice the difference between the value of <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">x'</span></span></code> and <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">x''</span></span></code> inside section
 <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">s1</span></span></code> and outside.</p>
+</div>
+<div class="section" id="typing-rules-used-at-the-end-of-a-section">
+<span id="admissible-rules-for-global-environments"></span><h2>Typing rules used at the end of a section<a class="headerlink" href="#typing-rules-used-at-the-end-of-a-section" title="Permalink to this headline">¶</a></h2>
+<p>From the original rules of the type system, one can show the
+admissibility of rules which change the local context of definition of
+objects in the global environment. We show here the admissible rules
+that are used in the discharge mechanism at the end of a section.</p>
+<p id="abstraction"><strong>Abstraction.</strong>
+One can modify a global declaration by generalizing it over a
+previously assumed constant <span class="math notranslate nohighlight">\(c\)</span>. For doing that, we need to modify the
+reference to the global declaration in the subsequent global
+environment and local context by explicitly applying this constant to
+the constant <span class="math notranslate nohighlight">\(c\)</span>.</p>
+<p>Below, if <span class="math notranslate nohighlight">\(Γ\)</span> is a context of the form <span class="math notranslate nohighlight">\([y_1 :A_1 ;~…;~y_n :A_n]\)</span>, we write
+<span class="math notranslate nohighlight">\(∀x:U,~\subst{Γ}{c}{x}\)</span> to mean
+<span class="math notranslate nohighlight">\([y_1 :∀ x:U,~\subst{A_1}{c}{x};~…;~y_n :∀ x:U,~\subst{A_n}{c}{x}]\)</span>
+and <span class="math notranslate nohighlight">\(\subst{E}{|Γ|}{|Γ|c}\)</span> to mean the parallel substitution
+<span class="math notranslate nohighlight">\(E\{y_1 /(y_1~c)\}…\{y_n/(y_n~c)\}\)</span>.</p>
+<p id="first-abstracting-property"><strong>First abstracting property:</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:U;~E′;~c′:=t:T;~E″}{Γ}}
+     {\WF{E;~c:U;~E′;~c′:=λ x:U.~\subst{t}{c}{x}:∀x:U,~\subst{T}{c}{x};~\subst{E″}{c′}{(c′~c)}}
+     {\subst{Γ}{c′}{(c′~c)}}}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:U;~E′;~c′:T;~E″}{Γ}}
+     {\WF{E;~c:U;~E′;~c′:∀ x:U,~\subst{T}{c}{x};~\subst{E″}{c′}{(c′~c)}}{\subst{Γ}{c′}{(c′~c)}}}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:U;~E′;~\ind{p}{Γ_I}{Γ_C};~E″}{Γ}}
+     {\WFTWOLINES{E;~c:U;~E′;~\ind{p+1}{∀ x:U,~\subst{Γ_I}{c}{x}}{∀ x:U,~\subst{Γ_C}{c}{x}};~
+       \subst{E″}{|Γ_I ;Γ_C |}{|Γ_I ;Γ_C | c}}
+      {\subst{Γ}{|Γ_I ;Γ_C|}{|Γ_I ;Γ_C | c}}}\]</div>
+<p>One can similarly modify a global declaration by generalizing it over
+a previously defined constant <span class="math notranslate nohighlight">\(c\)</span>. Below, if <span class="math notranslate nohighlight">\(Γ\)</span> is a context of the form
+<span class="math notranslate nohighlight">\([y_1 :A_1 ;~…;~y_n :A_n]\)</span>, we write <span class="math notranslate nohighlight">\(\subst{Γ}{c}{u}\)</span> to mean
+<span class="math notranslate nohighlight">\([y_1 :\subst{A_1} {c}{u};~…;~y_n:\subst{A_n} {c}{u}]\)</span>.</p>
+<p id="second-abstracting-property"><strong>Second abstracting property:</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:=u:U;~E′;~c′:=t:T;~E″}{Γ}}
+     {\WF{E;~c:=u:U;~E′;~c′:=(\letin{x}{u:U}{\subst{t}{c}{x}}):\subst{T}{c}{u};~E″}{Γ}}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:=u:U;~E′;~c′:T;~E″}{Γ}}
+     {\WF{E;~c:=u:U;~E′;~c′:\subst{T}{c}{u};~E″}{Γ}}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\WF{E;~c:=u:U;~E′;~\ind{p}{Γ_I}{Γ_C};~E″}{Γ}}
+     {\WF{E;~c:=u:U;~E′;~\ind{p}{\subst{Γ_I}{c}{u}}{\subst{Γ_C}{c}{u}};~E″}{Γ}}\]</div>
+<p id="pruning-the-local-context"><strong>Pruning the local context.</strong>
+If one abstracts or substitutes constants with the above rules then it
+may happen that some declared or defined constant does not occur any
+more in the subsequent global environment and in the local context.
+One can consequently derive the following property.</p>
+<dl id="first-pruning-property">
+<dt id="inference-First-pruning-property:">First pruning property:</dt><dd><div class="math notranslate nohighlight">
+\[\frac{%
+\WF{E;~c:U;~E′}{Γ}%
+\hspace{3em}%
+c~\kw{does not occur in}~E′~\kw{and}~Γ%
+}{%
+\WF{E;E′}{Γ}%
+}\]</div>
+</dd>
+</dl>
+<dl id="second-pruning-property">
+<dt id="inference-Second-pruning-property:">Second pruning property:</dt><dd><div class="math notranslate nohighlight">
+\[\frac{%
+\WF{E;~c:=u:U;~E′}{Γ}%
+\hspace{3em}%
+c~\kw{does not occur in}~E′~\kw{and}~Γ%
+}{%
+\WF{E;E′}{Γ}%
+}\]</div>
+</dd>
+</dl>
 </div>
 </div>
 
