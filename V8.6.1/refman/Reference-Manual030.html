@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 27  Generalized rewriting</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec776" class="chapter">Chapter 27  Generalized rewriting</h1>
+<ul>
+<li><a href="Reference-Manual030.html#sec777">27.1  Introduction to generalized rewriting</a>
+</li><li><a href="Reference-Manual030.html#sec783">27.2  Commands and tactics</a>
+</li><li><a href="Reference-Manual030.html#sec788">27.3  Extensions</a>
+</li><li><a href="Reference-Manual030.html#sec792">27.4  Strategies for rewriting</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Matthieu Sozeau</span></span> <br>
+<br>
+
+<a id="setoids"></a></p><p>This chapter presents the extension of several equality related tactics
+to work over user-defined structures (called setoids) that are equipped
+with ad-hoc equivalence relations meant to behave as equalities.
+Actually, the tactics have also been generalized to relations weaker
+then equivalences (e.g. rewriting systems). The toolbox also extends the
+automatic rewriting capabilities of the system, allowing the specification of
+custom strategies for rewriting.</p><p>This documentation is adapted from the previous setoid documentation by
+Claudio Sacerdoti Coen (based on previous work by Clément Renard).
+The new implementation is a drop-in replacement for the old one,<sup><a id="text27" href="#note27">1</a></sup> hence most of the documentation still applies.</p><p>The work is a complete rewrite of the previous implementation, based on
+the type class infrastructure. It also improves on and generalizes
+the previous implementation in several ways:
+</p><ul class="itemize"><li class="li-itemize">
+User-extensible algorithm. The algorithm is separated in two
+parts: generations of the rewriting constraints (done in ML) and
+solving of these constraints using type class resolution. As type
+class resolution is extensible using tactics, this allows users to define
+general ways to solve morphism constraints.
+</li><li class="li-itemize">Sub-relations. An example extension to the base algorithm is the
+ability to define one relation as a subrelation of another so that
+morphism declarations on one relation can be used automatically for
+the other. This is done purely using tactics and type class search.
+</li><li class="li-itemize">Rewriting under binders. It is possible to rewrite under binders
+in the new implementation, if one provides the proper
+morphisms. Again, most of the work is handled in the tactics.
+</li><li class="li-itemize">First-class morphisms and signatures. Signatures and morphisms are
+ordinary Coq terms, hence they can be manipulated inside Coq, put
+inside structures and lemmas about them can be proved inside the
+system. Higher-order morphisms are also allowed.
+</li><li class="li-itemize">Performance. The implementation is based on a depth-first search for the first
+solution to a set of constraints which can be as fast as linear in the
+size of the term, and the size of the proof term is linear
+in the size of the original term. Besides, the extensibility allows the
+user to customize the proof search if necessary.
+</li></ul>
+<h2 id="sec777" class="section">27.1  Introduction to generalized rewriting</h2>
+<h3 id="sec778" class="subsection">27.1.1  Relations and morphisms</h3>
+<p>A parametric <em>relation</em> <span style="font-family:monospace">R</span> is any term of type
+<span style="font-family:monospace">forall (</span><span style="font-style:italic">x</span><sub>1</sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub>1</sub><span style="font-family:monospace">) …(</span><span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">), relation </span><span style="font-style:italic">A</span>. The
+expression <span style="font-style:italic">A</span>, which depends on <span style="font-style:italic">x</span><sub>1</sub> …<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>, is called the
+<em>carrier</em> of the relation and <span style="font-family:monospace">R</span> is
+said to be a relation over <span style="font-family:monospace">A</span>; the list <span style="font-style:italic">x</span><sub>1</sub>,…,<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>
+is the (possibly empty) list of parameters of the relation.</p><div class="theorem"><span style="font-weight:bold">Example 1</span> <span style="font-weight:bold">(Parametric relation)</span>  <em>
+It is possible to implement finite sets of elements of type </em><em><span style="font-family:monospace">A</span></em><em>
+as unordered list of elements of type </em><em><span style="font-family:monospace">A</span></em><em>. The function
+</em><em><span style="font-family:monospace">set_eq: forall (A: Type), relation (list A)</span></em><em> satisfied by two lists
+with the same elements is a parametric relation over </em><em><span style="font-family:monospace">(list A)</span></em><em> with
+one parameter </em><em><span style="font-family:monospace">A</span></em><em>. The type of </em><em><span style="font-family:monospace">set_eq</span></em><em> is convertible with
+</em><em><span style="font-family:monospace">forall (A: Type), list A -&gt; list A -&gt; Prop</span></em><em>.
+</em></div><p>An <em>instance</em> of a parametric relation <span style="font-family:monospace">R</span> with <span style="font-style:italic">n</span> parameters
+is any term <span style="font-family:monospace">(R </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">)</span>.</p><p>Let <span style="font-family:monospace">R</span> be a relation over <span style="font-family:monospace">A</span> with <span style="font-style:italic">n</span> parameters.
+A term is a parametric proof of reflexivity for <span style="font-family:monospace">R</span> if it has type
+<span style="font-family:monospace">forall (</span><span style="font-style:italic">x</span><sub>1</sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub>1</sub><span style="font-family:monospace">) …(</span><span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">),
+reflexive (R </span><span style="font-style:italic">x</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">)</span>. Similar definitions are given for
+parametric proofs of symmetry and transitivity.</p><div class="theorem"><span style="font-weight:bold">Example 2</span> <span style="font-weight:bold">(Parametric relation (cont.))</span>  <em>
+The </em><em><span style="font-family:monospace">set_eq</span></em><em> relation of the previous example can be proved to be
+reflexive, symmetric and transitive.
+</em></div><p>A parametric unary function <span style="font-style:italic">f</span> of type
+<span style="font-family:monospace">forall (</span><span style="font-style:italic">x</span><sub>1</sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub>1</sub><span style="font-family:monospace">) …(</span><span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">), </span><span style="font-style:italic">A</span><sub>1</sub><span style="font-family:monospace"> -&gt; </span><span style="font-style:italic">A</span><sub>2</sub>
+covariantly respects two parametric relation instances <span style="font-style:italic">R</span><sub>1</sub> and <span style="font-style:italic">R</span><sub>2</sub> if,
+whenever <span style="font-style:italic">x</span>, <span style="font-style:italic">y</span> satisfy <span style="font-style:italic">R</span><sub>1</sub> <span style="font-style:italic">x</span> <span style="font-style:italic">y</span>, their images (<span style="font-style:italic">f</span> <span style="font-style:italic">x</span>) and (<span style="font-style:italic">f</span> <span style="font-style:italic">y</span>) 
+satisfy <span style="font-style:italic">R</span><sub>2</sub> (<span style="font-style:italic">f</span> <span style="font-style:italic">x</span>) (<span style="font-style:italic">f</span> <span style="font-style:italic">y</span>) . An <span style="font-style:italic">f</span> that respects its input and output relations
+will be called a unary covariant <em>morphism</em>. We can also say that <span style="font-style:italic">f</span> is
+a monotone function with respect to <span style="font-style:italic">R</span><sub>1</sub> and <span style="font-style:italic">R</span><sub>2</sub>. 
+The sequence <span style="font-style:italic">x</span><sub>1</sub>,… <span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> represents the parameters of the morphism.</p><p>Let <span style="font-style:italic">R</span><sub>1</sub> and <span style="font-style:italic">R</span><sub>2</sub> be two parametric relations.
+The <em>signature</em> of a parametric morphism of type
+<span style="font-family:monospace">forall (</span><span style="font-style:italic">x</span><sub>1</sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub>1</sub><span style="font-family:monospace">) …(</span><span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">:</span><span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">), </span><span style="font-style:italic">A</span><sub>1</sub><span style="font-family:monospace"> -&gt; </span><span style="font-style:italic">A</span><sub>2</sub> that
+covariantly respects two instances <span style="font-style:italic">I</span><sub><span style="font-style:italic">R</span><sub>1</sub></sub> and <span style="font-style:italic">I</span><sub><span style="font-style:italic">R</span><sub>2</sub></sub> of <span style="font-style:italic">R</span><sub>1</sub> and <span style="font-style:italic">R</span><sub>2</sub> is written <span style="font-style:italic">I</span><sub><span style="font-style:italic">R</span><sub>1</sub></sub> <span style="font-family:monospace">++&gt;</span> <span style="font-style:italic">I</span><sub><span style="font-style:italic">R</span><sub>2</sub></sub>.
+Notice that the special arrow <span style="font-family:monospace">++&gt;</span>, which reminds the reader
+of covariance, is placed between the two relation instances, not
+between the two carriers. The signature relation instances and morphism will
+be typed in a context introducing variables for the parameters.</p><p>The previous definitions are extended straightforwardly to <span style="font-style:italic">n</span>-ary morphisms,
+that are required to be simultaneously monotone on every argument.</p><p>Morphisms can also be contravariant in one or more of their arguments.
+A morphism is contravariant on an argument associated to the relation instance
+<span style="font-style:italic">R</span> if it is covariant on the same argument when the inverse relation
+<span style="font-style:italic">R</span><sup>−1</sup> (<span style="font-family:monospace">inverse R</span> in Coq) is considered. 
+The special arrow <span style="font-family:monospace">--&gt;</span> is used in signatures
+for contravariant morphisms.</p><p>Functions having arguments related by symmetric relations instances are both
+covariant and contravariant in those arguments. The special arrow
+<span style="font-family:monospace">==&gt;</span> is used in signatures for morphisms that are both covariant
+and contravariant.</p><p>An instance of a parametric morphism <span style="font-style:italic">f</span> with <span style="font-style:italic">n</span> parameters is any term
+<span style="font-family:monospace">f </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>.</p><div class="theorem"><span style="font-weight:bold">Example 3</span> <span style="font-weight:bold">(Morphisms)</span>  <em>
+Continuing the previous example, let
+</em><em><span style="font-family:monospace">union: forall (A: Type), list A -&gt; list A -&gt; list A</span></em><em> perform the union
+of two sets by appending one list to the other. </em><em><span style="font-family:monospace">union</span></em><em> is a binary
+morphism parametric over </em><em><span style="font-family:monospace">A</span></em><em> that respects the relation instance
+</em><em><span style="font-family:monospace">(set_eq A)</span></em><em>. The latter condition is proved by showing
+</em><em><span style="font-family:monospace">forall (A: Type) (S1 S1’ S2 S2’: list A), set_eq A S1 S1’ -&gt;
+set_eq A S2 S2’ -&gt; set_eq A (union A S1 S2) (union A S1’ S2’)</span></em><em>.</em><p><em>The signature of the function </em><em><span style="font-family:monospace">union A</span></em><em> is
+</em><em><span style="font-family:monospace">set_eq A ==&gt; set_eq A ==&gt; set_eq A</span></em><em> for all </em><em><span style="font-family:monospace">A</span></em><em>.
+</em></p></div><div class="theorem"><span style="font-weight:bold">Example 4</span> <span style="font-weight:bold">(Contravariant morphism)</span>  <em>
+The division function </em><em><span style="font-family:monospace">Rdiv: R -&gt; R -&gt; R</span></em><em> is a morphism of
+signature </em><em><span style="font-family:monospace">le ++&gt; le --&gt; le</span></em><em> where </em><em><span style="font-family:monospace">le</span></em><em> is
+the usual order relation over real numbers. Notice that division is
+covariant in its first argument and contravariant in its second
+argument.
+</em></div><p>Leibniz equality is a relation and every function is a
+morphism that respects Leibniz equality. Unfortunately, Leibniz equality
+is not always the intended equality for a given structure.</p><p>In the next section we will describe the commands to register terms as
+parametric relations and morphisms. Several tactics that deal with equality
+in <span style="font-variant:small-caps">Coq</span> can also work with the registered relations.
+The exact list of tactic will be given in Sect. <a href="#setoidtactics">27.2.2</a>.
+For instance, the
+tactic <span style="font-family:monospace">reflexivity</span> can be used to close a goal <span style="font-style:italic">R</span> <span style="font-style:italic">n</span> <span style="font-style:italic">n</span> whenever
+<span style="font-style:italic">R</span> is an instance of a registered reflexive relation. However, the tactics
+that replace in a context <span style="font-style:italic">C</span>[] one term with another one related by <span style="font-style:italic">R</span>
+must verify that <span style="font-style:italic">C</span>[] is a morphism that respects the intended relation.
+Currently the verification consists in checking whether <span style="font-style:italic">C</span>[] is a syntactic
+composition of morphism instances that respects some obvious
+compatibility constraints.</p><div class="theorem"><span style="font-weight:bold">Example 5</span> <span style="font-weight:bold">(Rewriting)</span>  <em>
+Continuing the previous examples, suppose that the user must prove
+</em><em><span style="font-family:monospace">set_eq int (union int (union int S1 S2) S2) (f S1 S2)</span></em><em> under the
+hypothesis </em><em><span style="font-family:monospace">H: set_eq int S2 (nil int)</span></em><em>. It is possible to
+use the </em><em><span style="font-family:monospace">rewrite</span></em><em> tactic to replace the first two occurrences of
+</em><em><span style="font-family:monospace">S2</span></em><em> with </em><em><span style="font-family:monospace">nil int</span></em><em> in the goal since the context
+</em><em><span style="font-family:monospace">set_eq int (union int (union int S1 nil) nil) (f S1 S2)</span></em><em>, being
+a composition of morphisms instances, is a morphism. However the tactic
+will fail replacing the third occurrence of </em><em><span style="font-family:monospace">S2</span></em><em> unless </em><em><span style="font-family:monospace">f</span></em><em>
+has also been declared as a morphism.
+</em></div>
+<h3 id="sec779" class="subsection">27.1.2  Adding new relations and morphisms</h3>
+<p>
+A parametric relation
+<span style="font-style:italic">Aeq</span><span style="font-family:monospace">: forall (</span><span style="font-style:italic">y</span><sub>1</sub> : β<sub>!</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">y</span><sub><span style="font-style:italic">m</span></sub> : β<sub><span style="font-style:italic">m</span></sub><span style="font-family:monospace">), relation (A </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">)</span> over
+<span style="font-style:italic">(A : </span>α<sub><span style="font-style:italic">i</span></sub><span style="font-style:italic"> -&gt; …</span>α<sub><span style="font-style:italic">n</span></sub><span style="font-style:italic"> -&gt; </span><span style="font-family:monospace">Type</span>)
+can be declared with the following command:</p><p><a id="hevea_default1051"></a><a id="hevea_command300"></a>
+</p><blockquote class="quote">
+<span style="font-family:monospace">Add Parametric Relation</span> (<span style="font-style:italic">x</span><sub>1</sub> : <span style="font-style:italic">T</span><sub>1</sub>) …(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> : <span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>) :
+<span style="font-style:italic">(A </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-style:italic">) (Aeq </span><span style="font-style:italic">t</span>′<sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span>′<sub><span style="font-style:italic">m</span></sub><span style="font-style:italic">)</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">reflexivity proved by</span> <span style="font-style:italic">refl</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">symmetry proved by</span> <span style="font-style:italic">sym</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">transitivity proved by</span> <span style="font-style:italic">trans</span><span style="font-style:oblique">]</span><br>
+ <span style="font-family:monospace"> as</span> <span style="font-style:italic">id</span>.
+</blockquote><p>
+after having required the <span style="font-family:monospace">Setoid</span> module with the
+<span style="font-family:monospace">Require Setoid</span> command.</p><p>The identifier <span style="font-style:italic">id</span> gives a unique name to the morphism and it is
+used by the command to generate fresh names for automatically provided lemmas
+used internally.</p><p>Notice that the carrier and relation parameters may refer to the context 
+of variables introduced at the beginning of the declaration, but the
+instances need not be made only of variables.
+Also notice that <span style="font-style:italic">A</span> is <em>not</em> required to be a term
+having the same parameters as <span style="font-style:italic">Aeq</span>, although that is often the
+case in practice (this departs from the previous implementation).</p><p><a id="hevea_default1052"></a><a id="hevea_command301"></a>
+In case the carrier and relations are not parametric, one can use the
+command <span style="font-family:monospace">Add Relation</span> instead, whose syntax is the same except
+there is no local context.</p><p>The proofs of reflexivity, symmetry and transitivity can be omitted if the
+relation is not an equivalence relation. The proofs must be instances of the
+corresponding relation definitions: e.g. the proof of reflexivity must
+have a type convertible to <span style="font-family:monospace">reflexive (A </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">) (Aeq </span><span style="font-style:italic">t</span>′<sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span>′<sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">)</span>. Each proof may refer to the introduced variables as well. </p><div class="theorem"><span style="font-weight:bold">Example 6</span> <span style="font-weight:bold">(Parametric relation)</span>  <em>
+For Leibniz equality, we may declare:
+</em><em><span style="font-family:monospace">Add Parametric Relation (A : Type) :</span></em><em> </em><em><span style="font-family:monospace">A (@eq A)</span></em><em><br>
+ </em><em><span style="font-style:oblique">[</span></em><em><span style="font-family:monospace">reflexivity proved by</span></em><em> </em><em><span style="font-family:monospace">@refl_equal A</span></em><em><span style="font-style:oblique">]</span></em><em><br>
+…</em></div><p>Some tactics
+(<span style="font-family:monospace">reflexivity</span>, <span style="font-family:monospace">symmetry</span>, <span style="font-family:monospace">transitivity</span>) work only
+on relations that respect the expected properties. The remaining tactics
+(<span style="font-family:monospace">replace</span>, <span style="font-family:monospace">rewrite</span> and derived tactics such as
+<span style="font-family:monospace">autorewrite</span>) do not require any properties over the relation.
+However, they are able to replace terms with related ones only in contexts
+that are syntactic compositions of parametric morphism instances declared with
+the following command.</p><p><a id="hevea_default1053"></a><a id="hevea_command302"></a>
+</p><blockquote class="quote">
+<span style="font-family:monospace">Add Parametric Morphism</span> (<span style="font-style:italic">x</span><sub>1</sub> : <span style="font-family:monospace">T</span><sub>!</sub>) …(<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub> : <span style="font-family:monospace">T</span><sub><span style="font-style:italic">k</span></sub>)<br>
+ (<span style="font-style:italic">f </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>)<br>
+ <span style="font-family:monospace"> with signature</span> <span style="font-style:italic">sig</span><br>
+ <span style="font-family:monospace"> as id</span>.<br>
+ <span style="font-family:monospace">Proof</span><br>
+  …<br>
+ <span style="font-family:monospace">Qed</span>
+</blockquote><p>The command declares <span style="font-style:italic">f</span> as a parametric morphism of signature
+<span style="font-style:italic">sig</span>. The identifier <span style="font-style:italic">id</span> gives a unique name to the morphism
+and it is used as the base name of the type class instance definition 
+and as the name of the lemma that proves the well-definedness of the morphism.
+The parameters of the morphism as well as the signature may refer to the
+context of variables.
+The command asks the user to prove interactively that <span style="font-style:italic">f</span> respects
+the relations identified from the signature.</p><div class="theorem"><span style="font-weight:bold">Example 7</span>  <em>
+We start the example by assuming a small theory over homogeneous sets and
+we declare set equality as a parametric equivalence relation and
+union of two sets as a parametric morphism.
+</em><em><span style="font-size:small">
+</span></em><div class="flushleft"><em><span style="font-size:small">
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Require Export Setoid.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Require Export Relation</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">Definitions.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Set Implicit Arguments.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Parameter set: Type -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Type.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Parameter empty: forall A, set A.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Parameter eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set: forall A, set A -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> set A -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Prop.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Parameter union: forall A, set A -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> set A -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> set A.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Axiom eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">refl: forall A, reflexive </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set (A:=A)).</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Axiom eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">sym: forall A, symmetric </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set (A:=A)).</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Axiom eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">trans: forall A, transitive </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set (A:=A)).</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Axiom empty</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">neutral: forall A (S: set A), eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set (union S (empty A)) S.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Axiom union</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">compat:</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       forall (A : Type),</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        forall x x</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> : set A, eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set x x</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        forall y y</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> : set A, eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set y y</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">         eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set (union x y) (union x</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> y</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">'</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">).</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Relation A : (set A) (@eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set A)</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       reflexivity proved by (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">refl (A:=A))</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       symmetry proved by (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">sym (A:=A))</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       transitivity proved by (eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">trans (A:=A))</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       as eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">rel.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Morphism A : (@union A) with </span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">      signature (@eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set A) ==</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> (@eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set A) ==</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> (@eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">set A) as union</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">mor.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Proof. exact (@union</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">compat A). Qed.</span></span></em><em><span style="font-size:small"><br>
+</span></em></div><em><span style="font-size:small">
+</span></em></div><p>It is possible to reduce the burden of specifying parameters using
+(maximally inserted) implicit arguments. If <span style="font-family:monospace">A</span> is always set as
+maximally implicit in the previous example, one can write:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Relation A : (set A) eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       reflexivity proved by eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">refl</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       symmetry proved by eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">sym</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       transitivity proved by eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">trans</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       as eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">rel.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Morphism A : (@union A) with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        signature eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set as union</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">mor.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Proof. exact (@union</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">compat A). Qed.</span></span><span style="font-size:small"><br>
+</span></div><p>We proceed now by proving a simple lemma performing a rewrite step
+and then applying reflexivity, as we would do working with Leibniz
+equality. Both tactic applications are accepted
+since the required properties over <span style="font-family:monospace">eq_set</span> and
+<span style="font-family:monospace">union</span> can be established from the two declarations above.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall (S: set nat),</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">set (union (union S empty) S) (union S S).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Proof. intros. rewrite empty</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">neutral. reflexivity. Qed.</span></span><span style="font-size:small"><br>
+</span></div><p>The tables of relations and morphisms are managed by the type class
+instance mechanism. The behavior on section close is to generalize
+the instances by the variables of the section (and possibly hypotheses
+used in the proofs of instance declarations) but not to export them in
+the rest of the development for proof search. One can use the
+<span style="font-family:monospace">Existing Instance</span> command to do so outside the section,
+using the name of the declared morphism suffixed by <span style="font-family:monospace">_Morphism</span>, 
+or use the <span style="font-family:monospace">Global</span> modifier for the corresponding class instance
+declaration (see §<a href="#setoid%3Afirst-class">27.2.1</a>) at definition time.
+When loading a compiled file or importing a module,
+all the declarations of this module will be loaded.</p>
+<h3 id="sec780" class="subsection">27.1.3  Rewriting and non reflexive relations</h3>
+<p>
+To replace only one argument of an n-ary morphism it is necessary to prove
+that all the other arguments are related to themselves by the respective
+relation instances.</p><div class="theorem"><span style="font-weight:bold">Example 8</span>  <em>
+To replace </em><em><span style="font-family:monospace">(union S empty)</span></em><em> with </em><em><span style="font-family:monospace">S</span></em><em> in
+</em><em><span style="font-family:monospace">(union (union S empty) S) (union S S)</span></em><em> the rewrite tactic must
+exploit the monotony of </em><em><span style="font-family:monospace">union</span></em><em> (axiom </em><em><span style="font-family:monospace">union_compat</span></em><em> in
+the previous example). Applying </em><em><span style="font-family:monospace">union_compat</span></em><em> by hand we are left
+with the goal </em><em><span style="font-family:monospace">eq_set (union S S) (union S S)</span></em><em>.
+</em></div><p>When the relations associated to some arguments are not reflexive, the tactic
+cannot automatically prove the reflexivity goals, that are left to the user.</p><p>Setoids whose relation are partial equivalence relations (PER)
+are useful to deal with partial functions. Let <span style="font-family:monospace">R</span> be a PER. We say
+that an element <span style="font-family:monospace">x</span> is defined if <span style="font-family:monospace">R x x</span>. A partial function
+whose domain comprises all the defined elements only is declared as a
+morphism that respects <span style="font-family:monospace">R</span>. Every time a rewriting step is performed
+the user must prove that the argument of the morphism is defined.</p><div class="theorem"><span style="font-weight:bold">Example 9</span>  <em>
+Let </em><em><span style="font-family:monospace">eqO</span></em><em> be </em><em><span style="font-family:monospace">fun x y =&gt; x = y </span></em>∧<em><span style="font-family:monospace">  x</span></em>≠<em><span style="font-family:monospace"> 0</span></em><em> (the smaller PER over
+non zero elements). Division can be declared as a morphism of signature
+</em><em><span style="font-family:monospace">eq ==&gt; eq0 ==&gt; eq</span></em><em>. Replace </em><em><span style="font-family:monospace">x</span></em><em> with </em><em><span style="font-family:monospace">y</span></em><em> in
+</em><em><span style="font-family:monospace">div x n = div y n</span></em><em> opens the additional goal </em><em><span style="font-family:monospace">eq0 n n</span></em><em> that
+is equivalent to </em><em><span style="font-family:monospace">n=n </span></em>∧<em><span style="font-family:monospace"> n</span></em>≠<em><span style="font-family:monospace">0</span></em><em>.
+</em></div>
+<h3 id="sec781" class="subsection">27.1.4  Rewriting and non symmetric relations</h3>
+<p>
+When the user works up to relations that are not symmetric, it is no longer
+the case that any covariant morphism argument is also contravariant. As a
+result it is no longer possible to replace a term with a related one in
+every context, since the obtained goal implies the previous one if and
+only if the replacement has been performed in a contravariant position.
+In a similar way, replacement in an hypothesis can be performed only if
+the replaced term occurs in a covariant position.</p><div class="theorem"><span style="font-weight:bold">Example 10</span> <span style="font-weight:bold">(Covariance and contravariance)</span>  <em>
+Suppose that division over real numbers has been defined as a
+morphism of signature </em><em><span style="font-family:monospace">Z.div: Z.lt ++&gt; Z.lt --&gt; Z.lt</span></em><em> (i.e.
+</em><em><span style="font-family:monospace">Z.div</span></em><em> is increasing in its first argument, but decreasing on the
+second one). Let </em><em><span style="font-family:monospace">&lt;</span></em><em> denotes </em><em><span style="font-family:monospace">Z.lt</span></em><em>.
+Under the hypothesis </em><em><span style="font-family:monospace">H: x &lt; y</span></em><em> we have
+</em><em><span style="font-family:monospace">k &lt; x / y -&gt; k &lt; x / x</span></em><em>, but not
+</em><em><span style="font-family:monospace">k &lt; y / x -&gt; k &lt; x / x</span></em><em>.
+Dually, under the same hypothesis </em><em><span style="font-family:monospace">k &lt; x / y -&gt; k &lt; y / y</span></em><em> holds,
+but </em><em><span style="font-family:monospace">k &lt; y / x -&gt; k &lt; y / y</span></em><em> does not.
+Thus, if the current goal is </em><em><span style="font-family:monospace">k &lt; x / x</span></em><em>, it is possible to replace
+only the second occurrence of </em><em><span style="font-family:monospace">x</span></em><em> (in contravariant position)
+with </em><em><span style="font-family:monospace">y</span></em><em> since the obtained goal must imply the current one.
+On the contrary, if </em><em><span style="font-family:monospace">k &lt; x / x</span></em><em> is
+an hypothesis, it is possible to replace only the first occurrence of
+</em><em><span style="font-family:monospace">x</span></em><em> (in covariant position) with </em><em><span style="font-family:monospace">y</span></em><em> since
+the current hypothesis must imply the obtained one.
+</em></div><p>Contrary to the previous implementation, no specific error message will
+be raised when trying to replace a term that occurs in the wrong
+position. It will only fail because the rewriting constraints are not
+satisfiable. However it is possible to use the <span style="font-family:monospace">at</span> modifier to
+specify which occurrences should be rewritten.</p><p>As expected, composing morphisms together propagates the variance annotations by
+switching the variance every time a contravariant position is traversed.
+</p><div class="theorem"><span style="font-weight:bold">Example 11</span>  <em>
+Let us continue the previous example and let us consider the goal
+</em><em><span style="font-family:monospace">x / (x / x) &lt; k</span></em><em>. The first and third occurrences of </em><em><span style="font-family:monospace">x</span></em><em> are
+in a contravariant position, while the second one is in covariant position.
+More in detail, the second occurrence of </em><em><span style="font-family:monospace">x</span></em><em> occurs
+covariantly in </em><em><span style="font-family:monospace">(x / x)</span></em><em> (since division is covariant in its first
+argument), and thus contravariantly in </em><em><span style="font-family:monospace">x / (x / x)</span></em><em> (since division
+is contravariant in its second argument), and finally covariantly in
+</em><em><span style="font-family:monospace">x / (x / x) &lt; k</span></em><em> (since </em><em><span style="font-family:monospace">&lt;</span></em><em>, as every transitive relation,
+is contravariant in its first argument with respect to the relation itself).
+</em></div>
+<h3 id="sec782" class="subsection">27.1.5  Rewriting in ambiguous setoid contexts</h3>
+<p>
+One function can respect several different relations and thus it can be
+declared as a morphism having multiple signatures.</p><div class="theorem"><span style="font-weight:bold">Example 12</span>  <em>
+Union over homogeneous lists can be given all the following signatures:
+</em><em><span style="font-family:monospace">eq ==&gt; eq ==&gt; eq</span></em><em> (</em><em><span style="font-family:monospace">eq</span></em><em> being the equality over ordered lists)
+</em><em><span style="font-family:monospace">set_eq ==&gt; set_eq ==&gt; set_eq</span></em><em> (</em><em><span style="font-family:monospace">set_eq</span></em><em> being the equality
+over unordered lists up to duplicates),
+</em><em><span style="font-family:monospace">multiset_eq ==&gt; multiset_eq ==&gt; multiset_eq</span></em><em> (</em><em><span style="font-family:monospace">multiset_eq</span></em><em>
+being the equality over unordered lists).
+</em></div><p>To declare multiple signatures for a morphism, repeat the <span style="font-family:monospace">Add Morphism</span>
+command.</p><p>When morphisms have multiple signatures it can be the case that a rewrite
+request is ambiguous, since it is unclear what relations should be used to
+perform the rewriting. Contrary to the previous implementation, the
+tactic will always choose the first possible solution to the set of
+constraints generated by a rewrite and will not try to find <em>all</em>
+possible solutions to warn the user about.</p>
+<h2 id="sec783" class="section">27.2  Commands and tactics</h2>
+<h3 id="sec784" class="subsection">27.2.1  First class setoids and morphisms</h3>
+<p>
+<a id="setoid:first-class"></a></p><p>The implementation is based on a first-class representation of
+properties of relations and morphisms as type classes. That is, 
+the various combinations of properties on relations and morphisms 
+are represented as records and instances of theses classes are put
+in a hint database.
+For example, the declaration:</p><blockquote class="quote">
+<span style="font-family:monospace">Add Parametric Relation</span> (<span style="font-style:italic">x</span><sub>1</sub> : <span style="font-style:italic">T</span><sub>1</sub>) …(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> : <span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>) :
+<span style="font-style:italic">(A </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-style:italic">) (Aeq </span><span style="font-style:italic">t</span>′<sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span>′<sub><span style="font-style:italic">m</span></sub><span style="font-style:italic">)</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">reflexivity proved by</span> <span style="font-style:italic">refl</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">symmetry proved by</span> <span style="font-style:italic">sym</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">transitivity proved by</span> <span style="font-style:italic">trans</span><span style="font-style:oblique">]</span><br>
+ <span style="font-family:monospace"> as</span> <span style="font-style:italic">id</span>.
+</blockquote><p>is equivalent to an instance declaration:</p><blockquote class="quote">
+<span style="font-family:monospace">Instance</span> (<span style="font-style:italic">x</span><sub>1</sub> : <span style="font-style:italic">T</span><sub>1</sub>) …(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> : <span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>) <span style="font-family:monospace">=&gt;</span>
+<span style="font-style:italic">id</span> : <span style="font-family:monospace">@Equivalence</span> <span style="font-style:italic">(A </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub><span style="font-style:italic">) (Aeq
+</span><span style="font-style:italic">t</span>′<sub>1</sub><span style="font-style:italic"> …</span><span style="font-style:italic">t</span>′<sub><span style="font-style:italic">m</span></sub><span style="font-style:italic">)</span> :=<br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">Equivalence_Reflexive :=</span> <span style="font-style:italic">refl</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">Equivalence_Symmetric :=</span> <span style="font-style:italic">sym</span><span style="font-style:oblique">]</span><br>
+  <span style="font-style:oblique">[</span><span style="font-family:monospace">Equivalence_Transitive :=</span> <span style="font-style:italic">trans</span><span style="font-style:oblique">]</span>.
+</blockquote><p>The declaration itself amounts to the definition of an object of the
+record type <span style="font-family:monospace">Coq.Classes.RelationClasses.Equivalence</span> and a
+hint added to the <span style="font-family:monospace">typeclass_instances</span> hint database. 
+Morphism declarations are also instances of a type class defined in
+<span style="font-family:monospace">Classes.Morphisms</span>.
+See the documentation on type classes <a href="Reference-Manual023.html#typeclasses">20</a> and 
+the theories files in <span style="font-family:monospace">Classes</span> for further explanations. </p><p>One can inform the rewrite tactic about morphisms and relations just by
+using the typeclass mechanism to declare them using <span style="font-family:monospace">Instance</span>
+and <span style="font-family:monospace">Context</span> vernacular commands.
+Any object of type <span style="font-family:monospace">Proper</span> (the type of morphism declarations)
+in the local context will also be automatically used by the rewriting 
+tactic to solve constraints.</p><p>Other representations of first class setoids and morphisms can also
+be handled by encoding them as records. In the following example,
+the projections of the setoid relation and of the morphism function 
+can be registered as parametric relations and morphisms.
+</p><div class="theorem"><span style="font-weight:bold">Example 13</span> <span style="font-weight:bold">(First class setoids)</span>  <div class="flushleft"><em><span style="font-size:small">
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Require Import Relation</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">Definitions Setoid.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Record Setoid: Type :=</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">      { car:Type;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        eq:car-</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">car-</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">Prop;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        refl: reflexive </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> eq;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        sym: symmetric </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> eq;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        trans: transitive </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> eq</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">      }.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Relation (s : Setoid) : (@car s) (@eq s)</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       reflexivity proved by (refl s)</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       symmetry proved by (sym s)</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       transitivity proved by (trans s) as eq</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">rel.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Record Morphism (S1 S2:Setoid): Type :=</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">      { f:car S1 -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">car S2;</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">        compat: forall (x1 x2: car S1), eq S1 x1 x2 -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> eq S2 (f x1) (f x2) }.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Add Parametric Morphism (S1 S2 : Setoid) (M : Morphism S1 S2) :</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       (@f S1 S2 M) with signature (@eq S1 ==</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> @eq S2) as apply</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">mor.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Proof. apply (compat S1 S2 M). Qed.</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Lemma test: forall (S1 S2:Setoid) (m: Morphism S1 S2)</span></span></em><em><span style="font-size:small"><br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">       (x y: car S1), eq S1 x y -</span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> eq S2 (f </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> m x) (f </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">_</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> m y).</span></span></em><em><span style="font-size:small"><br>
+<br>
+</span></em><em><span style="font-size:small"><span style="font-family:monospace">Coq </span></span></em><em><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span></em><em><span style="font-size:small"><span style="font-family:monospace"> Proof. intros. rewrite H. reflexivity. Qed.</span></span></em><em><span style="font-size:small"><br>
+</span></em></div></div>
+<h3 id="sec785" class="subsection">27.2.2  Tactics enabled on user provided relations</h3>
+<p>
+<a id="setoidtactics"></a>
+The following tactics, all prefixed by <span style="font-family:monospace">setoid_</span>, 
+deal with arbitrary
+registered relations and morphisms. Moreover, all the corresponding unprefixed
+tactics (i.e. <span style="font-family:monospace">reflexivity</span>, <span style="font-family:monospace">symmetry</span>, <span style="font-family:monospace">transitivity</span>,
+<span style="font-family:monospace">replace</span>, <span style="font-family:monospace">rewrite</span>)
+have been extended to fall back to their prefixed counterparts when
+the relation involved is not Leibniz equality. Notice, however, that using
+the prefixed tactics it is possible to pass additional arguments such as
+<span style="font-family:monospace">using relation</span>.
+<br>
+</p><p><a id="hevea_default1054"></a><a id="hevea_tactic242"></a>
+<span style="font-family:monospace">setoid_reflexivity</span></p><p><a id="hevea_default1055"></a><a id="hevea_tactic243"></a>
+<span style="font-family:monospace">setoid_symmetry</span> <span style="font-style:oblique">[</span><span style="font-family:monospace">in</span> <span style="font-style:italic">ident</span><span style="font-style:oblique">]</span></p><p><a id="hevea_default1056"></a><a id="hevea_tactic244"></a>
+<span style="font-family:monospace">setoid_transitivity</span></p><p><a id="hevea_default1057"></a><a id="hevea_tactic245"></a>
+<span style="font-family:monospace">setoid_rewrite</span> <span style="font-style:oblique">[</span><span style="font-style:italic">orientation</span><span style="font-style:oblique">]</span> <span style="font-style:italic">term</span>
+ <span style="font-style:oblique">[</span><span style="font-family:monospace">at</span> <span style="font-style:italic">occs</span><span style="font-style:oblique">]</span>  <span style="font-style:oblique">[</span><span style="font-family:monospace">in</span> <span style="font-style:italic">ident</span><span style="font-style:oblique">]</span></p><p><a id="hevea_default1058"></a><a id="hevea_tactic246"></a>
+<span style="font-family:monospace">setoid_replace</span> <span style="font-style:italic">term</span> <span style="font-family:monospace">with</span> <span style="font-style:italic">term</span>
+ <span style="font-style:oblique">[</span><span style="font-family:monospace">in</span> <span style="font-style:italic">ident</span><span style="font-style:oblique">]</span>
+ <span style="font-style:oblique">[</span><span style="font-family:monospace">using relation</span> <span style="font-style:italic">term</span><span style="font-style:oblique">]</span>
+ <span style="font-style:oblique">[</span><span style="font-family:monospace">by</span> <span style="font-style:italic">tactic</span><span style="font-style:oblique">]</span>
+<br>
+</p><p>The <span style="font-family:monospace">using relation</span>
+arguments cannot be passed to the unprefixed form. The latter argument
+tells the tactic what parametric relation should be used to replace
+the first tactic argument with the second one. If omitted, it defaults
+to the <span style="font-family:monospace">DefaultRelation</span> instance on the type of the objects.
+By default, it means the most recent <span style="font-family:monospace">Equivalence</span> instance in
+the environment, but it can be customized by declaring new
+<span style="font-family:monospace">DefaultRelation</span> instances. As Leibniz equality is a declared
+equivalence, it will fall back to it if no other relation is declared on
+a given type.</p><p>Every derived tactic that is based on the unprefixed forms of the tactics
+considered above will also work up to user defined relations. For instance,
+it is possible to register hints for <span style="font-family:monospace">autorewrite</span> that are
+not proof of Leibniz equalities. In particular it is possible to exploit
+<span style="font-family:monospace">autorewrite</span> to simulate normalization in a term rewriting system
+up to user defined equalities.</p>
+<h3 id="sec786" class="subsection">27.2.3  Printing relations and morphisms</h3>
+<p>
+The <span style="font-family:monospace">Print Instances</span> command can be used to show the list of
+currently registered <span style="font-family:monospace">Reflexive</span> (using <span style="font-family:monospace">Print Instances Reflexive</span>),
+<span style="font-family:monospace">Symmetric</span> or <span style="font-family:monospace">Transitive</span> relations,
+<span style="font-family:monospace">Equivalence</span>s, <span style="font-family:monospace">PreOrder</span>s, <span style="font-family:monospace">PER</span>s, and
+Morphisms (implemented as <span style="font-family:monospace">Proper</span> instances). When
+the rewriting tactics refuse to replace a term in a context
+because the latter is not a composition of morphisms, the <span style="font-family:monospace">Print Instances</span>
+commands can be useful to understand what additional morphisms should be
+registered.</p>
+<h3 id="sec787" class="subsection">27.2.4  Deprecated syntax and backward incompatibilities</h3>
+<p>
+Due to backward compatibility reasons, the following syntax for the
+declaration of setoids and morphisms is also accepted.</p><p><a id="hevea_default1059"></a><a id="hevea_command303"></a>
+</p><blockquote class="quote">
+<span style="font-family:monospace">Add Setoid</span> <span style="font-style:italic">A Aeq ST</span> <span style="font-family:monospace">as</span> <span style="font-style:italic">ident</span>
+</blockquote><p>
+where <span style="font-style:italic">Aeq</span> is a congruence relation without parameters,
+<span style="font-style:italic">A</span> is its carrier and <span style="font-style:italic">ST</span> is an object of type
+<span style="font-family:monospace">(Setoid_Theory A Aeq)</span> (i.e. a record packing together the reflexivity,
+symmetry and transitivity lemmas). Notice that the syntax is not completely
+backward compatible since the identifier was not required.</p><p><a id="hevea_default1060"></a><a id="hevea_command304"></a>
+</p><blockquote class="quote">
+<span style="font-family:monospace">Add Morphism</span> <span style="font-style:italic">f</span>:<span style="font-style:italic">ident</span>.<br>
+ Proof.<br>
+ …<br>
+ Qed.
+</blockquote><p>The latter command also is restricted to the declaration of morphisms without
+parameters. It is not fully backward compatible since the property the user
+is asked to prove is slightly different: for <span style="font-style:italic">n</span>-ary morphisms the hypotheses
+of the property are permuted; moreover, when the morphism returns a
+proposition, the property is now stated using a bi-implication in place of
+a simple implication. In practice, porting an old development to the new
+semantics is usually quite simple.</p><p>Notice that several limitations of the old implementation have been lifted.
+In particular, it is now possible to declare several relations with the
+same carrier and several signatures for the same morphism. Moreover, it is
+now also possible to declare several morphisms having the same signature.
+Finally, the replace and rewrite tactics can be used to replace terms in
+contexts that were refused by the old implementation. As discussed in
+the next section, the semantics of the new <span style="font-family:monospace">setoid_rewrite</span>
+command differs slightly from the old one and <span style="font-family:monospace">rewrite</span>.</p>
+<h2 id="sec788" class="section">27.3  Extensions</h2>
+<h3 id="sec789" class="subsection">27.3.1  Rewriting under binders</h3>
+<p><span style="font-weight:bold">Warning</span>: Due to compatibility issues, this feature is enabled only when calling 
+the <span style="font-family:monospace">setoid_rewrite</span> tactics directly and not <span style="font-family:monospace">rewrite</span>.</p><p>To be able to rewrite under binding constructs, one must declare
+morphisms with respect to pointwise (setoid) equivalence of functions. 
+Example of such morphisms are the standard <span style="font-family:monospace">all</span> and <span style="font-family:monospace">ex</span>
+combinators for universal and existential quantification respectively. 
+They are declared as morphisms in the <span style="font-family:monospace">Classes.Morphisms_Prop</span>
+module. For example, to declare that universal quantification is a
+morphism for logical equivalence:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Instance all</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">iff</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">morphism (A : Type) :</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        Proper (pointwise</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">relation A iff ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> iff) (@all A).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Proof. simpl</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">relation. </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  A : Type</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  Proper (pointwise</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">relation A iff ==</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> iff) (all (A:=A))</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  A : Type</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  x, y : A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Prop</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  H : pointwise</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">relation A iff x y</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  all x </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> all y</span></span></span><span style="font-size:small"><br>
+</span></div><p>One then has to show that if two predicates are equivalent at every
+point, their universal quantifications are equivalent. Once we have
+declared such a morphism, it will be used by the setoid rewriting tactic
+each time we try to rewrite under an <span style="font-family:monospace">all</span> application (products
+in <span style="font-family:sans-serif">Prop</span> are implicitly translated to such applications).</p><p>Indeed, when rewriting under a lambda, binding variable <span style="font-style:italic">x</span>, say from
+<span style="font-style:italic">P</span> <span style="font-style:italic">x</span> to <span style="font-style:italic">Q</span> <span style="font-style:italic">x</span> using the relation <span style="font-family:monospace">iff</span>, the tactic will generate
+a proof of <span style="font-family:monospace">pointwise_relation A iff (fun x =&gt; P x) (fun x =&gt; Q
+x)</span> from the proof of <span style="font-family:monospace">iff (P x) (Q x)</span> and a constraint of the
+form <span style="font-family:monospace">Proper (pointwise_relation A iff ==&gt; ?) m</span> will be
+generated for the surrounding morphism <span style="font-family:monospace">m</span>.</p><p>Hence, one can add higher-order combinators as morphisms by providing
+signatures using pointwise extension for the relations on the functional
+arguments (or whatever subrelation of the pointwise extension).
+For example, one could declare the <span style="font-family:monospace">map</span> combinator on lists as 
+a morphism:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Instance map</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">morphism `{Equivalence A eqA, Equivalence B eqB} :</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        Proper ((eqA ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> eqB) ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> list</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">equiv eqA ==</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> list</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">equiv eqB) (@map A B).</span></span><span style="font-size:small"><br>
+</span></div><p>where <span style="font-family:monospace">list_equiv</span> implements an equivalence on lists
+parameterized by an equivalence on the elements.</p><p>Note that when one does rewriting with a lemma under a binder
+using <span style="font-family:monospace">setoid_rewrite</span>, the application of the lemma may capture
+the bound variable, as the semantics are different from rewrite where
+the lemma is first matched on the whole term. With the new
+<span style="font-family:monospace">setoid_rewrite</span>, matching is done on each subterm separately
+and in its local environment, and all matches are rewritten
+<em>simultaneously</em> by default. The semantics of the previous
+<span style="font-family:monospace">setoid_rewrite</span> implementation can almost be recovered using
+the <span style="font-family:monospace">at 1</span> modifier.</p>
+<h3 id="sec790" class="subsection">27.3.2  Sub-relations</h3>
+<p>Sub-relations can be used to specify that one relation is included in
+another, so that morphisms signatures for one can be used for the other.
+If a signature mentions a relation <span style="font-style:italic">R</span> on the left of an arrow
+<span style="font-family:monospace">==&gt;</span>, then the signature also applies for any relation <span style="font-style:italic">S</span> that
+is smaller than <span style="font-style:italic">R</span>, and the inverse applies on the right of an arrow. 
+One can then declare only a few morphisms instances that generate the complete set
+of signatures for a particular constant. By default, the only declared
+subrelation is <span style="font-family:monospace">iff</span>, which is a subrelation of <span style="font-family:monospace">impl</span>
+and <span style="font-family:monospace">inverse impl</span> (the dual of implication). That’s why we can
+declare only two morphisms for conjunction:
+<span style="font-family:monospace">Proper (impl ==&gt; impl ==&gt; impl) and</span> and 
+<span style="font-family:monospace">Proper (iff ==&gt; iff ==&gt; iff) and</span>. This is sufficient to satisfy
+any rewriting constraints arising from a rewrite using <span style="font-family:monospace">iff</span>,
+<span style="font-family:monospace">impl</span> or <span style="font-family:monospace">inverse impl</span> through <span style="font-family:monospace">and</span>.</p><p>Sub-relations are implemented in <span style="font-family:monospace">Classes.Morphisms</span> and are a 
+prime example of a mostly user-space extension of the algorithm.</p>
+<h3 id="sec791" class="subsection">27.3.3  Constant unfolding</h3>
+<p>The resolution tactic is based on type classes and hence regards user-defined 
+constants as transparent by default. This may slow down the resolution
+due to a lot of unifications (all the declared <span style="font-family:monospace">Proper</span>
+instances are tried at each node of the search tree).
+To speed it up, declare your constant as rigid for proof search
+using the command <span style="font-family:monospace">Typeclasses Opaque</span> (see §<a href="Reference-Manual023.html#TypeclassesTransparency">20.6.7</a>).</p>
+<h2 id="sec792" class="section">27.4  Strategies for rewriting</h2>
+<h3 id="sec793" class="subsection">27.4.1  Definitions</h3>
+<p>
+The generalized rewriting tactic is based on a set of strategies that
+can be combined to obtain custom rewriting procedures. Its set of
+strategies is based on Elan’s rewriting strategies
+[<a href="biblio.html#Luttik97specificationof">102</a>]. Rewriting strategies are applied using
+the tactic <span style="font-family:monospace">rewrite_strat </span><span style="font-style:italic">s</span> where <span style="font-style:italic">s</span> is a strategy
+expression. Strategies are defined inductively as described by the
+following grammar:</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >  <span style="font-style:italic">s</span>, <span style="font-style:italic">t</span>, <span style="font-style:italic">u</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >( <span style="font-style:italic">s</span> )</td><td style="text-align:left;white-space:nowrap" >strategy </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">c</span></td><td style="text-align:left;white-space:nowrap" >lemma </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&lt;-</span> <span style="font-style:italic">c</span></td><td style="text-align:left;white-space:nowrap" >lemma, right-to-left </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fail</span></td><td style="text-align:left;white-space:nowrap" >failure </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">id</span></td><td style="text-align:left;white-space:nowrap" >identity </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">refl</span></td><td style="text-align:left;white-space:nowrap" >reflexivity </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">progress</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >progress </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">try</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >failure catch </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">s</span> <span style="font-family:monospace">;</span> <span style="font-style:italic">u</span></td><td style="text-align:left;white-space:nowrap" >composition </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">choice</span> <span style="font-style:italic">s</span> <span style="font-style:italic">t</span></td><td style="text-align:left;white-space:nowrap" >left-biased choice </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">repeat</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >iteration (+) </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">any</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >iteration (*) </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  
+</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">subterm</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >one subterm </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">subterms</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >all subterms </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">innermost</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >innermost first </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">outermost</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >outermost first</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">bottomup</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >bottom-up </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">topdown</span> <span style="font-style:italic">s</span></td><td style="text-align:left;white-space:nowrap" >top-down </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">hints</span> <span style="font-style:italic">hintdb</span></td><td style="text-align:left;white-space:nowrap" >apply hint </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">terms</span> <span style="font-style:italic">c</span> … <span style="font-style:italic">c</span></td><td style="text-align:left;white-space:nowrap" >any of the terms</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">eval</span> <span style="font-style:italic">redexpr</span></td><td style="text-align:left;white-space:nowrap" >apply reduction</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fold</span> <span style="font-style:italic">c</span></td><td style="text-align:left;white-space:nowrap" >fold expression
+</td></tr>
+</table></td></tr>
+</table><p>Actually a few of these are defined in term of the others using
+a primitive fixpoint operator:</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">try</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">choice</span> <span style="font-style:italic">s</span> <span style="font-family:monospace">id</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">any</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fix</span> <span style="font-style:italic">u</span>. <span style="font-family:monospace">try</span> (<span style="font-style:italic">s</span> <span style="font-family:monospace">;</span> <span style="font-style:italic">u</span>) </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">repeat</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">s</span> <span style="font-family:monospace">;</span> <span style="font-family:monospace">any</span> <span style="font-style:italic">s</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">bottomup</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">fix</span> <span style="font-style:italic">bu</span>. (<span style="font-family:monospace">choice</span> (<span style="font-family:monospace">progress</span> (<span style="font-family:monospace">subterms</span> <span style="font-style:italic">bu</span>)) <span style="font-style:italic">s</span>) <span style="font-family:monospace">;</span> <span style="font-family:monospace">try</span> <span style="font-style:italic">bu</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">topdown</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">fix</span> <span style="font-style:italic">td</span>. (<span style="font-family:monospace">choice</span> <span style="font-style:italic">s</span> (<span style="font-family:monospace">progress</span> (<span style="font-family:monospace">subterms</span> <span style="font-style:italic">td</span>))) <span style="font-family:monospace">;</span> <span style="font-family:monospace">try</span> <span style="font-style:italic">td</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">innermost</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fix</span> <span style="font-style:italic">i</span>. (<span style="font-family:monospace">choice</span> (<span style="font-family:monospace">subterm</span> <span style="font-style:italic">i</span>) <span style="font-style:italic">s</span>) </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">outermost</span> <span style="font-style:italic">s</span></td><td style="text-align:center;white-space:nowrap" >=</td><td style="text-align:left;white-space:nowrap" >  <span style="font-family:monospace">fix</span> <span style="font-style:italic">o</span>. (<span style="font-family:monospace">choice</span> <span style="font-style:italic">s</span> (<span style="font-family:monospace">subterm</span> <span style="font-style:italic">o</span>))
+</td></tr>
+</table></td></tr>
+</table><p>The basic control strategy semantics are straightforward: strategies are
+applied to subterms of the term to rewrite, starting from the root of
+the term. The lemma strategies unify the left-hand-side of the
+lemma with the current subterm and on success rewrite it to the
+right-hand-side. Composition can be used to continue rewriting on the
+current subterm. The fail strategy always fails while the identity
+strategy succeeds without making progress. The reflexivity strategy
+succeeds, making progress using a reflexivity proof of
+rewriting. Progress tests progress of the argument strategy and fails if
+no progress was made, while <span style="font-family:monospace">try</span> always succeeds, catching
+failures. Choice is left-biased: it will launch the first strategy and
+fall back on the second one in case of failure. One can iterate a
+strategy at least 1 time using <span style="font-family:monospace">repeat</span> and at least 0 times using
+<span style="font-family:monospace">any</span>.</p><p>The <span style="font-family:monospace">subterm</span> and <span style="font-family:monospace">subterms</span> strategies apply their argument
+strategy <span style="font-style:italic">s</span> to respectively one or all subterms of the current term
+under consideration, left-to-right. <span style="font-family:monospace">subterm</span> stops at the first
+subterm for which <span style="font-style:italic">s</span> made progress. The composite strategies
+<span style="font-family:monospace">innermost</span> and <span style="font-family:monospace">outermost</span> perform a single innermost our outermost
+rewrite using their argument strategy. Their counterparts
+<span style="font-family:monospace">bottomup</span> and <span style="font-family:monospace">topdown</span> perform as many rewritings as possible,
+starting from the bottom or the top of the term. </p><p>Hint databases created for <span style="font-family:monospace">autorewrite</span> can also be used by
+<span style="font-family:monospace">rewrite_strat</span> using the <span style="font-family:monospace">hints</span> strategy that applies any
+of the lemmas at the current subterm. The <span style="font-family:monospace">terms</span> strategy takes the
+lemma names directly as arguments. The <span style="font-family:monospace">eval</span> strategy expects a
+reduction expression (see §<a href="Reference-Manual010.html#Conversion-tactics">8.7</a>) and succeeds if it
+reduces the subterm under consideration. The <span style="font-family:monospace">fold</span> strategy takes a
+term <span style="font-style:italic">c</span> and tries to <em>unify</em> it to the current subterm, converting
+it to <span style="font-style:italic">c</span> on success, it is stronger than the tactic <span style="font-family:monospace">fold</span>. </p>
+<h3 id="sec794" class="subsection">27.4.2  Usage</h3>
+<p>
+<a id="hevea_default1061"></a><a id="hevea_tactic247"></a></p><p><span style="font-family:monospace">rewrite_strat</span> <span style="font-style:italic">s</span> <span style="font-style:oblique">[</span><span style="font-family:monospace">in</span> <span style="font-style:italic">ident</span><span style="font-style:oblique">]</span>: </p><p>Rewrite using the strategy <span style="font-style:italic">s</span> in hypothesis <span style="font-style:italic">ident</span>
+or the conclusion.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Nothing to rewrite</span><a id="hevea_error169"></a>. If the strategy failed. 
+</li><li class="li-enumerate"><span style="font-family:monospace">No progress made</span><a id="hevea_error170"></a>. If the strategy succeeded but
+made no progress.
+</li><li class="li-enumerate"><span style="font-family:monospace">Unable to satisfy the rewriting constraints</span><a id="hevea_error171"></a>. 
+If the strategy succeeded and made progress but the corresponding
+rewriting constraints are not satisfied.
+</li></ol><p>The <span style="font-family:monospace">setoid_rewrite</span> c tactic is basically equivalent to 
+<span style="font-family:monospace">rewrite_strat</span> (<span style="font-family:monospace">outermost</span> c).</p>
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note27" href="#text27">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Nicolas
+Tabareau helped with the gluing.</div></dd></dl>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

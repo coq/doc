@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Reference Manual | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</style>
+<TITLE>Calling external provers</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc513">Chapter 25</A>  Calling external provers</H1><UL>
+<LI><A HREF="Reference-Manual031.html#toc168">The <TT>gappa</TT> tactic</A>
+</LI></UL>
+<H2 CLASS="section"><A NAME="toc168"></A><A NAME="htoc514">25.1</A>  The <TT>gappa</TT> tactic</H2><P>
+<FONT SIZE=5><B>Sylvie Boldo, Guillaume Melquiond, Jean-Christophe Filliâtre</B></FONT> <BR>
+<BR>
+
+<A NAME="@default903"></A><A NAME="@tactic195"></A></P><P>The <TT>gappa</TT> tactic invokes the Gappa
+tool<SUP><A NAME="text34" HREF="#note34">1</A></SUP> to solve
+properties about floating-point or fixed-point arithmetic. It can also
+solve simple inequalities over real numbers.</P><P>The Gappa tool must be installed and its executable (called
+<TT>gappa</TT>) must be in the user program path. The Coq support
+library for Gappa must also be installed (it is available from Gappa&#X2019;s
+web site). This library provides a <TT>Gappa_tactic</TT> module,
+which must be loaded for the tactic to work properly.</P><P>The <TT>gappa</TT> tactic only handles goals and hypotheses that are
+double inequalities <I>f</I><SUB>1</SUB> &#X2264; <I>e</I> &#X2264; <I>f</I><SUB>2</SUB> where <I>f</I><SUB>1</SUB> and <I>f</I><SUB>2</SUB> are
+dyadic constants and <I>e</I> a real-valued expression. Here is an example
+of a goal solved by <TT>gappa</TT>:
+</P><PRE CLASS="verbatim">Lemma test_gappa : 
+  forall x y:R,
+  3/4 &lt;= x &lt;= 3 -&gt; 
+  0 &lt;= sqrt x &lt;= 1775 * (powerRZ 2 (-10)).
+Proof.
+  gappa.
+Qed.
+</PRE><P>Gappa supports floating-point rounding operations (as functions over
+real numbers). Here is an example involving double-precision
+floating-point numbers with rounding toward zero:
+</P><PRE CLASS="verbatim">Definition rnd := gappa_rounding (rounding_float roundZR 53 1074).
+
+Lemma test_gappa2 :
+  forall a_ b_ a b : R,
+  a = rnd a_ -&gt;
+  b = rnd b_ -&gt;
+  52 / 16 &lt;= a &lt;= 53 / 16 -&gt;
+  22 / 16 &lt;= b &lt;= 30 / 16 -&gt;
+  0 &lt;= rnd (a - b) - (a - b) &lt;= 0.
+Proof.
+  unfold rnd; gappa.
+Qed.
+</PRE><P>The function <TT>gappa_rounding</TT> declares a rounding mode
+recognized by the <TT>gappa</TT> tactic. Rounding modes are built
+using constants such as <TT>rounding_float</TT> and
+<TT>roundZR</TT> provided by the Gappa support library.</P><HR CLASS="footnoterule"><DL CLASS="thefootnotes"><DT CLASS="dt-thefootnotes">
+<A NAME="note34" HREF="#text34">1</A></DT><DD CLASS="dd-thefootnotes"><A HREF="http://lipforge.ens-lyon.fr/www/gappa/"><TT>http://lipforge.ens-lyon.fr/www/gappa/</TT></A>
+</DD></DL>
+
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

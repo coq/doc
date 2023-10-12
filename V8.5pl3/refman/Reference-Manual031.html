@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 28  Asynchronous and Parallel Proof Processing</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec771" class="chapter">Chapter 28  Asynchronous and Parallel Proof Processing</h1>
+<ul>
+<li><a href="Reference-Manual031.html#sec772">28.1  Proof annotations</a>
+</li><li><a href="Reference-Manual031.html#sec774">28.2  Interactive mode</a>
+</li><li><a href="Reference-Manual031.html#sec776">28.3  Batch mode</a>
+</li><li><a href="Reference-Manual031.html#sec777">28.4  Limiting the number of parallel workers</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Enrico Tassi</span></span> <br>
+<br>
+</p><p><a id="pralitp"></a>
+<a id="hevea_default1021"></a></p><p>This chapter explains how proofs can be asynchronously processed by Coq.
+This feature improves the reactivity of the system when used in interactive
+mode via CoqIDE. In addition to that, it allows Coq to take advantage of
+parallel hardware when used as a batch compiler by decoupling the checking
+of statements and definitions from the construction and checking of proofs
+objects.</p><p>This feature is designed to help dealing with huge libraries of theorems
+characterized by long proofs. In the current state, it may not be beneficial
+on small sets of short files.</p><p>This feature has some technical limitations that may make it unsuitable for
+some use cases.</p><p>For example, in interactive mode, some errors coming from the kernel of Coq
+are signaled late. The type of errors belonging to this category
+are universe inconsistencies.</p><p>Last, at the time of writing, only opaque proofs (ending with <span style="font-family:monospace">Qed</span> or <span style="font-family:monospace">Admitted</span>) can be processed asynchronously.</p>
+<h2 id="sec772" class="section">28.1  Proof annotations</h2>
+<p>To process a proof asynchronously Coq needs to know the precise statement
+of the theorem without looking at the proof. This requires some annotations
+if the theorem is proved inside a <span style="font-family:monospace">Section</span> (see Section <a href="Reference-Manual004.html#Section">2.4</a>).</p><p>When a section ends, Coq looks at the proof object to decide which
+section variables are actually used and hence have to be quantified in the
+statement of the theorem. To avoid making the construction of proofs
+mandatory when ending a section, one can start each proof with the
+<span style="font-family:monospace">Proof using</span> command (Section <a href="Reference-Manual009.html#ProofUsing">7.1.5</a>) that declares which
+section variables the theorem uses.</p><p>The presence of <span style="font-family:monospace">Proof using</span> is needed to process proofs
+asynchronously in interactive mode.</p><p>It is not strictly mandatory in batch mode if it is not the first time
+the file is compiled and if the file itself did not change. When the
+proof does not begin with <span style="font-family:monospace">Proof using</span>, the system records in an
+auxiliary file, produced along with the <span style="font-family:monospace">.vo</span> file, the list of
+section variables used.</p>
+<h4 id="sec773" class="subsubsection">Automatic suggestion of proof annotations</h4>
+<p>The command <span style="font-family:monospace">Set Suggest Proof Using</span> makes Coq suggest, when a
+<span style="font-family:monospace">Qed</span> command is processed, a correct proof annotation. It is up
+to the user to modify the proof script accordingly.</p>
+<h2 id="sec774" class="section">28.2  Interactive mode</h2>
+<p>At the time of writing the only user interface supporting asynchronous proof
+processing is CoqIDE.</p><p>When CoqIDE is started, two Coq processes are created. The master one follows
+the user, giving feedback as soon as possible by skipping proofs, which are
+delegated to the worker process. The worker process, whose state can be seen
+by clicking on the button in the lower right corner of the main CoqIDE window,
+asynchronously processes the proofs. If a proof contains an error, it is
+reported in red in the label of the very same button, that can also be used to
+see the list of errors and jump to the corresponding line.</p><p>If a proof is processed asynchronously the corresponding <span style="font-family:monospace">Qed</span> command
+is colored using a lighter color that usual. This signals that
+the proof has been delegated to a worker process (or will be processed
+lazily if the <span style="font-family:monospace">-async-proofs lazy</span> option is used). Once finished, the
+worker process will provide the proof object, but this will not be
+automatically checked by the kernel of the main process. To force
+the kernel to check all the proof objects, one has to click the button
+with the gears. Only then are all the universe constraints checked.</p>
+<h4 id="sec775" class="subsubsection">Caveats</h4>
+<p>The number of worker processes can be increased by passing CoqIDE the
+<span style="font-family:monospace">-async-proofs-j </span><span style="font-style:italic">n</span> flag. Note that the memory consumption
+increases too, since each worker requires the same amount of memory as
+the master process. Also note that increasing the number of workers may
+reduce the reactivity of the master process to user commands.</p><p>To disable this feature, one can pass the <span style="font-family:monospace">-async-proofs off</span> flag to
+CoqIDE.</p>
+<h2 id="sec776" class="section">28.3  Batch mode</h2>
+<p>When Coq is used as a batch compiler by running <span style="font-family:monospace">coqc</span> or
+<span style="font-family:monospace">coqtop -compile</span>, it produces a <span style="font-family:monospace">.vo</span> file for each
+<span style="font-family:monospace">.v</span> file. A <span style="font-family:monospace">.vo</span> file contains, among other things,
+theorems statements and proofs. Hence to produce a <span style="font-family:monospace">.vo</span> Coq need
+to process all the proofs of the <span style="font-family:monospace">.v</span> file.</p><p>The asynchronous processing of proofs can decouple the generation of a
+compiled file (like the <span style="font-family:monospace">.vo</span> one) that can be loaded by
+<span style="font-family:monospace">Require</span> from the generation and checking of the proof objects.
+The <span style="font-family:monospace">-quick</span> flag can be passed to <span style="font-family:monospace">coqc</span> or
+<span style="font-family:monospace">coqtop</span> to produce, quickly, <span style="font-family:monospace">.vio</span> files. Alternatively,
+when using a <span style="font-family:monospace">Makefile</span> produced by <span style="font-family:monospace">coq_makefile</span>, the
+<span style="font-family:monospace">quick</span> target can be used to compile all files using the
+<span style="font-family:monospace">-quick</span> flag.</p><p>A <span style="font-family:monospace">.vio</span> file can be loaded using <span style="font-family:monospace">Require</span> exactly as a
+<span style="font-family:monospace">.vo</span> file but proofs will not be available (the <span style="font-family:monospace">Print</span>
+command produces an error). Moreover, some universe constraints might be
+missing, so universes inconsistencies might go unnoticed. A
+<span style="font-family:monospace">.vio</span> file does not contain proof objects, but proof tasks,
+i.e. what a worker process can transform into a proof object.</p><p>Compiling a set of files with the <span style="font-family:monospace">-quick</span> flag allows one to work,
+interactively, on any file without waiting for all the proofs to be checked.</p><p>When working interactively, one can fully check all the <span style="font-family:monospace">.v</span> files by
+running <span style="font-family:monospace">coqc</span> as usual.</p><p>Alternatively one can turn each <span style="font-family:monospace">.vio</span> into the corresponding
+<span style="font-family:monospace">.vo</span>. All <span style="font-family:monospace">.vio</span> files can be processed in parallel,
+hence this alternative might be faster. The command <span style="font-family:monospace">coqtop
+-schedule-vio2vo 2 a b c</span> can be used to obtain a good scheduling for 2
+workers to produce <span style="font-family:monospace">a.vo</span>, <span style="font-family:monospace">b.vo</span>, and <span style="font-family:monospace">c.vo</span>. When
+using a <span style="font-family:monospace">Makefile</span> produced by <span style="font-family:monospace">coq_makefile</span>, the
+<span style="font-family:monospace">vio2vo</span> target can be used for that purpose. Variable <span style="font-family:monospace">J</span>
+should be set to the number of workers, e.g. <span style="font-family:monospace">make vio2vo J=2</span>.
+The only caveat is that, while the <span style="font-family:monospace">.vo</span> files obtained from
+<span style="font-family:monospace">.vio</span> files are complete (they contain all proof terms and
+universe constraints), the satisfiability of all universe constraints has
+not been checked globally (they are checked to be consistent for every
+single proof). Constraints will be checked when these <span style="font-family:monospace">.vo</span> files
+are (recursively) loaded with <span style="font-family:monospace">Require</span>.</p><p>There is an extra, possibly even faster, alternative: just check the
+proof tasks stored in <span style="font-family:monospace">.vio</span> files without producing the
+<span style="font-family:monospace">.vo</span> files. This is possibly faster because all the proof tasks
+are independent, hence one can further partition the job to be done
+between workers. The <span style="font-family:monospace">coqtop -schedule-vio-checking 6 a b c</span>
+command can be used to obtain a good scheduling for 6 workers to check
+all the proof tasks of <span style="font-family:monospace">a.vio</span>, <span style="font-family:monospace">b.vio</span>, and
+<span style="font-family:monospace">c.vio</span>. Auxiliary files are used to predict how long a proof task
+will take, assuming it will take the same amount of time it took last
+time. When using a <span style="font-family:monospace">Makefile</span> produced by <span style="font-family:monospace">coq_makefile</span>,
+the <span style="font-family:monospace">checkproofs</span> target can be used to check all <span style="font-family:monospace">.vio</span>
+files. Variable <span style="font-family:monospace">J</span> should be set to the number of workers,
+e.g. <span style="font-family:monospace">make checkproofs J=6</span>. As when converting <span style="font-family:monospace">.vio</span>
+files to <span style="font-family:monospace">.vo</span> files, universe constraints are not checked to be
+globally consistent. Hence this compilation mode is only useful for quick
+regression testing and on developments not making heavy use of the <span style="font-style:italic">Type</span>
+hierarchy.</p>
+<h2 id="sec777" class="section">28.4  Limiting the number of parallel workers</h2>
+<p>
+<a id="coqworkmgr"></a></p><p>Many Coq processes may run on the same computer, and each of them may start
+many additional worker processes. 
+The <span style="font-family:monospace">coqworkmgr</span> utility lets one limit the number of workers, globally.</p><p>The utility accepts the <span style="font-family:monospace">-j</span> argument to specify the maximum number of
+workers (defaults to 2). <span style="font-family:monospace">coqworkmgr</span> automatically starts in the
+background and prints an environment variable assignment like
+<span style="font-family:monospace">COQWORKMGR_SOCKET=localhost:45634</span>. The user must set this variable in
+all the shells from which Coq processes will be started. If one uses just
+one terminal running the bash shell, then <span style="font-family:monospace">export ‘coqworkmgr -j 4‘</span> will
+do the job.</p><p>After that, all Coq processes, e.g. <span style="font-family:monospace">coqide</span> and <span style="font-family:monospace">coqc</span>,
+will honor the limit, globally.</p>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

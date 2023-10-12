@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="Reference-Manual.css">
+<TITLE>Program</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual023.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual025.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+<HR>
+<H1 CLASS="chapter"><A NAME="htoc415">Chapter 19</A>  <SPAN STYLE="font-variant:small-caps">Program</SPAN></H1><P>
+<A NAME="Program"></A>
+<FONT SIZE=5><B>Matthieu Sozeau</B></FONT> <BR>
+<BR>
+
+<A NAME="@default792"></A></P><DIV CLASS="flushleft">
+<EM>The status of </EM><EM><SPAN STYLE="font-variant:small-caps">Program</SPAN></EM><EM> is experimental.
+</EM></DIV><P>We present here the new <SPAN STYLE="font-variant:small-caps">Program</SPAN> tactic commands, used to build certified
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> programs, elaborating them from their algorithmic skeleton and a
+rich specification [<A HREF="biblio.html#Sozeau06">118</A>]. It can be sought of as a dual of extraction
+(see Chapter <A HREF="Reference-Manual023.html#Extraction">18</A>). The goal of <SPAN STYLE="font-variant:small-caps">Program</SPAN> is to program as in a regular
+functional programming language whilst using as rich a specification as 
+desired and proving that the code meets the specification using the whole <SPAN STYLE="font-variant:small-caps">Coq</SPAN> proof
+apparatus. This is done using a technique originating from the
+&#X201C;Predicate subtyping&#X201D; mechanism of <SPAN STYLE="font-variant:small-caps">PVS</SPAN>[<A HREF="biblio.html#Rushby98">115</A>], which generates type-checking
+conditions while typing a term constrained to a particular type. 
+Here we insert existential variables in the term, which must be filled
+with proofs to get a complete <SPAN STYLE="font-variant:small-caps">Coq</SPAN> term. <SPAN STYLE="font-variant:small-caps">Program</SPAN> replaces the
+<SPAN STYLE="font-variant:small-caps">Program</SPAN> tactic by Catherine Parent [<A HREF="biblio.html#Parent95b">105</A>] which had a similar goal but is no longer
+maintained.</P><P>The languages available as input are currently restricted to <SPAN STYLE="font-variant:small-caps">Coq</SPAN>&#X2019;s term
+language, but may be extended to <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN>, <SPAN STYLE="font-variant:small-caps">Haskell</SPAN> and others
+in the future. We use the same syntax as <SPAN STYLE="font-variant:small-caps">Coq</SPAN> and permit to use implicit
+arguments and the existing coercion mechanism.
+Input terms and types are typed in an extended system (<SPAN STYLE="font-variant:small-caps">Russell</SPAN>) and
+interpreted into <SPAN STYLE="font-variant:small-caps">Coq</SPAN> terms. The interpretation process may produce
+some proof obligations which need to be resolved to create the final term.</P><H2 CLASS="section"><A NAME="toc128"></A><A NAME="htoc416">19.1</A>  Elaborating programs</H2><P>
+The main difference from <SPAN STYLE="font-variant:small-caps">Coq</SPAN> is that an object in a type <I>T</I> : <FONT COLOR=purple>Set</FONT>
+can be considered as an object of type { <I>x</I> : <I>T</I> | <I>P</I>} for any
+wellformed <I>P</I> : <FONT COLOR=purple>Prop</FONT>. 
+If we go from <I>T</I> to the subset of <I>T</I> verifying property <I>P</I>, we must
+prove that the object under consideration verifies it. <SPAN STYLE="font-variant:small-caps">Russell</SPAN> will
+generate an obligation for every such coercion. In the other direction,
+<SPAN STYLE="font-variant:small-caps">Russell</SPAN> will automatically insert a projection.</P><P>Another distinction is the treatment of pattern-matching. Apart from the
+following differences, it is equivalent to the standard <TT>match</TT>
+operation (see Section <A HREF="Reference-Manual006.html#Caseexpr">4.5.4</A>).
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Generation of equalities. A <TT>match</TT> expression is always
+generalized by the corresponding equality. As an example,
+the expression: <DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   match x with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | 0 =</TT><TT>&gt;</TT><TT> t</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S n =</TT><TT>&gt;</TT><TT> u</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+</DIV><P>
+
+will be first rewrote to:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   (match x as y return (x = y -</TT><TT>&gt;</TT><TT> _) with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | 0 =</TT><TT>&gt;</TT><TT> fun H : x = 0 -</TT><TT>&gt;</TT><TT> t</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S n =</TT><TT>&gt;</TT><TT> fun H : x = S n -</TT><TT>&gt;</TT><TT> u</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end) (refl_equal n).</TT><BR>
+</DIV><P>This permits to get the proper equalities in the context of proof
+obligations inside clauses, without which reasoning is very limited.</P></LI><LI CLASS="li-itemize">Generation of inequalities. If a pattern intersects with a
+previous one, an inequality is added in the context of the second
+branch. See for example the definition of <TT>div2</TT> below, where the second
+branch is typed in a context where &#X2200; <I>p</I>, _ &lt;&gt; <I>S</I> (<I>S</I> <I>p</I>).</LI><LI CLASS="li-itemize">Coercion. If the object being matched is coercible to an inductive
+type, the corresponding coercion will be automatically inserted. This also
+works with the previous mechanism.
+</LI></UL><P>If you do specify a <TT>return</TT> or <TT>in</TT> clause the typechecker will
+fall back directly to <SPAN STYLE="font-variant:small-caps">Coq</SPAN>&#X2019;s usual typing of dependent pattern-matching.</P><P>The next two commands are similar to their standard counterparts
+Definition (see Section <A HREF="Reference-Manual003.html#Simpl-definitions">1.3.2</A>) and Fixpoint (see Section <A HREF="Reference-Manual003.html#Fixpoint">1.3.4</A>) in that
+they define constants. However, they may require the user to prove some
+goals to construct the final definitions.</P><H3 CLASS="subsection"><A NAME="htoc417">19.1.1</A>  <TT>Program Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><TT>.
+</TT><A NAME="@default793"></A><A NAME="@command264"></A><A NAME="ProgramDefinition"></A></H3><P>This command types the value <I><FONT COLOR=maroon>term</FONT></I> in <SPAN STYLE="font-variant:small-caps">Russell</SPAN> and generate proof
+obligations. Once solved using the commands shown below, it binds the final
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> term to the name <I><FONT COLOR=maroon>ident</FONT></I> in the environment.</P><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<I><FONT COLOR=maroon>ident</FONT></I><TT> already exists</TT><A NAME="@error143"></A>
+</LI></OL><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>Program Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><TT>:</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> :=
+</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>2</TT></SUB><TT>.</TT><BR>
+ It interprets the type <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>, potentially generating proof
+obligations to be resolved. Once done with them, we have a <SPAN STYLE="font-variant:small-caps">Coq</SPAN> type
+<I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>&#X2032;. It then checks that the type of the interpretation of
+<I><FONT COLOR=maroon>term</FONT></I><SUB>2</SUB> is coercible to <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>&#X2032;, and registers <I><FONT COLOR=maroon>ident</FONT></I> as
+being of type <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>&#X2032; once the set of obligations generated
+during the interpretation of <I><FONT COLOR=maroon>term</FONT></I><SUB>2</SUB> and the aforementioned
+coercion derivation are solved.
+</LI><LI CLASS="li-enumerate"><TT>Program Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><I><FONT COLOR=maroon>binder</FONT></I><SUB><TT>1</TT></SUB><TT>&#X2026;</TT><I><FONT COLOR=maroon>binder</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>
+</TT><TT>:</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>:=</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>2</TT></SUB><TT>.</TT><BR>
+ This is equivalent to<BR>
+ <TT>Program Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><TT>: forall</TT><TT> </TT><I><FONT COLOR=maroon>binder</FONT></I><SUB><TT>1</TT></SUB><TT>&#X2026;</TT><I><FONT COLOR=maroon>binder</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>,</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>:=</TT> <TT>fun</TT> <I><FONT COLOR=maroon>binder</FONT></I><SUB>1</SUB>&#X2026;<I><FONT COLOR=maroon>binder</FONT></I><SUB><I>n</I></SUB> <TT>=&gt;</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB>2</SUB> <TT>.</TT>
+</LI></OL><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>In environment </TT><TT>&#X2026;</TT><TT> the term: </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>2</TT></SUB><TT> does not have type
+</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><A NAME="@error144"></A>.<BR>
+ <TT>Actually, it has type </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>3</TT></SUB>.
+</LI></OL><P><BR>
+<B>See also: </B>Sections <A HREF="Reference-Manual008.html#Opaque">6.2.4</A>, <A HREF="Reference-Manual008.html#Transparent">6.2.5</A>, <A HREF="Reference-Manual010.html#unfold">8.5.5</A></P><H3 CLASS="subsection"><A NAME="htoc418">19.1.2</A>  <TT>Program Fixpoint </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><I><FONT COLOR=maroon>params</FONT></I><TT> </TT><TT>{order}</TT><TT> : type := </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default794"></A><A NAME="@command265"></A><TT>
+</TT><A NAME="ProgramFixpoint"></A></H3><P>The structural fixpoint operator behaves just like the one of Coq
+(see Section <A HREF="Reference-Manual003.html#Fixpoint">1.3.4</A>), except it may also generate obligations.
+It works with mutually recursive definitions too.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Program Fixpoint div2 (n : nat) : { x : nat | n = 2 * x </TT><TT>\</TT><TT>/ n = 2 * x + 1 } :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S (S p) =</TT><TT>&gt;</TT><TT> S (div2 p)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | _ =</TT><TT>&gt;</TT><TT> O</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>Solving obligations automatically...</I></TT><BR>
+<TT><I>div2_obligation_3 is defined</I></TT><BR>
+<TT><I>div2_obligation_4 is defined</I></TT><BR>
+<TT><I>2 obligations remaining</I></TT><BR>
+</DIV><P>Here we have one obligation for each branch (branches for <CODE>0</CODE> and <CODE>(S 0)</CODE> are
+automatically generated by the pattern-matching compilation algorithm):
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   Obligations.</TT><BR>
+<TT><I>2 obligation(s) remaining: </I></TT><BR>
+<TT><I>Obligation 1 of div2:</I></TT><BR>
+<TT><I>forall (div2 : forall n : nat, {x : nat | n = 2 * x </I></TT><TT><I>\</I></TT><TT><I>/ n = 2 * x + 1})</I></TT><BR>
+<TT><I>  (n p : nat),</I></TT><BR>
+<TT><I>S (S p) = n -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>n = 2 * S (proj1_sig (div2 p)) </I></TT><TT><I>\</I></TT><TT><I>/ n = 2 * S (proj1_sig (div2 p)) + 1.</I></TT><BR>
+<TT><I>Obligation 2 of div2:</I></TT><BR>
+<TT><I>forall n wildcard&#X2019; : nat,</I></TT><BR>
+<TT><I>(forall p : nat, S (S p) </I></TT><TT><I>&lt;</I></TT><TT><I>&gt;</I></TT><TT><I> wildcard&#X2019;) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>wildcard&#X2019; = n -</I></TT><TT><I>&gt;</I></TT><TT><I> n = 2 * 0 </I></TT><TT><I>\</I></TT><TT><I>/ n = 2 * 0 + 1.</I></TT><BR>
+</DIV><P>You can use a well-founded order or a measure as termination orders using the syntax:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Definition id (n : nat) := n.</TT><BR>
+<TT><I>id is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Program Fixpoint div2 (n : nat) {measure id n} : { x : nat | n = 2 * x </TT><TT>\</TT><TT>/ n = 2 * x + 1 } :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S (S p) =</TT><TT>&gt;</TT><TT> S (div2 p)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | _ =</TT><TT>&gt;</TT><TT> O</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>div2 has type-checked, generating 5 obligation(s)</I></TT><BR>
+<TT><I>Solving obligations automatically...</I></TT><BR>
+<TT><I>div2_obligation_1 is defined</I></TT><BR>
+<TT><I>div2_obligation_4 is defined</I></TT><BR>
+<TT><I>div2_obligation_5 is defined</I></TT><BR>
+<TT><I>2 obligations remaining</I></TT><BR>
+</DIV><P><EM>Caution:</EM> When defining structurally recursive functions, the
+generated obligations should have the prototype of the currently defined functional
+in their context. In this case, the obligations should be transparent
+(e.g. using Defined or Save) so that the guardedness condition on
+recursive calls can be checked by the
+kernel&#X2019;s type-checker. There is an optimization in the generation of
+obligations which gets rid of the hypothesis corresponding to the
+functionnal when it is not necessary, so that the obligation can be
+declared opaque (e.g. using Qed). However, as soon as it appears in the
+context, the proof of the obligation is <EM>required</EM> to be declared transparent.</P><P>No such problems arise when using measures or well-founded recursion.</P><H3 CLASS="subsection"><A NAME="htoc419">19.1.3</A>  <TT>Program Lemma </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> : type.
+</TT><A NAME="@default795"></A><A NAME="@command266"></A><TT>
+</TT><A NAME="ProgramLemma"></A></H3><P>The <SPAN STYLE="font-variant:small-caps">Russell</SPAN> language can also be used to type statements of logical
+properties. It will currently fail if the traduction to <SPAN STYLE="font-variant:small-caps">Coq</SPAN>
+generates obligations though it can be useful to insert automatic
+coercions. In the former case, one can first define the lemma&#X2019;s
+statement using <TT>Program Definition</TT> and use it as the goal afterwards.</P><P>The <TT>Program</TT> prefix can similarly be used as a prefix for <TT>Variable</TT>, <TT>Hypothesis</TT>, <TT>Axiom</TT> etc...</P><H3 CLASS="subsection"><A NAME="htoc420">19.1.4</A>  Solving obligations</H3><P>
+The following commands are available to manipulate obligations. The
+optional identifier is used when multiple functions have unsolved
+obligations (e.g. when defining mutually recursive blocks). The optional
+tactic is replaced by the default one if not specified.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<TT>Obligations Tactic := </TT><I><FONT COLOR=maroon>expr</FONT></I> Sets the default obligation
+solving tactic applied to all obligations automatically, whether to
+solve them or when starting to prove one, e.g. using <TT>Next</TT>.
+</LI><LI CLASS="li-itemize"><TT>Obligations [of </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>]</TT> Displays all remaining
+obligations.
+</LI><LI CLASS="li-itemize"><TT>Next Obligation [of </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>]</TT> Start the proof of the next
+unsolved obligation.
+</LI><LI CLASS="li-itemize"><TT>Obligation num [of </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>]</TT> Start the proof of
+obligation <TT>num</TT>.
+</LI><LI CLASS="li-itemize"><TT>Solve Obligations [of </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>] [using </TT><I><FONT COLOR=maroon>expr</FONT></I><TT>]</TT> Tries to solve
+each obligation of <I><FONT COLOR=maroon>ident</FONT></I>using the given tactic.
+</LI><LI CLASS="li-itemize"><TT>Solve All Obligations [using </TT><I><FONT COLOR=maroon>expr</FONT></I><TT>]</TT> Tries to solve
+each obligation of every program using the given tactic.
+</LI><LI CLASS="li-itemize"><TT>Admit Obligations [of </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>]</TT> Admits all
+obligations (does not work with structurally recursive programs).
+</LI></UL><P>The module <TT>Coq.subtac.Utils</TT> defines the default tactic for solving
+obligations called <TT>subtac_simpl</TT>. Importing it also adds some
+useful notations, as documented in the file itself.</P><HR>
+<A HREF="Reference-Manual023.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual025.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

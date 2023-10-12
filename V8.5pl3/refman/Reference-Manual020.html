@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 17  Extended pattern-matching</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec635" class="chapter">Chapter 17  Extended pattern-matching</h1>
+<ul>
+<li><a href="Reference-Manual020.html#sec636">17.1  Patterns</a>
+</li><li><a href="Reference-Manual020.html#sec641">17.2  About patterns of parametric types</a>
+</li><li><a href="Reference-Manual020.html#sec644">17.3  Matching objects of dependent types</a>
+</li><li><a href="Reference-Manual020.html#sec650">17.4  Using pattern matching to write proofs</a>
+</li><li><a href="Reference-Manual020.html#sec651">17.5  Pattern-matching on inductive objects involving local
+definitions</a>
+</li><li><a href="Reference-Manual020.html#sec652">17.6  Pattern-matching and coercions</a>
+</li><li><a href="Reference-Manual020.html#sec653">17.7  When does the expansion strategy fail ?</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Cristina Cornes and Hugo Herbelin</span></span> <br>
+<br>
+</p><p><a id="Mult-match-full"></a>
+<a id="hevea_default915"></a>
+<a id="hevea_default916"></a></p><p>This section describes the full form of pattern-matching in <span style="font-variant:small-caps">Coq</span> terms.</p>
+<h2 id="sec636" class="section">17.1  Patterns</h2>
+<p><a id="implementation"></a> The full syntax of <span style="font-family:monospace">match</span> is presented in Figures <a href="Reference-Manual003.html#term-syntax">1.1</a>
+and <a href="Reference-Manual003.html#term-syntax-aux">1.2</a>. Identifiers in patterns are either
+constructor names or variables. Any identifier that is not the
+constructor of an inductive or co-inductive type is considered to be a
+variable. A variable name cannot occur more than once in a given
+pattern. It is recommended to start variable names by a lowercase
+letter.</p><p>If a pattern has the form (<span style="font-style:italic">c</span> <span style="font-weight:bold"><span style="font-style:italic">x</span></span>) where <span style="font-style:italic">c</span> is a constructor
+symbol and <span style="font-weight:bold"><span style="font-style:italic">x</span></span> is a linear vector of (distinct) variables, it is
+called <em>simple</em>: it is the kind of pattern recognized by the basic
+version of <span style="font-family:monospace">match</span>. On the opposite, if it is a variable <span style="font-style:italic">x</span> or
+has the form (<span style="font-style:italic">c</span> <span style="font-weight:bold"><span style="font-style:italic">p</span></span>) with <span style="font-style:italic">p</span> not only made of variables, the
+pattern is called <em>nested</em>.</p><p>A variable pattern matches any value, and the identifier is bound to
+that value. The pattern “<span style="font-family:monospace">_</span>” (called “don’t care” or
+“wildcard” symbol) also matches any value, but does not bind
+anything. It may occur an arbitrary number of times in a
+pattern. Alias patterns written <span style="font-family:monospace">(</span><span style="font-style:oblique">pattern</span> <span style="font-family:monospace">as</span>
+<span style="font-style:oblique">identifier</span><span style="font-family:monospace">)</span> are also accepted. This pattern matches the
+same values as <span style="font-style:oblique">pattern</span> does and <span style="font-style:oblique">identifier</span> is bound to the
+matched value.
+A pattern of the form <span style="font-style:oblique">pattern</span><span style="font-family:monospace">|</span><span style="font-style:oblique">pattern</span> is called
+disjunctive. A list of patterns separated with commas is also
+considered as a pattern and is called <em>multiple pattern</em>. However
+multiple patterns can only occur at the root of pattern-matching
+equations. Disjunctions of <em>multiple pattern</em> are allowed though.</p><p>Since extended <span style="font-family:monospace">match</span> expressions are compiled into the primitive
+ones, the expressiveness of the theory remains the same. Once the
+stage of parsing has finished only simple patterns remain. Re-nesting
+of pattern is performed at printing time. An easy way to see the
+result of the expansion is to toggle off the nesting performed at
+printing (use here <span style="font-family:monospace">Set Printing Matching</span>), then by printing the term
+with <span style="font-family:monospace">Print</span> if the term is a constant, or using the command
+<span style="font-family:monospace">Check</span>.</p><p>The extended <span style="font-family:monospace">match</span> still accepts an optional <em>elimination
+predicate</em> given after the keyword <span style="font-family:monospace">return</span>. Given a pattern
+matching expression, if all the right-hand-sides of <span style="font-family:monospace">=&gt;</span> (<em>rhs</em> in short) have the same type, then this type can be sometimes
+synthesized, and so we can omit the <span style="font-family:monospace">return</span> part. Otherwise
+the predicate after <span style="font-family:monospace">return</span> has to be provided, like for the basic
+<span style="font-family:monospace">match</span>.</p><p>Let us illustrate through examples the different aspects of extended
+pattern matching. Consider for example the function that computes the
+maximum of two natural numbers. We can write it in primitive syntax
+by:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint max (n m:nat) {struct m} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> match m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                  | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                  | S m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (max n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                  end</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h5 id="sec637" class="paragraph">Multiple patterns</h5>
+<p>Using multiple patterns in the definition of <span style="font-family:monospace">max</span> lets us write:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint max (n m:nat) {struct m} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O, </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">, O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">, S m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (max n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>which will be compiled into the previous form.</p><p>The pattern-matching compilation strategy examines patterns from left
+to right. A <span style="font-family:monospace">match</span> expression is generated <span style="font-weight:bold">only</span> when
+there is at least one constructor in the column of patterns. E.g. the
+following example does not build a <span style="font-family:monospace">match</span> expression.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (fun x:nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> match x return nat with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                          | y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                          end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun x : nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h5 id="sec638" class="paragraph">Aliasing subpatterns</h5>
+<p>We can also use “<span style="font-family:monospace">as</span> <span style="font-style:oblique">ident</span>” to associate a name to a
+sub-pattern:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint max (n m:nat) {struct n} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O, </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> as p, O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> p</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">, S m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (max n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is recursively defined (decreasing on 1st argument)</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h5 id="sec639" class="paragraph">Nested patterns</h5>
+<p>Here is now an example of nested patterns:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint even (n:nat) : bool :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> true</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> false</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S (S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">) =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> even n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">even is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">even is recursively defined (decreasing on 1st argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>This is compiled into:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Unset Printing Matching.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print even.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">even = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fix even (n : nat) : bool :=</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  match n with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | 0 =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> true</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | S n0 =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> match n0 with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">            | 0 =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> false</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">            | S n</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> even n</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">            end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> bool</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scope is [nat</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span></div><p>In the previous examples patterns do not conflict with, but
+sometimes it is comfortable to write patterns that admit a non
+trivial superposition. Consider
+the boolean function <span style="font-family:monospace">lef</span> that given two natural numbers
+yields <span style="font-family:monospace">true</span> if the first one is less or equal than the second
+one and <span style="font-family:monospace">false</span> otherwise. We can write it as follows:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint lef (n m:nat) {struct m} : bool :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O, x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> true</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | x, O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> false</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n, S m =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> lef n m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lef is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lef is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>Note that the first and the second multiple pattern superpose because
+the couple of values <span style="font-family:monospace">O O</span> matches both. Thus, what is the result
+of the function on those values? To eliminate ambiguity we use the
+<em>textual priority rule</em>: we consider patterns ordered from top to
+bottom, then a value is matched by the pattern at the <span style="font-style:italic">ith</span> row if and
+only if it is not matched by some pattern of a previous row. Thus in the
+example,
+<span style="font-family:monospace">O O</span> is matched by the first pattern, and so <span style="font-family:monospace">(lef O O)</span>
+yields <span style="font-family:monospace">true</span>.</p><p>Another way to write this function is:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint lef (n m:nat) {struct m} : bool :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O, x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> true</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n, S m =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> lef n m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">, </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> false</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lef is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lef is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>Here the last pattern superposes with the first two. Because
+of the priority rule, the last pattern
+will be used only for values that do not match neither the first nor
+the second one.</p><p>Terms with useless patterns are not accepted by the
+system. Here is an example:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fail Check (fun x:nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">               match x with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">               | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> true</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">               | S </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> false</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">               | x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> true</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">               end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The command has indeed failed with message:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">This clause is redundant.</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h5 id="sec640" class="paragraph">Disjunctive patterns</h5>
+<p>Multiple patterns that share the same right-hand-side can be
+factorized using the notation <span style="font-style:oblique">mult_pattern</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">mult_pattern</span>. For instance,
+<span style="font-family:monospace">max</span> can be rewritten as follows:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint max (n m:nat) {struct m} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">, S m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (max n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | 0, p | p, 0 =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> p</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">max is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>Similarly, factorization of (non necessary multiple) patterns
+that share the same variables is possible by using the notation
+<span style="font-style:oblique">pattern</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">pattern</span>. Here is an example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition filter</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">2</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">4 (n:nat) : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | 2 as m | 4 as m =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">filter</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">2</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">4 is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>Here is another example using disjunctive subpatterns.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition filter</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">some</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">square</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">corners (p:nat*nat) : nat*nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match p with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | ((2 as m | 4 as m), (3 as n | 5 as n)) =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> (m,n)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> (0,0)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">filter</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">some</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">square</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">corners is defined</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h2 id="sec641" class="section">17.2  About patterns of parametric types</h2>
+<h5 id="sec642" class="paragraph">Parameters in patterns</h5>
+<p>
+When matching objects of a parametric type, parameters do not bind in patterns.
+They must be substituted by “_”.
+Consider for example the type of polymorphic lists:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive List (A:Set) : Set :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | nil : List A</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | cons : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> List A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> List A.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">List is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">List</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rect is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">List</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">List</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rec is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>We can check the function <em>tail</em>:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (fun l:List nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | nil </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nil nat</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | cons </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun l : List nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">match l with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| nil </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nil nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| cons </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : List nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> List nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>When we use parameters in patterns there is an error message:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fail Check</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (fun l:List nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | nil A =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nil nat</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | cons A </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The command has indeed failed with message:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Error: The parameters do not bind in patterns;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">they must be replaced by </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">.</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h5 id="sec643" class="paragraph">Implicit arguments in patterns</h5>
+<p>
+By default, implicit arguments are omitted in patterns. So we write:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Arguments nil [A].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Arguments cons [A] </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (fun l:List nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | nil =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nil</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | cons </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun l : List nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> match l with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    | nil =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nil</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    | cons </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : List nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> List nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>But the possibility to use all the arguments is given by “<span style="font-family:monospace">@</span>” implicit
+explicitations (as for terms <a href="Reference-Manual004.html#Implicits-explicitation">2.7.11</a>).</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (fun l:List nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | @nil </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> @nil nat</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           | @cons </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">           end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun l : List nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> match l with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    | nil =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nil</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    | cons </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> l</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                    end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : List nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> List nat</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h2 id="sec644" class="section">17.3  Matching objects of dependent types</h2>
+<p>
+The previous examples illustrate pattern matching on objects of
+non-dependent types, but we can also
+use the expansion strategy to destructure objects of dependent type.
+Consider the type <span style="font-family:monospace">listn</span> of lists of a certain length:
+<a id="listn"></a></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive listn : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | niln : listn 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | consn : forall n:nat, nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> listn n -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> listn (S n).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">listn is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">listn</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rect is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">listn</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">listn</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rec is defined</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="sec645" class="subsection">17.3.1  Understanding dependencies in patterns</h3>
+<p>
+We can define the function <span style="font-family:monospace">length</span> over <span style="font-family:monospace">listn</span> by:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition length (n:nat) (l:listn n) := n.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>Just for illustrating pattern matching,
+we can define it by case analysis:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition length (n:nat) (l:listn n) :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | niln =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | consn n </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S n</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>We can understand the meaning of this definition using the
+same notions of usual pattern matching.</p>
+<h3 id="sec646" class="subsection">17.3.2  When the elimination predicate must be provided</h3>
+<h5 id="sec647" class="paragraph">Dependent pattern matching</h5>
+<p>
+The examples given so far do not need an explicit elimination predicate
+because all the rhs have the same type and the
+strategy succeeds to synthesize it.
+Unfortunately when dealing with dependent patterns it often happens
+that we need to write cases where the type of the rhs are
+different instances of the elimination predicate.
+The function <span style="font-family:monospace">concat</span> for <span style="font-family:monospace">listn</span>
+is an example where the branches have different type
+and we need to provide the elimination predicate:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint concat (n:nat) (l:listn n) (m:nat) (l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">:listn m) {struct l} :</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       listn (n + m) :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match l in listn n return listn (n + m) with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | niln =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | consn n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> a y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> consn (n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> + m) a (concat n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> y m l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">concat is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">concat is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+The elimination predicate is <span style="font-family:monospace">fun (n:nat) (l:listn n) =&gt; listn (n+m)</span>.
+In general if <span style="font-style:italic">m</span> has type <span style="font-family:monospace">(</span><span style="font-style:italic">I</span> <span style="font-style:italic">q</span><sub>1</sub> … <span style="font-style:italic">q</span><sub><span style="font-style:italic">r</span></sub> <span style="font-style:italic">t</span><sub>1</sub> … <span style="font-style:italic">t</span><sub><span style="font-style:italic">s</span></sub><span style="font-family:monospace">)</span> where
+<span style="font-style:italic">q</span><sub>1</sub>, …, <span style="font-style:italic">q</span><sub><span style="font-style:italic">r</span></sub> are parameters, the elimination predicate should be of
+the form :
+<span style="font-family:monospace">fun</span> <span style="font-style:italic">y</span><sub>1</sub> … <span style="font-style:italic">y</span><sub><span style="font-style:italic">s</span></sub> <span style="font-style:italic">x</span><span style="font-family:monospace">:</span>(<span style="font-style:italic">I</span> <span style="font-style:italic">q</span><sub>1</sub> … <span style="font-style:italic">q</span><sub><span style="font-style:italic">r</span></sub> <span style="font-style:italic">y</span><sub>1</sub> …
+<span style="font-style:italic">y</span><sub><span style="font-style:italic">s</span></sub><span style="font-family:monospace">) =&gt;</span> <span style="font-style:italic">Q</span>.</p><p>In the concrete syntax, it should be written :
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:sans-serif">match</span> <span style="font-style:italic">m</span> <span style="font-family:sans-serif">as</span> <span style="font-style:italic">x</span> <span style="font-family:sans-serif">in</span> (<span style="font-style:italic">I</span> _ … _ <span style="font-style:italic">y</span><sub>1</sub> … <span style="font-style:italic">y</span><sub><span style="font-style:italic">s</span></sub>) <span style="font-family:sans-serif">return</span> <span style="font-style:italic">Q</span> <span style="font-family:sans-serif">with</span> … <span style="font-family:sans-serif">end</span></td></tr>
+</table><p>The variables which appear in the <span style="font-family:sans-serif">in</span> and <span style="font-family:sans-serif">as</span> clause are new
+and bounded in the property <span style="font-style:italic">Q</span> in the <span style="font-family:sans-serif">return</span> clause. The
+parameters of the inductive definitions should not be mentioned and
+are replaced by <span style="font-family:sans-serif">_</span>.</p>
+<h5 id="sec648" class="paragraph">Multiple dependent pattern matching</h5>
+<p>
+Recall that a list of patterns is also a pattern. So, when we destructure several
+terms at the same time and the branches have different types we need to provide the
+elimination predicate for this multiple pattern. It is done using the same
+scheme, each term may be associated to an <span style="font-family:sans-serif">as</span> and <span style="font-family:sans-serif">in</span> clause in order to
+introduce a dependent product.</p><p>For example, an equivalent definition for <span style="font-family:monospace">concat</span> (even though the
+matching on the second term is trivial) would have been:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint concat (n:nat) (l:listn n) (m:nat) (l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">:listn m) {struct l} :</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       listn (n + m) :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match l in listn n, l</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> return listn (n + m) with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | niln, x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | consn n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> a y, x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> consn (n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> + m) a (concat n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> y m x)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">concat is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">concat is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>Even without real matching over the second term, this construction can be used to
+keep types linked. If <span style="font-family:monospace">a</span> and <span style="font-family:monospace">b</span> are two <span style="font-family:monospace">listn</span> of the same length,
+by writing
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (fun n (a b: listn n) =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> match a,b with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       |niln,b0 =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> tt</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       |consn n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> a y, bS =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> tt</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun (n : nat) (a </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : listn n) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">match a with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| niln =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> tt</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| consn n</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> tt</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : forall n : nat, listn n -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> listn n -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> unit</span></span></span><span style="font-size:small"><br>
+</span></div><p>I have a copy of <span style="font-family:monospace">b</span> in type <span style="font-family:monospace">listn 0</span> resp <span style="font-family:monospace">listn (S n’)</span>.</p>
+<h5 id="sec649" class="paragraph">Patterns in <span style="font-family:monospace">in</span></h5>
+<p>
+<a id="match-in-patterns"></a></p><p>If the type of the matched term is more precise than an inductive applied to
+variables, arguments of the inductive in the <span style="font-family:monospace">in</span> branch can be more
+complicated patterns than a variable.</p><p>Moreover, constructors whose type do not follow the same pattern will
+become impossible branches. In an impossible branch, you can answer
+anything but <span style="font-family:monospace">False_rect unit</span> has the advantage to be subterm of
+anything. </p><p>To be concrete: the <span style="font-family:monospace">tail</span> function can be written:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition tail n (v: listn (S n)) :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match v in listn (S m) return listn m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | niln =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> False</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">rect unit</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | consn n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> a y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">tail is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+and <span style="font-family:monospace">tail n v</span> will be subterm of <span style="font-family:monospace">v</span>.</p>
+<h2 id="sec650" class="section">17.4  Using pattern matching to write proofs</h2>
+<p>
+In all the previous examples the elimination predicate does not depend
+on the object(s) matched. But it may depend and the typical case
+is when we write a proof by induction or a function that yields an
+object of dependent type. An example of proof using <span style="font-family:monospace">match</span> in
+given in Section <a href="Reference-Manual010.html#refine-example">8.2.3</a>.</p><p>For example, we can write
+the function <span style="font-family:monospace">buildlist</span> that given a natural number
+<span style="font-style:italic">n</span> builds a list of length <span style="font-style:italic">n</span> containing zeros as follows:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint buildlist (n:nat) : listn n :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n return listn n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> niln</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> consn n 0 (buildlist n)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">buildlist is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">buildlist is recursively defined (decreasing on 1st argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>We can also use multiple patterns.
+Consider the following definition of the predicate less-equal
+<span style="font-family:monospace">Le</span>:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive LE : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Prop :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | LEO : forall n:nat, LE 0 n</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | LES : forall n m:nat, LE n m -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> LE (S n) (S m).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">LE is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">LE</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>We can use multiple patterns to write the proof of the lemma
+<span style="font-family:monospace">forall (n m:nat), (LE n m)</span><code>\/</code><span style="font-family:monospace">(LE m n)</span>:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint dec (n m:nat) {struct n} : LE n m </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ LE m n :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n, m return LE n m </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ LE m n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O, x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">introl (LE x 0) (LEO x)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | x, O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intror (LE x 0) (LEO x)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S n as n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">, S m as m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">            match dec n m with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">            | or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">introl h =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">introl (LE m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">) (LES n m h)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">            | or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intror h =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> or</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intror (LE n</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">) (LES m n h)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">            end</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec is recursively defined (decreasing on 1st argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+In the example of <span style="font-family:monospace">dec</span>,
+the first <span style="font-family:monospace">match</span> is dependent while
+the second is not.</p><p>The user can also use <span style="font-family:monospace">match</span> in combination with the tactic
+<span style="font-family:monospace">refine</span> (see Section <a href="Reference-Manual010.html#refine">8.2.3</a>) to build incomplete proofs
+beginning with a <span style="font-family:monospace">match</span> construction.</p>
+<h2 id="sec651" class="section">17.5  Pattern-matching on inductive objects involving local
+definitions</h2>
+<p>If local definitions occur in the type of a constructor, then there are two ways
+to match on this constructor. Either the local definitions are skipped and
+matching is done only on the true arguments of the constructors, or the bindings
+for local definitions can also be caught in the matching.</p><p>Example.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive list : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | nil : list 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | cons : forall n:nat, let m := (2 * n) in list m -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> list (S (S m)).</span></span><span style="font-size:small"><br>
+</span></div><p>In the next example, the local definition is not caught.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint length n (l:list n) {struct l} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | nil =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | cons n l0 =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (length (2 * n) l0)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p>But in this example, it is.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint length</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> n (l:list n) {struct l} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match l with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | nil =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | @cons </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> m l0 =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (length</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> m l0)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">length</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is recursively defined (decreasing on 2nd argument)</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Remark: </span>for a given matching clause, either none of the local definitions or all of
+them can be caught.</p><p><br>
+<span style="font-weight:bold">Remark: </span>you can only catch <span style="font-family:monospace">let</span> bindings in mode where you bind all variables and so you
+have to use @ syntax.</p><p><br>
+<span style="font-weight:bold">Remark: </span>this feature is incoherent with the fact that parameters cannot be caught and
+consequently is somehow hidden. For example, there is no mention of it in error messages.</p>
+<h2 id="sec652" class="section">17.6  Pattern-matching and coercions</h2>
+<p>If a mismatch occurs between the expected type of a pattern and its
+actual type, a coercion made from constructors is sought. If such a
+coercion can be found, it is automatically inserted around the
+pattern.</p><p>Example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive I : Set :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | C1 : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> I</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | C2 : I -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> I.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">I is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">I</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rect is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">I</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">I</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rec is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion C1 : nat </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> I.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">C1 is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> match x with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                      | C2 O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                      | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">                      end).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun x : I =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">match x with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| C1 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| C2 (C1 0) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| C2 (C1 (S </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">)) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| C2 (C2 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">end</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : I -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h2 id="sec653" class="section">17.7  When does the expansion strategy fail ?</h2>
+<p><a id="limitations"></a>
+The strategy works very like in ML languages when treating
+patterns of non-dependent type.
+But there are new cases of failure that are due to the presence of
+dependencies.</p><p>The error messages of the current implementation may be sometimes
+confusing. When the tactic fails because patterns are somehow
+incorrect then error messages refer to the initial expression. But the
+strategy may succeed to build an expression whose sub-expressions are
+well typed when the whole expression is not. In this situation the
+message makes reference to the expanded expression. We encourage
+users, when they have patterns with the same outer constructor in
+different equations, to name the variable patterns in the same
+positions with the same name.
+E.g. to write <span style="font-size:small"><span style="font-family:monospace">(cons n O x) =&gt; e1</span></span>
+and <span style="font-size:small"><span style="font-family:monospace">(cons n _ x) =&gt; e2</span></span> instead of
+<span style="font-size:small"><span style="font-family:monospace">(cons n O x) =&gt; e1</span></span> and
+<span style="font-size:small"><span style="font-family:monospace">(cons n’ _ x’) =&gt; e2</span></span>.
+This helps to maintain certain name correspondence between the
+generated expression and the original.</p><p>Here is a summary of the error messages corresponding to each situation:</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">The constructor </span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace"> expects </span> <span style="font-style:oblique">num</span> <span style="font-family:monospace"> arguments</span><p><span style="font-family:monospace">The variable </span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace"> is bound several times
+in pattern </span> <span style="font-style:oblique">term</span></p><p><span style="font-family:monospace">Found a constructor of inductive type </span> <span style="font-style:oblique">term</span>
+<span style="font-family:monospace"> while a constructor of </span> <span style="font-style:oblique">term</span> <span style="font-family:monospace"> is expected</span></p><p>Patterns are incorrect (because constructors are not applied to
+the correct number of the arguments, because they are not linear or
+they are wrongly typed).</p></li><li class="li-enumerate"><span style="font-family:monospace">Non exhaustive pattern-matching</span><a id="hevea_error140"></a><p>The pattern matching is not exhaustive.</p></li><li class="li-enumerate"><span style="font-family:monospace">The elimination predicate </span> <span style="font-style:oblique">term</span> <span style="font-family:monospace"> should be
+of arity </span> <span style="font-style:oblique">num</span> <span style="font-family:monospace"> (for non dependent case) or </span> <span style="font-style:oblique">num</span> <span style="font-family:monospace"> (for dependent case)</span><p>The elimination predicate provided to <span style="font-family:monospace">match</span> has not the
+expected arity.</p></li><li class="li-enumerate"><span style="font-family:monospace">Unable to infer a match predicate<br>
+ Either there is a type incompatibility or the problem involves<br>
+ dependencies</span><p>There is a type mismatch between the different branches.
+The user should provide an elimination predicate.</p></li></ol>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

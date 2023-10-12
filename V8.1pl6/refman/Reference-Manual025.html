@@ -1,0 +1,746 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="Reference-Manual.css">
+<TITLE>The ring and field tactic families</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual024.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual026.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+<HR>
+<H1 CLASS="chapter"><A NAME="htoc421">Chapter 20</A>  The <TT>ring</TT> and <TT>field</TT> tactic families</H1><P>
+<FONT SIZE=5><B>Bruno Barras, Benjamin Grégoire and Assia
+Mahboubi</B></FONT><SUP><A NAME="text26" HREF="#note26"><FONT SIZE=5><B>1</B></FONT></A></SUP> <BR>
+<BR>
+
+<A NAME="ring"></A>
+<A NAME="@default796"></A><A NAME="@tactic161"></A></P><P>This chapter presents the tactics dedicated to deal with ring and
+field equations.</P><H2 CLASS="section"><A NAME="toc129"></A><A NAME="htoc422">20.1</A>  What does this tactic do?</H2><P><TT>ring</TT> does associative-commutative rewriting in ring and semi-ring
+structures. Assume you have two binary functions &#X2295; and &#X2297;
+that are associative and commutative, with &#X2295; distributive on
+&#X2297;, and two constants 0 and 1 that are unities for &#X2295; and
+&#X2297;. A <I>polynomial</I> is an expression built on variables <I>V</I><SUB>0</SUB>, <I>V</I><SUB>1</SUB>,
+&#X2026; and constants by application of &#X2295; and &#X2297;.</P><P>Let an <I>ordered product</I> be a product of variables <I>V</I><SUB><I>i</I><SUB>1</SUB></SUB>
+&#X2297; &#X2026; &#X2297; <I>V</I><SUB><I>i</I><SUB><I>n</I></SUB></SUB> verifying <I>i</I><SUB>1</SUB> &#X2264; <I>i</I><SUB>2</SUB> &#X2264; &#X2026; &#X2264;
+<I>i</I><SUB><I>n</I></SUB>. Let a <I>monomial</I> be the product of a constant and an
+ordered product. We can order the monomials by the lexicographic
+order on products of variables. Let a <I>canonical sum</I> be an
+ordered sum of monomials that are all different, i.e. each monomial in
+the sum is strictly less than the following monomial according to the
+lexicographic order. It is an easy theorem to show that every
+polynomial is equivalent (modulo the ring properties) to exactly one
+canonical sum. This canonical sum is called the <I>normal form</I>
+of the polynomial. In fact, the actual representation shares monomials
+with same prefixes. So what does <TT>ring</TT>? It normalizes
+polynomials over any ring or semi-ring structure. The basic use of
+<TT>ring</TT> is to simplify ring expressions, so that the user does
+not have to deal manually with the theorems of associativity and
+commutativity.</P><P><BR>
+<B>Examples:</B>
+</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+In the ring of integers, the normal form of 
+<I>x</I> (3 + <I>yx</I> + 25(1 &#X2212; <I>z</I>)) + <I>zx</I> is 28<I>x</I> + (&#X2212;24)<I>xz</I> + <I>xxy</I>.
+</LI><LI CLASS="li-enumerate">For the classical propositional calculus (or the boolean rings)
+the normal form is what logicians call <I>disjunctive normal
+form</I>: every formula is equivalent to a disjunction of
+conjunctions of atoms. (Here &#X2295; is &#X2228;, &#X2297; is
+&#X2227;, variables are atoms and the only constants are T and F)
+</LI></OL><P><TT>ring</TT> is also able to compute a normal form modulo monomial 
+equalities. For example, under the hypothesis that <I>x</I><SUP>2</SUP> = <I>yz</I>,
+the normal form of (<I>x</I> + 1)<I>x</I> &#X2212; <I>x</I> &#X2212; <I>zy</I> is 0.</P><H2 CLASS="section"><A NAME="toc130"></A><A NAME="htoc423">20.2</A>  The variables map</H2><P>It is frequent to have an expression built with + and
+×, but rarely on variables only.
+Let us associate a number to each subterm of a ring
+expression in the <SPAN STYLE="font-variant:small-caps">Gallina</SPAN> language. For example in the ring
+<TT>nat</TT>, consider the expression:</P><BLOCKQUOTE CLASS="quotation">
+<PRE CLASS="verbatim">(plus (mult (plus (f (5)) x) x)
+      (mult (if b then (4) else (f (3))) (2)))
+</PRE></BLOCKQUOTE><P>As a ring expression, it has 3 subterms. Give each subterm a
+number in an arbitrary order:</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>0</TD><TD ALIGN=center NOWRAP>&#X21A6;</TD><TD ALIGN=left NOWRAP><CODE>if b then (4) else (f (3))</CODE></TD></TR>
+<TR><TD ALIGN=center NOWRAP>1</TD><TD ALIGN=center NOWRAP>&#X21A6;</TD><TD ALIGN=left NOWRAP><CODE>(f (5))</CODE></TD></TR>
+<TR><TD ALIGN=center NOWRAP>2</TD><TD ALIGN=center NOWRAP>&#X21A6;</TD><TD ALIGN=left NOWRAP><CODE>x</CODE></TD></TR>
+</TABLE><P>Then normalize the &#X201C;abstract&#X201D; polynomial </P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell">((<I>V</I><SUB>1</SUB> &#X2297; <I>V</I><SUB>2</SUB>) &#X2295; <I>V</I><SUB>2</SUB>) &#X2295; (<I>V</I><SUB>0</SUB> &#X2297; 2) </TD></TR>
+</TABLE><P>In our example the normal form is:</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell">(2 &#X2297; <I>V</I><SUB>0</SUB>) &#X2295; (<I>V</I><SUB>1</SUB> &#X2297; <I>V</I><SUB>2</SUB>) &#X2295; (<I>V</I><SUB>2</SUB> &#X2297; <I>V</I><SUB>2</SUB>)</TD></TR>
+</TABLE><P>Then substitute the variables by their values in the variables map to
+get the concrete normal polynomial:</P><BLOCKQUOTE CLASS="quotation">
+<PRE CLASS="verbatim">(plus (mult (2) (if b then (4) else (f (3)))) 
+      (plus (mult (f (5)) x) (mult x x))) 
+</PRE></BLOCKQUOTE><H2 CLASS="section"><A NAME="toc131"></A><A NAME="htoc424">20.3</A>  Is it automatic?</H2><P>Yes, building the variables map and doing the substitution after
+normalizing is automatically done by the tactic. So you can just forget
+this paragraph and use the tactic according to your intuition.</P><H2 CLASS="section"><A NAME="toc132"></A><A NAME="htoc425">20.4</A>  Concrete usage in <SPAN STYLE="font-variant:small-caps">Coq</SPAN><A NAME="@default797"></A><A NAME="@tactic162"></A>
+<A NAME="@default798"></A><A NAME="@tactic163"></A></H2><P>The <TT>ring</TT> tactic solves equations upon polynomial expressions of
+a ring (or semi-ring) structure. It proceeds by normalizing both hand
+sides of the equation (w.r.t. associativity, commutativity and
+distributivity, constant propagation, rewriting of monomials) 
+and comparing syntactically the results.</P><P><TT>ring_simplify</TT> applies the normalization procedure described
+above to the terms given. The tactic then replaces all occurrences of
+the terms given in the conclusion of the goal by their normal
+forms. If no term is given, then the conclusion should be an equation
+and both hand sides are normalized. </P><P>The tactic must be loaded by <TT>Require Import Ring</TT>. The ring
+structures must be declared with the <TT>Add Ring</TT> command (see
+below). The ring of booleans is predefined; if one wants to use the
+tactic on <TT>nat</TT> one must first require the module
+<TT>ArithRing</TT> (exported by <TT>Arith</TT>);
+for <TT>Z</TT>, do <TT>Require Import
+ZArithRing</TT> or simply <TT>Require Import ZArith</TT>; 
+for <TT>N</TT>, do <TT>Require Import NArithRing</TT> or 
+<TT>Require Import NArith</TT>.</P><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import ZArith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Open Scope Z_scope.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall a b c:Z,</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (a + b + c)</TT><TT>^</TT><TT>2  =</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   a * a + b</TT><TT>^</TT><TT>2 + c * c + 2 * a * b + 2 * a * c + 2 * b * c.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall a b c : Z,</I></TT><BR>
+<TT><I>   (a + b + c) </I></TT><TT><I>^</I></TT><TT><I> 2 =</I></TT><BR>
+<TT><I>   a * a + b </I></TT><TT><I>^</I></TT><TT><I> 2 + c * c + 2 * a * b + 2 * a * c + 2 * b * c</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; ring.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall a b:Z, a*b = 0 -</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         (a+b)</TT><TT>^</TT><TT>2 = a</TT><TT>^</TT><TT>2 + b</TT><TT>^</TT><TT>2.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall a b : Z, a * b = 0 -</I></TT><TT><I>&gt;</I></TT><TT><I> (a + b) </I></TT><TT><I>^</I></TT><TT><I> 2 = a </I></TT><TT><I>^</I></TT><TT><I> 2 + b </I></TT><TT><I>^</I></TT><TT><I> 2</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros a b H; ring [H].</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>ring [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>]</TT> decides the equality of two
+terms modulo ring operations and rewriting of the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. Each of <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>
+&#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB> has to be a proof of some equality <I>m</I> = <I>p</I>,
+where <I>m</I> is a monomial (after &#X201C;abstraction&#X201D;),
+<I>p</I> a polynomial and = the corresponding equality of the ring structure.</LI><LI CLASS="li-enumerate"><TT>ring_simplify [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>] </TT><TT><I>t</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026; <I>t</I></TT><SUB><TT><I>m</I></TT></SUB><TT> in 
+</TT><I><FONT COLOR=maroon>ident</FONT></I>
+performs the simplification in the hypothesis named <TT>ident</TT>.
+</LI></OL><P><BR>
+<B>Warning: </B><TT>ring_simplify </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT>; ring_simplify </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>2</TT></SUB> is
+not equivalent to <TT>ring_simplify </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>2</TT></SUB>. In the
+latter case the variables map is shared between the two terms, and
+common subterm <I>t</I> of <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB>2</SUB> will have the same
+associated variable number. So the first alternative should be
+avoided for terms belonging to the same ring theory.</P><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>not a valid ring equation</TT><A NAME="@error145"></A>
+The conclusion of the goal is not provable in the corresponding ring
+theory.
+</LI><LI CLASS="li-enumerate"><TT>arguments of ring_simplify do not have all the same type</TT><A NAME="@error146"></A>
+<TT>ring_simplify</TT> cannot simplify terms of several rings at the
+same time. Invoke the tactic once per ring structure.
+</LI><LI CLASS="li-enumerate"><TT>cannot find a declared ring structure over </TT><TT>term</TT><A NAME="@error147"></A>
+No ring has been declared for the type of the terms to be
+simplified. Use <TT>Add Ring</TT> first.
+</LI><LI CLASS="li-enumerate"><TT>cannot find a declared ring structure for equality
+</TT><TT>term</TT><A NAME="@error148"></A>
+Same as above is the case of the <TT>ring</TT> tactic.
+</LI></OL><H2 CLASS="section"><A NAME="toc133"></A><A NAME="htoc426">20.5</A>  Adding a ring structure
+<A NAME="@default799"></A><A NAME="@command267"></A></H2><P>Declaring a new ring consists in proving that a ring signature (a
+carrier set, an equality, and ring operations: <TT>Ring_theory.ring_theory</TT> and <TT>Ring_theory.semi_ring_theory</TT>)
+satisfies the ring axioms. Semi-rings (rings without + inverse) are
+also supported. The equality can be either Leibniz equality, or any
+relation declared as a setoid (see <A HREF="Reference-Manual026.html#setoidtactics">21.7</A>). The definition
+of ring and semi-rings (see module <TT>Ring_theory</TT>) is:
+</P><PRE CLASS="verbatim"> Record ring_theory : Prop := mk_rt {
+    Radd_0_l    : forall x, 0 + x == x;
+    Radd_sym    : forall x y, x + y == y + x;
+    Radd_assoc  : forall x y z, x + (y + z) == (x + y) + z;
+    Rmul_1_l    : forall x, 1 * x == x;
+    Rmul_sym    : forall x y, x * y == y * x;
+    Rmul_assoc  : forall x y z, x * (y * z) == (x * y) * z;
+    Rdistr_l    : forall x y z, (x + y) * z == (x * z) + (y * z);
+    Rsub_def    : forall x y, x - y == x + -y;
+    Ropp_def    : forall x, x + (- x) == 0
+ }.
+
+Record semi_ring_theory : Prop := mk_srt {
+    SRadd_0_l   : forall n, 0 + n == n;
+    SRadd_sym   : forall n m, n + m == m + n ;
+    SRadd_assoc : forall n m p, n + (m + p) == (n + m) + p;
+    SRmul_1_l   : forall n, 1*n == n;
+    SRmul_0_l   : forall n, 0*n == 0; 
+    SRmul_sym   : forall n m, n*m == m*n;
+    SRmul_assoc : forall n m p, n*(m*p) == (n*m)*p;
+    SRdistr_l   : forall n m p, (n + m)*p == n*p + m*p
+  }.
+</PRE><P>This implementation of <TT>ring</TT> also features a notion of constant
+that can be parameterized. This can be used to improve the handling of
+closed expressions when operations are effective. It consists in
+introducing a type of <EM>coefficients</EM> and an implementation of the
+ring operations, and a morphism from the coefficient type to the ring
+carrier type. The morphism needs not be injective, nor surjective. As
+an example, one can consider the real numbers. The set of coefficients
+could be the rational numbers, upon which the ring operations can be
+implemented. The fact that there exists a morphism is defined by the
+following properties:
+</P><PRE CLASS="verbatim"> Record ring_morph : Prop := mkmorph {
+    morph0    : [cO] == 0;
+    morph1    : [cI] == 1;
+    morph_add : forall x y, [x +! y] == [x]+[y];
+    morph_sub : forall x y, [x -! y] == [x]-[y];
+    morph_mul : forall x y, [x *! y] == [x]*[y];
+    morph_opp : forall x, [-!x] == -[x];
+    morph_eq  : forall x y, x?=!y = true -&gt; [x] == [y] 
+  }.
+
+ Record semi_morph : Prop := mkRmorph {
+    Smorph0 : [cO] == 0;
+    Smorph1 : [cI] == 1;
+    Smorph_add : forall x y, [x +! y] == [x]+[y];
+    Smorph_mul : forall x y, [x *! y] == [x]*[y];
+    Smorph_eq  : forall x y, x?=!y = true -&gt; [x] == [y] 
+  }.
+</PRE><P>where <TT>c0</TT> and <TT>cI</TT> denote the 0 and 1 of the coefficient set,
+<TT>+!</TT>, <TT>*!</TT>, <TT>-!</TT> are the implementations of the ring
+operations, <TT>==</TT> is the equality of the coefficients, <TT>?+!</TT> is
+an implementation of this equality, and <TT>[x]</TT> is a notation for
+the image of <TT>x</TT> by the ring morphism.</P><P>Since <TT>Z</TT> is an initial ring (and <TT>N</TT> is an initial
+semi-ring), it can always be considered as a set of
+coefficients. There are basically three kinds of (semi-)rings:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>abstract rings</B></DT><DD CLASS="dd-description"> to be used when operations are not
+effective. The set of coefficients is <TT>Z</TT> (or <TT>N</TT> for
+semi-rings).
+</DD><DT CLASS="dt-description"><B>computational rings</B></DT><DD CLASS="dd-description"> to be used when operations are
+effective. The set of coefficients is the ring itself. The user only
+has to provide an implementation for the equality.
+</DD><DT CLASS="dt-description"><B>customized ring</B></DT><DD CLASS="dd-description"> for other cases. The user has to provide the
+coefficient set and the morphism.
+</DD></DL><P>This implementation of ring can also recognize simple 
+power expressions as ring expressions. A power function is specified by 
+the following property:
+</P><PRE CLASS="verbatim"> Section POWER.
+  Variable Cpow : Set.
+  Variable Cp_phi : N -&gt; Cpow.
+  Variable rpow : R -&gt; Cpow -&gt; R. 
+  
+  Record power_theory : Prop := mkpow_th {
+    rpow_pow_N : forall r n, req (rpow r (Cp_phi n)) (pow_N rI rmul r n)
+  }.
+
+ End POWER.
+</PRE><P>The syntax for adding a new ring is <TT>Add Ring </TT><TT><I>name</I></TT><TT> : </TT><TT><I>ring</I></TT><TT>
+(</TT><TT><I>mod</I></TT><SUB><TT>1</TT></SUB><TT>,&#X2026;,</TT><TT><I>mod</I></TT><SUB><TT>2</TT></SUB><TT>)</TT>. The name is not relevent. It is just used
+for error messages. The term <I>ring</I> is a proof that the ring signature
+satisfies the (semi-)ring axioms. The optional list of modifiers is
+used to tailor the behavior of the tactic. The following list
+describes their syntax and effects:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>abstract</B></DT><DD CLASS="dd-description"> declares the ring as abstract. This is the default.
+</DD><DT CLASS="dt-description"><B>decidable </B><I><FONT COLOR=maroon>term</FONT></I></DT><DD CLASS="dd-description"> declares the ring as computational. The expression 
+<I><FONT COLOR=maroon>term</FONT></I> is
+the correctness proof of an equality test <TT>?=!</TT> (which should be
+evaluable). Its type should be of
+the form <TT>forall x y, x?=!y = true </TT><TT>&#X2192;</TT><TT> x == y</TT>.
+</DD><DT CLASS="dt-description"><B>morphism </B><I><FONT COLOR=maroon>term</FONT></I></DT><DD CLASS="dd-description"> declares the ring as a customized one. The expression 
+<I><FONT COLOR=maroon>term</FONT></I> is
+a proof that there exists a morphism between a set of coefficient
+and the ring carrier (see <TT>Ring_theory.ring_morph</TT> and <TT>Ring_theory.semi_morph</TT>).
+</DD><DT CLASS="dt-description"><B>setoid </B><I><FONT COLOR=maroon>term</FONT></I><SUB><B>1</B></SUB><B> </B><I><FONT COLOR=maroon>term</FONT></I><SUB><B>2</B></SUB></DT><DD CLASS="dd-description"> forces the use of given setoid. The 
+expression <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> is a proof that the equality is indeed a setoid
+(see <TT>Setoid.Setoid_Theory</TT>), and <I><FONT COLOR=maroon>term</FONT></I><SUB>2</SUB> a proof that the
+ring operations are morphisms (see <TT>Ring_theory.ring_eq_ext</TT> and
+<TT>Ring_theory.sring_eq_ext</TT>). This modifier needs not be used if the
+setoid and morphisms have been declared.
+</DD><DT CLASS="dt-description"><B>constants [</B><B><FONT COLOR=red> <I>L</I></FONT></B><SUB><B><I>tac</I></B></SUB></DT><DD CLASS="dd-description">] specifies a tactic expression that, given a term,
+returns either an object of the coefficient set that is mapped to
+the expression via the morphism, or returns <TT>InitialRing.NotConstant</TT>. The default behaviour is to map only 0 and
+1 to their counterpart in the coefficient set. This is generally not
+desirable for non trivial computational rings.
+</DD><DT CLASS="dt-description"><B>preprocess [</B><B><FONT COLOR=red> <I>L</I></FONT></B><SUB><B><I>tac</I></B></SUB></DT><DD CLASS="dd-description">]
+specifies a tactic that is applied as a preliminary step for <TT>ring</TT> and <TT>ring_simplify</TT>. It can be used to transform a goal
+so that it is better recognized. For instance, <TT>S n</TT> can be
+changed to <TT>plus 1 n</TT>.
+</DD><DT CLASS="dt-description"><B>postprocess [</B><B><FONT COLOR=red> <I>L</I></FONT></B><SUB><B><I>tac</I></B></SUB></DT><DD CLASS="dd-description">] specifies a tactic that is applied as a final step
+for <TT>ring_simplify</TT>. For instance, it can be used to undo
+modifications of the preprocessor.
+</DD><DT CLASS="dt-description"><B>power_tac </B><I><FONT COLOR=maroon>term</FONT></I><B> [</B><B><FONT COLOR=red> <I>L</I></FONT></B><SUB><B><I>tac</I></B></SUB></DT><DD CLASS="dd-description">] allows <TT>ring</TT> and <TT>ring_simplify</TT> to
+recognize power expressions with a constant positive integer exponent 
+(example: <I>x</I><SUP>2</SUP>). The term <I><FONT COLOR=maroon>term</FONT></I> is a proof that a given power function
+satisfies the specification of a power function (<I><FONT COLOR=maroon>term</FONT></I> has to be a
+proof of <TT>Ring_theory.power_theory</TT>) and <FONT COLOR=red> <I>L</I></FONT><SUB><I>tac</I></SUB> specifies a
+tactic expression that, given a term, &#X201C;abstracts&#X201D; it into an
+object of type <TT>N</TT> whose interpretation via <TT>Cp_phi</TT> (the
+evaluation function of power coefficient) is the original term, or
+returns <TT>InitialRing.NotConstant</TT> if not a constant coefficient
+(i.e. <FONT COLOR=red> <I>L</I></FONT><SUB><I>tac</I></SUB> is the inverse function of <TT>Cp_phi</TT>).
+See files <TT>contrib/setoid_ring/ZArithRing.v</TT> and
+<TT>contrib/setoid_ring/RealField.v</TT> for examples.
+By default the tactic does not recognize power expressions as ring
+expressions.
+</DD><DT CLASS="dt-description"><B>sign </B><I><FONT COLOR=maroon>term</FONT></I></DT><DD CLASS="dd-description"> allows <TT>ring_simplify</TT> to use a minus operation
+when outputing its normal form, i.e writing <I>x</I> &#X2212; <I>y</I> instead of <I>x</I> + (&#X2212;<I>y</I>). 
+The term <I><FONT COLOR=maroon>term</FONT></I> is a proof that a given sign function indicates expressions
+that are signed (<I><FONT COLOR=maroon>term</FONT></I> has to be a
+proof of <TT>Ring_theory.get_sign</TT>). See <TT>contrib/setoid_ring/IntialRing.v</TT> for examples of sign function.
+</DD><DT CLASS="dt-description"><B>div </B><I><FONT COLOR=maroon>term</FONT></I></DT><DD CLASS="dd-description"> allows <TT>ring</TT> and <TT>ring_simplify</TT> to use moniomals
+with coefficient other than 1 in the rewriting. The term <I><FONT COLOR=maroon>term</FONT></I> is a proof that a given division function satisfies the specification of an euclidean
+division function (<I><FONT COLOR=maroon>term</FONT></I> has to be a
+proof of <TT>Ring_theory.div_theory</TT>). For example, this function is
+called when trying to rewrite 7<I>x</I> by 2<I>x</I> = <I>z</I> to tell that 7 = 3 * 2 + 1.
+See <TT>contrib/setoid_ring/IntialRing.v</TT> for examples of div function.
+</DD></DL><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>bad ring structure</TT><A NAME="@error149"></A>
+The proof of the ring structure provided is not of the expected type.
+</LI><LI CLASS="li-enumerate"><TT>bad lemma for decidability of equality</TT><A NAME="@error150"></A>
+The equality function provided in the case of a computational ring
+has not the expected type.
+</LI><LI CLASS="li-enumerate"><TT>ring </TT><TT><I>operation</I></TT><TT> should be declared as a morphism</TT><A NAME="@error151"></A>
+A setoid associated to the carrier of the ring structure as been
+found, but the ring operation should be declared as
+morphism. See <A HREF="Reference-Manual026.html#setoidtactics">21.7</A>.
+</LI></OL><H2 CLASS="section"><A NAME="toc134"></A><A NAME="htoc427">20.6</A>  How does it work?</H2><P>The code of <TT>ring</TT> is a good example of tactic written using
+<I>reflection</I>. What is reflection? Basically, it is writing
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> tactics in <SPAN STYLE="font-variant:small-caps">Coq</SPAN>, rather than in <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN>. From the philosophical
+point of view, it is using the ability of the Calculus of
+Constructions to speak and reason about itself. For the <TT>ring</TT>
+tactic we used <SPAN STYLE="font-variant:small-caps">Coq</SPAN> as a programming language and also as a proof
+environment to build a tactic and to prove it correctness.</P><P>The interested reader is strongly advised to have a look at the file
+<TT>Ring_polynom.v</TT>. Here a type for polynomials is defined: </P><DIV CLASS="flushleft">
+<PRE CLASS="verbatim">Inductive PExpr : Type :=
+  | PEc : C -&gt; PExpr
+  | PEX : positive -&gt; PExpr
+  | PEadd : PExpr -&gt; PExpr -&gt; PExpr
+  | PEsub : PExpr -&gt; PExpr -&gt; PExpr
+  | PEmul : PExpr -&gt; PExpr -&gt; PExpr
+  | PEopp : PExpr -&gt; PExpr.
+</PRE></DIV><P>Polynomials in normal form are defined as:
+
+</P><DIV CLASS="flushleft">
+<PRE CLASS="verbatim"> Inductive Pol : Type :=
+  | Pc : C -&gt; Pol 
+  | Pinj : positive -&gt; Pol -&gt; Pol                   
+  | PX : Pol -&gt; positive -&gt; Pol -&gt; Pol.
+</PRE></DIV><P>
+
+where <TT>Pinj n P</TT> denotes <I>P</I> in which <I>V</I><SUB><I>i</I></SUB> is replaced by
+<I>V</I><SUB><I>i</I>+<I>n</I></SUB>, and <TT>PX P n Q</TT> denotes <I>P</I> &#X2297; <I>V</I><SUB>1</SUB><SUP><I>n</I></SUP> &#X2295; <I>Q</I>&#X2032;,
+<I>Q</I>&#X2032; being <I>Q</I> where <I>V</I><SUB><I>i</I></SUB> is replaced by <I>V</I><SUB><I>i</I>+1</SUB>. </P><P>Variables maps are represented by list of ring elements, and two
+interpretation functions, one that maps a variables map and a
+polynomial to an element of the concrete ring, and the second one that
+does the same for normal forms:
+
+</P><DIV CLASS="flushleft">
+<PRE CLASS="verbatim">Definition PEeval : list R -&gt; PExpr -&gt; R := [...].
+Definition Pphi_dev : list R -&gt; Pol -&gt; R := [...].
+</PRE></DIV><P>A function to normalize polynomials is defined, and the big theorem is
+its correctness w.r.t interpretation, that is:</P><DIV CLASS="flushleft">
+<PRE CLASS="verbatim">Definition norm : PExpr -&gt; Pol := [...].
+Lemma Pphi_dev_ok :
+   forall l pe npe, norm pe = npe -&gt; PEeval l pe == Pphi_dev l npe.
+</PRE></DIV><P>So now, what is the scheme for a normalization proof? Let <TT>p</TT>
+be the polynomial expression that the user wants to normalize. First a
+little piece of ML code guesses the type of <TT>p</TT>, the ring
+theory <TT>T</TT> to use, an abstract polynomial <TT>ap</TT> and a
+variables map <TT>v</TT> such that <TT>p</TT> is
+&#X3B2;&#X3B4;&#X3B9;-equivalent to <CODE>(PEeval v ap)</CODE>. Then we
+replace it by <CODE>(Pphi_dev v (norm ap))</CODE>, using the
+main correctness theorem and we reduce it to a concrete expression
+<TT>p&#X2019;</TT>, which is the concrete normal form of
+<TT>p</TT>. This is summarized in this diagram:
+</P><DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=right NOWRAP><TT>p</TT></TD><TD ALIGN=center NOWRAP>&#X2192;<SUB>&#X3B2;&#X3B4;&#X3B9;</SUB></TD><TD ALIGN=left NOWRAP><TT>(PEeval v ap)</TT></TD></TR>
+<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>=<SUB>(<I>by</I> <I>the</I> <I>main</I> <I>correctness</I> <I>theorem</I>)</SUB></TD></TR>
+<TR><TD ALIGN=right NOWRAP><TT>p&#X2019;</TT></TD><TD ALIGN=center NOWRAP>&#X2190;<SUB>&#X3B2;&#X3B4;&#X3B9;</SUB></TD><TD ALIGN=left NOWRAP><TT>(Pphi_dev v (norm ap))</TT></TD></TR>
+</TABLE>
+</DIV><P>
+The user do not see the right part of the diagram. 
+From outside, the tactic behaves like a
+&#X3B2;&#X3B4;&#X3B9; simplification extended with AC rewriting rules.
+Basically, the proof is only the application of the main
+correctness theorem to well-chosen arguments.</P><H2 CLASS="section"><A NAME="toc135"></A><A NAME="htoc428">20.7</A>  Dealing with fields
+<A NAME="@default800"></A><A NAME="@tactic164"></A>
+<A NAME="@default801"></A><A NAME="@tactic165"></A>
+<A NAME="@default802"></A><A NAME="@tactic166"></A></H2><P>The <TT>field</TT> tactic is an extension of the <TT>ring</TT> to deal with
+rational expresision. Given a rational expression <I>F</I>=0. It first reduces the expression <I>F</I> to a common denominator <I>N</I>/<I>D</I>= 0 where <I>N</I> and <I>D</I> are two ring
+expressions.
+For example, if we take <I>F</I> = (1 &#X2212; 1/<I>x</I>) <I>x</I> &#X2212; <I>x</I> + 1, this gives 
+ <I>N</I>= (<I>x</I> &#X2212;1) <I>x</I> &#X2212; <I>x</I><SUP>2</SUP> + <I>x</I> and <I>D</I>= <I>x</I>. It then calls <TT>ring</TT> 
+to solve <I>N</I>=0. Note that <TT>field</TT> also generates non-zero conditions
+for all the denominators it encounters in the reduction.
+In our example, it generates the condition <I>x</I> &#X2260; 0. These
+conditions appear as one subgoal which is a conjunction if there are
+several denominators.
+Non-zero conditions are <I>always</I> polynomial expressions. For example 
+when reducing the expression 1/(1 + 1/<I>x</I>), two side conditions are
+generated: <I>x</I>&#X2260; 0 and <I>x</I> + 1 &#X2260; 0. Factorized expressions are
+broken since a field is an integral domain, and when the equality test
+on coefficients is complete w.r.t. the equality of the target field,
+constants can be proven different from zero automatically.</P><P>The tactic must be loaded by <TT>Require Import Field</TT>. New field
+structures can be declared to the system with the <TT>Add Field</TT>
+command (see below). The field of real numbers is defined in module
+<TT>RealField</TT> (in textttcontrib/setoid_ring). It is exported
+by module <TT>Rbase</TT>, so that requiring <TT>Rbase</TT> or
+<TT>Reals</TT> is enough to use the field tactics on real
+numbers. Rational numbers in canonical form are also declared as a
+field in module <TT>Qcanon</TT>.</P><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Reals.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Open Scope R_scope.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall x,  x </TT><TT>&lt;</TT><TT>&gt;</TT><TT> 0 -</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    (1 - 1/x) * x - x + 1 = 0.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall x : R, x </I></TT><TT><I>&lt;</I></TT><TT><I>&gt;</I></TT><TT><I> 0 -</I></TT><TT><I>&gt;</I></TT><TT><I> (1 - 1 / x) * x - x + 1 = 0</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; field; auto.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall x y, y </TT><TT>&lt;</TT><TT>&gt;</TT><TT> 0 -</TT><TT>&gt;</TT><TT> y = x -</TT><TT>&gt;</TT><TT> x/y = 1.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall x y : R, y </I></TT><TT><I>&lt;</I></TT><TT><I>&gt;</I></TT><TT><I> 0 -</I></TT><TT><I>&gt;</I></TT><TT><I> y = x -</I></TT><TT><I>&gt;</I></TT><TT><I> x / y = 1</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros x y H H1; field [H1]; auto.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>field [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>]</TT> decides the equality of two
+terms modulo field operations and rewriting of the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. Each of <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>
+&#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB> has to be a proof of some equality <I>m</I> = <I>p</I>,
+where <I>m</I> is a monomial (after &#X201C;abstraction&#X201D;),
+<I>p</I> a polynomial and = the corresponding equality of the field structure.</LI><LI CLASS="li-enumerate"><TT>field_simplify</TT> 
+performs the simplification in the conclusion of the goal, <I>F</I><SUB>1</SUB> = <I>F</I><SUB>2</SUB>
+becomes <I>N</I><SUB>1</SUB>/<I>D</I><SUB>1</SUB> = <I>N</I><SUB>2</SUB>/<I>D</I><SUB>2</SUB>. A normalization step (the same as the
+one for rings) is then applied to <I>N</I><SUB>1</SUB>, <I>D</I><SUB>1</SUB>, <I>N</I><SUB>2</SUB> and
+<I>D</I><SUB>2</SUB>. This way, polynomials remain in factorized form during the
+fraction simplifications. This yields smaller expressions when
+reducing to the same denominator since common factors can be
+cancelled.</LI><LI CLASS="li-enumerate"><TT>field_simplify [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>]</TT>
+performs the simplification in the conclusion of the goal using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>.</LI><LI CLASS="li-enumerate"><TT>field_simplify [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>] </TT><TT><I>t</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>t</I></TT><SUB><TT><I>m</I></TT></SUB>
+performs the simplification in the terms <I>t</I><SUB>1</SUB> &#X2026;<I>t</I><SUB><I>m</I></SUB>
+of the conclusion of the goal using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. </LI><LI CLASS="li-enumerate"><TT>field_simplify in </TT><TT><I>H</I></TT> 
+performs the simplification in the assumption <I>H</I>.</LI><LI CLASS="li-enumerate"><TT>field_simplify [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>] in </TT><TT><I>H</I></TT>
+performs the simplification in the assumption <I>H</I> using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. </LI><LI CLASS="li-enumerate"><TT>field_simplify [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>] </TT><TT><I>t</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>t</I></TT><SUB><TT><I>m</I></TT></SUB><TT> in </TT><TT><I>H</I></TT>
+performs the simplification in the terms <I>t</I><SUB>1</SUB> &#X2026;<I>t</I><SUB><I>n</I></SUB>
+of the assumption <I>H</I> using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>m</I></SUB>. </LI><LI CLASS="li-enumerate"><TT>field_simplify_eq</TT>
+performs the simplification in the conclusion of the goal removing
+the denominator. <I>F</I><SUB>1</SUB> = <I>F</I><SUB>2</SUB>
+becomes <I>N</I><SUB>1</SUB> <I>D</I><SUB>2</SUB> = <I>N</I><SUB>2</SUB> <I>D</I><SUB>1</SUB>.</LI><LI CLASS="li-enumerate"><TT>field_simplify_eq [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>]</TT>
+performs the simplification in the conclusion of the goal using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. </LI><LI CLASS="li-enumerate"><TT>field_simplify_eq</TT> in <I>H</I>
+performs the simplification in the assumption <I>H</I>.</LI><LI CLASS="li-enumerate"><TT>field_simplify_eq [</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> </TT><TT>&#X2026;</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>] in </TT><TT><I>H</I></TT>
+performs the simplification in the assumption <I>H</I> using
+the equalities
+defined by <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB>. 
+</LI></OL><H2 CLASS="section"><A NAME="toc136"></A><A NAME="htoc429">20.8</A>  Adding a new field structure
+<A NAME="@default803"></A><A NAME="@command268"></A></H2><P>Declaring a new field consists in proving that a field signature (a
+carrier set, an equality, and field operations: <TT>Field_theory.field_theory</TT> and <TT>Field_theory.semi_field_theory</TT>)
+satisfies the field axioms. Semi-fields (fields without + inverse) are
+also supported. The equality can be either Leibniz equality, or any
+relation declared as a setoid (see <A HREF="Reference-Manual026.html#setoidtactics">21.7</A>). The definition
+of fields and semi-fields is:
+</P><PRE CLASS="verbatim">Record field_theory : Prop := mk_field {
+    F_R : ring_theory rO rI radd rmul rsub ropp req;
+    F_1_neq_0 : ~ 1 == 0;
+    Fdiv_def : forall p q, p / q == p * / q;
+    Finv_l : forall p, ~ p == 0 -&gt;  / p * p == 1
+}.
+
+Record semi_field_theory : Prop := mk_sfield {
+    SF_SR : semi_ring_theory rO rI radd rmul req;
+    SF_1_neq_0 : ~ 1 == 0;
+    SFdiv_def : forall p q, p / q == p * / q;
+    SFinv_l : forall p, ~ p == 0 -&gt;  / p * p == 1
+}.
+</PRE><P>The result of the normalization process is a fraction represented by
+the following type:
+</P><PRE CLASS="verbatim">Record linear : Type := mk_linear {
+   num : PExpr C;
+   denum : PExpr C;
+   condition : list (PExpr C) }.
+</PRE><P>where <TT>num</TT> and <TT>denum</TT> are the numerator and denominator;
+<TT>condition</TT> is a list of expressions that have appeared as a
+denominator during the normalization process. These expressions must
+be proven different from zero for the correctness of the algorithm.</P><P>The syntax for adding a new field is <TT>Add Field </TT><TT><I>name</I></TT><TT> : </TT><TT><I>field</I></TT><TT>
+(</TT><TT><I>mod</I></TT><SUB><TT>1</TT></SUB><TT>,&#X2026;,</TT><TT><I>mod</I></TT><SUB><TT>2</TT></SUB><TT>)</TT>. The name is not relevent. It is just used
+for error messages. <I>field</I> is a proof that the field signature
+satisfies the (semi-)field axioms. The optional list of modifiers is
+used to tailor the behaviour of the tactic. Since field tactics are
+built upon ring tactics, all mofifiers of the <TT>Add Ring</TT>
+apply. There is only one specific modifier:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>completeness </B><I><FONT COLOR=maroon>term</FONT></I></DT><DD CLASS="dd-description"> allows the field tactic to prove
+automatically that the image of non-zero coefficients are mapped to
+non-zero elements of the field. <I><FONT COLOR=maroon>term</FONT></I>is a proof of <TT>forall x y,
+[x] == [y] -&gt; x?=!y = true</TT>, which is the completeness of equality
+on coefficients w.r.t. the field equality.
+</DD></DL><H2 CLASS="section"><A NAME="toc137"></A><A NAME="htoc430">20.9</A>  Legacy implementation</H2><P><BR>
+<B>Warning: </B>This tactic is the <TT>ring</TT> tactic of previous versions of
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> and it should be considered as deprecated. It will probably be
+removed in future releases. It has been kept only for compatibility
+reasons and in order to help moving existing code to the newer
+implementation described above. For more details, please refer to the
+Coq Reference Manual, version 8.0.</P><H3 CLASS="subsection"><A NAME="htoc431">20.9.1</A>  <TT>legacy ring </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT>1</TT></SUB><TT> &#X2026; </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>
+</TT><A NAME="@default804"></A><A NAME="@tactic167"></A><TT>
+</TT><A NAME="@default805"></A><A NAME="@command269"></A><TT>
+</TT><A NAME="@default806"></A><A NAME="@command270"></A></H3><P>This tactic, written by Samuel Boutin and Patrick Loiseleur, applies
+associative commutative rewriting on every ring. The tactic must be
+loaded by <TT>Require Import LegacyRing</TT>. The ring must be declared in
+the <TT>Add Ring</TT> command. The ring of booleans
+is predefined; if one wants to use the tactic on <TT>nat</TT> one must
+first require the module <TT>LegacyArithRing</TT>; for <TT>Z</TT>, do
+<TT>Require Import LegacyZArithRing</TT>; for <TT>N</TT>, do <TT>Require
+Import LegacyNArithRing</TT>.</P><P>The terms <I><FONT COLOR=maroon>term</FONT></I><SUB>1</SUB>, &#X2026;, <I><FONT COLOR=maroon>term</FONT></I><SUB><I>n</I></SUB> must be subterms of the goal
+conclusion. The tactic <TT>ring</TT> normalizes these terms
+w.r.t. associativity and commutativity and replace them by their
+normal form.</P><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>legacy ring</TT> When the goal is an equality <I>t</I><SUB>1</SUB>=<I>t</I><SUB>2</SUB>, it
+acts like <TT>ring_simplify</TT> <I>t</I><SUB>1</SUB> <I>t</I><SUB>2</SUB> and then
+solves the equality by reflexivity.</LI><LI CLASS="li-enumerate"><TT>ring_nat</TT> is a tactic macro for <TT>repeat rewrite
+S_to_plus_one; ring</TT>. The theorem <TT>S_to_plus_one</TT> is a
+proof that <TT>forall (n:nat), S n = plus (S O) n</TT>.</LI></OL><P>You can have a look at the files <TT>LegacyRing.v</TT>,
+<TT>ArithRing.v</TT>, <TT>ZArithRing.v</TT> to see examples of the
+<TT>Add Ring</TT> command.</P><H3 CLASS="subsection"><A NAME="htoc432">20.9.2</A>  Add a ring structure</H3><P>It can be done in the <SPAN STYLE="font-variant:small-caps">Coq</SPAN>toplevel (No ML file to edit and to link
+with <SPAN STYLE="font-variant:small-caps">Coq</SPAN>). First, <TT>ring</TT> can handle two kinds of structure:
+rings and semi-rings. Semi-rings are like rings without an opposite to
+addition. Their precise specification (in <SPAN STYLE="font-variant:small-caps">Gallina</SPAN>) can be found in
+the file</P><BLOCKQUOTE CLASS="quotation">
+<PRE CLASS="verbatim">contrib/ring/Ring_theory.v
+</PRE></BLOCKQUOTE><P>The typical example of ring is <TT>Z</TT>, the typical
+example of semi-ring is <TT>nat</TT>.</P><P>The specification of a
+ring is divided in two parts: first the record of constants
+(&#X2295;, &#X2297;, 1, 0, &#X2296;) and then the theorems
+(associativity, commutativity, etc.).</P><DIV CLASS="flushleft">
+<PRE CLASS="verbatim">Section Theory_of_semi_rings.
+
+Variable A : Type.
+Variable Aplus : A -&gt; A -&gt; A.
+Variable Amult : A -&gt; A -&gt; A.
+Variable Aone : A.
+Variable Azero : A.
+(* There is also a "weakly decidable" equality on A. That means 
+  that if (A_eq x y)=true then x=y but x=y can arise when 
+  (A_eq x y)=false. On an abstract ring the function [x,y:A]false
+  is a good choice. The proof of A_eq_prop is in this case easy. *)
+Variable Aeq : A -&gt; A -&gt; bool.
+
+Record Semi_Ring_Theory : Prop :=
+{ SR_plus_sym  : (n,m:A)[| n + m == m + n |];
+  SR_plus_assoc : (n,m,p:A)[| n + (m + p) == (n + m) + p |];
+
+  SR_mult_sym : (n,m:A)[| n*m == m*n |];
+  SR_mult_assoc : (n,m,p:A)[| n*(m*p) == (n*m)*p |];
+  SR_plus_zero_left :(n:A)[| 0 + n == n|];
+  SR_mult_one_left : (n:A)[| 1*n == n |];
+  SR_mult_zero_left : (n:A)[| 0*n == 0 |];
+  SR_distr_left   : (n,m,p:A) [| (n + m)*p == n*p + m*p |];
+  SR_plus_reg_left : (n,m,p:A)[| n + m == n + p |] -&gt; m==p;
+  SR_eq_prop : (x,y:A) (Is_true (Aeq x y)) -&gt; x==y
+}.
+</PRE></DIV><DIV CLASS="flushleft">
+<PRE CLASS="verbatim">Section Theory_of_rings.
+
+Variable A : Type.
+
+Variable Aplus : A -&gt; A -&gt; A.
+Variable Amult : A -&gt; A -&gt; A.
+Variable Aone : A.
+Variable Azero : A.
+Variable Aopp : A -&gt; A.
+Variable Aeq : A -&gt; A -&gt; bool.
+
+
+Record Ring_Theory : Prop :=
+{ Th_plus_sym  : (n,m:A)[| n + m == m + n |];
+  Th_plus_assoc : (n,m,p:A)[| n + (m + p) == (n + m) + p |];
+  Th_mult_sym : (n,m:A)[| n*m == m*n |];
+  Th_mult_assoc : (n,m,p:A)[| n*(m*p) == (n*m)*p |];
+  Th_plus_zero_left :(n:A)[| 0 + n == n|];
+  Th_mult_one_left : (n:A)[| 1*n == n |];
+  Th_opp_def : (n:A) [| n + (-n) == 0 |];
+  Th_distr_left   : (n,m,p:A) [| (n + m)*p == n*p + m*p |];
+  Th_eq_prop : (x,y:A) (Is_true (Aeq x y)) -&gt; x==y
+}.
+</PRE></DIV><P>To define a ring structure on A, you must provide an addition, a
+multiplication, an opposite function and two unities 0 and 1.</P><P>You must then prove all theorems that make
+(A,Aplus,Amult,Aone,Azero,Aeq) 
+a ring structure, and pack them with the <CODE>Build_Ring_Theory</CODE> 
+constructor.</P><P>Finally to register a ring the syntax is:</P><P><A NAME="@default807"></A><A NAME="@command271"></A>
+</P><BLOCKQUOTE CLASS="quotation">
+<TT>Add Legacy Ring</TT> <I>A Aplus Amult Aone Azero Ainv Aeq T</I>
+<TT>[</TT> <I>c1 &#X2026;cn</I> <TT>].</TT>
+</BLOCKQUOTE><P>where <I>A</I> is a term of type <TT>Set</TT>, 
+<I>Aplus</I> is a term of type <TT>A-&gt;A-&gt;A</TT>,
+<I>Amult</I> is a term of type <TT>A-&gt;A-&gt;A</TT>,
+<I>Aone</I> is a term of type <TT>A</TT>,
+<I>Azero</I> is a term of type <TT>A</TT>,
+<I>Ainv</I> is a term of type <TT>A-&gt;A</TT>,
+<I>Aeq</I> is a term of type <TT>A-&gt;bool</TT>,
+<I>T</I> is a term of type 
+<TT>(Ring_Theory </TT><I>A Aplus Amult Aone Azero Ainv
+Aeq</I><TT>)</TT>.
+The arguments <I>c1 &#X2026;cn</I>, 
+are the names of constructors which define closed terms: a
+subterm will be considered as a constant if it is either one of the
+terms <I>c1 &#X2026;cn</I> or the application of one of these terms to
+closed terms. For <TT>nat</TT>, the given constructors are <TT>S</TT>
+and <TT>O</TT>, and the closed terms are <TT>O</TT>, <TT>(S O)</TT>,
+<TT>(S (S O))</TT>, &#X2026;</P><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>Add Legacy Semi Ring</TT> <I>A Aplus Amult Aone Azero Aeq T</I> 
+<TT>[</TT> <I>c1 &#X2026; cn</I> <TT>].</TT><A NAME="@default808"></A><A NAME="@command272"></A><P>There are two differences with the <TT>Add Ring</TT> command: there
+is no inverse function and the term <I>T</I> must be of type
+<TT>(Semi_Ring_Theory </TT><I>A Aplus Amult Aone Azero
+Aeq</I><TT>)</TT>.</P></LI><LI CLASS="li-enumerate"><TT>Add Legacy Abstract Ring</TT> <I>A Aplus Amult Aone Azero Ainv 
+Aeq T</I><TT>.</TT><A NAME="@default809"></A><A NAME="@command273"></A><P>This command should be used for when the operations of rings are not
+computable; for example the real numbers of
+<TT>theories/REALS/</TT>. Here 0+1 is not beta-reduced to 1 but
+you still may want to <I>rewrite</I> it to 1 using the ring
+axioms. The argument <TT>Aeq</TT> is not used; a good choice for
+that function is <CODE>[x:A]false</CODE>.</P></LI><LI CLASS="li-enumerate"><TT>Add Legacy Abstract Semi Ring</TT> <I>A Aplus Amult Aone Azero
+Aeq T</I><TT>.</TT><A NAME="@default810"></A><A NAME="@command274"></A></LI></OL><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>Not a valid (semi)ring theory</TT><A NAME="@error152"></A>.<P>That happens when the typing condition does not hold.
+</P></LI></OL><P>Currently, the hypothesis is made than no more than one ring structure
+may be declared for a given type in <TT>Set</TT> or <TT>Type</TT>.
+This allows automatic detection of the theory used to achieve the
+normalization. On popular demand, we can change that and allow several
+ring structures on the same set.</P><P>The table of ring theories is compatible with the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> 
+sectioning mechanism. If you declare a ring inside a section, the
+declaration will be thrown away when closing the section.
+And when you load a compiled file, all the <TT>Add Ring</TT>
+commands of this file that are not inside a section will be loaded.</P><P>The typical example of ring is <TT>Z</TT>, and the typical example of
+semi-ring is <TT>nat</TT>. Another ring structure is defined on the
+booleans. </P><P><BR>
+<B>Warning: </B>Only the ring of booleans is loaded by default with the
+<TT>Ring</TT> module. To load the ring structure for <TT>nat</TT>,
+load the module <TT>ArithRing</TT>, and for <TT>Z</TT>,
+load the module <TT>ZArithRing</TT>.</P><H3 CLASS="subsection"><A NAME="htoc433">20.9.3</A>  <TT>legacy field
+</TT><A NAME="@default811"></A><A NAME="@tactic168"></A></H3><P>This tactic written by David Delahaye and Micaela Mayero solves equalities
+using commutative field theory. Denominators have to be non equal to zero and,
+as this is not decidable in general, this tactic may generate side conditions
+requiring some expressions to be non equal to zero. This tactic must be loaded
+by <TT>Require Import LegacyField</TT>. Field theories are declared (as for
+<TT>legacy ring</TT>) with
+the <TT>Add Legacy Field</TT> command.</P><H3 CLASS="subsection"><A NAME="htoc434">20.9.4</A>  <TT>Add Legacy Field
+</TT><A NAME="@default812"></A><A NAME="@command275"></A></H3><P>This vernacular command adds a commutative field theory to the database for the
+tactic <TT>field</TT>. You must provide this theory as follows:
+</P><DIV CLASS="flushleft">
+<TT>Add Legacy Field </TT><TT><I>A</I></TT><TT> </TT><TT><I>Aplus</I></TT><TT> </TT><TT><I>Amult</I></TT><TT> </TT><TT><I>Aone</I></TT><TT> </TT><TT><I>Azero</I></TT><TT> </TT><TT><I>Aopp</I></TT><TT> </TT><TT><I>Aeq</I></TT><TT> </TT><TT><I>Ainv</I></TT><TT> </TT><TT><I>Rth</I></TT><TT> </TT><TT><I>Tinvl</I></TT>
+</DIV><P>
+where <TT><I>A</I></TT> is a term of type <TT>Type</TT>, <TT><I>Aplus</I></TT> is
+a term of type <TT>A-&gt;A-&gt;A</TT>, <TT><I>Amult</I></TT> is a term of type <TT>A-&gt;A-&gt;A</TT>, <TT><I>Aone</I></TT> is a term of type <TT>A</TT>, <TT><I>Azero</I></TT> is a term of type <TT>A</TT>, <TT><I>Aopp</I></TT> is a term of
+type <TT>A-&gt;A</TT>, <TT><I>Aeq</I></TT> is a term of type <TT>A-&gt;bool</TT>, <TT><I>Ainv</I></TT> is a term of type <TT>A-&gt;A</TT>, <TT><I>Rth</I></TT> is a term
+of type <TT>(Ring_Theory </TT><TT><I>A Aplus Amult Aone Azero Ainv Aeq</I></TT><TT>)</TT>,
+and <TT><I>Tinvl</I></TT> is a term of type <TT>forall n:</TT><TT><I>A</I></TT><TT>,
+</TT><TT>~</TT><TT>(n=</TT><TT><I>Azero</I></TT><TT>)-&gt;(</TT><TT><I>Amult</I></TT><TT> (</TT><TT><I>Ainv</I></TT><TT> n) n)=</TT><TT><I>Aone</I></TT>.
+To build a ring theory, refer to Chapter <A HREF="#ring">20</A> for more details.</P><P>This command adds also an entry in the ring theory table if this theory is not
+already declared. So, it is useless to keep, for a given type, the <TT>Add
+Ring</TT> command if you declare a theory with <TT>Add Field</TT>, except if you plan
+to use specific features of <TT>ring</TT> (see Chapter <A HREF="#ring">20</A>). However, the
+module <TT>ring</TT> is not loaded by <TT>Add Field</TT> and you have to make a <TT>Require Import Ring</TT> if you want to call the <TT>ring</TT> tactic.</P><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate"><TT>Add Legacy Field </TT><TT><I>A</I></TT><TT> </TT><TT><I>Aplus</I></TT><TT> </TT><TT><I>Amult</I></TT><TT> </TT><TT><I>Aone</I></TT><TT> </TT><TT><I>Azero</I></TT><TT>
+</TT><TT><I>Aopp</I></TT><TT> </TT><TT><I>Aeq</I></TT><TT> </TT><TT><I>Ainv</I></TT><TT> </TT><TT><I>Rth</I></TT><TT> </TT><TT><I>Tinvl</I></TT><BR>
+<TT>    with minus:=</TT><TT><I>Aminus</I></TT><P>Adds also the term <I>Aminus</I> which must be a constant expressed by
+means of <I>Aopp</I>.</P></LI><LI CLASS="li-enumerate"><TT>Add Legacy Field </TT><TT><I>A</I></TT><TT> </TT><TT><I>Aplus</I></TT><TT> </TT><TT><I>Amult</I></TT><TT> </TT><TT><I>Aone</I></TT><TT> </TT><TT><I>Azero</I></TT><TT>
+</TT><TT><I>Aopp</I></TT><TT> </TT><TT><I>Aeq</I></TT><TT> </TT><TT><I>Ainv</I></TT><TT> </TT><TT><I>Rth</I></TT><TT> </TT><TT><I>Tinvl</I></TT><BR>
+<TT>    with div:=</TT><TT><I>Adiv</I></TT><P>Adds also the term <I>Adiv</I> which must be a constant expressed by
+means of <I>Ainv</I>.</P></LI></OL><P><BR>
+<B>See also: </B>[<A HREF="biblio.html#DelMay01">38</A>] for more details regarding the implementation of <TT>legacy field</TT>.</P><H2 CLASS="section"><A NAME="toc138"></A><A NAME="htoc435">20.10</A>  History of <TT>ring</TT></H2><P>First Samuel Boutin designed the tactic <TT>ACDSimpl</TT>. 
+This tactic did lot of rewriting. But the proofs
+terms generated by rewriting were too big for <SPAN STYLE="font-variant:small-caps">Coq</SPAN>&#X2019;s type-checker.
+Let us see why:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall x y z:Z, x + 3 + y + y * z = x + 3 + y + z * y.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall x y z : Z, x + 3 + y + y * z = x + 3 + y + z * y</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; rewrite (Zmult_comm y z); reflexivity.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Save toto.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Print  toto.</TT><BR>
+<TT><I>toto = </I></TT><BR>
+<TT><I>fun x y z : Z =</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>eq_ind_r (fun z0 : Z =</I></TT><TT><I>&gt;</I></TT><TT><I> x + 3 + y + z0 = x + 3 + y + z * y)</I></TT><BR>
+<TT><I>  (refl_equal (x + 3 + y + z * y)) (Zmult_comm y z)</I></TT><BR>
+<TT><I>     : forall x y z : Z, x + 3 + y + y * z = x + 3 + y + z * y</I></TT><BR>
+<TT><I>Argument scopes are [Z_scope Z_scope Z_scope]</I></TT><BR>
+</DIV><P>At each step of rewriting, the whole context is duplicated in the proof
+term. Then, a tactic that does hundreds of rewriting generates huge proof
+terms. Since <TT>ACDSimpl</TT> was too slow, Samuel Boutin rewrote it
+using reflection (see his article in TACS&#X2019;97 [<A HREF="biblio.html#Bou97">17</A>]). Later, the
+stuff was rewritten by Patrick
+Loiseleur: the new tactic does not any more require <TT>ACDSimpl</TT>
+to compile and it makes use of &#X3B2;&#X3B4;&#X3B9;-reduction 
+not only to replace the rewriting steps, but also to achieve the
+interleaving of computation and 
+reasoning (see <A HREF="#DiscussReflection">20.11</A>). He also wrote a
+few ML code for the <TT>Add Ring</TT> command, that allow to register
+new rings dynamically.</P><P>Proofs terms generated by <TT>ring</TT> are quite small, they are
+linear in the number of &#X2295; and &#X2297; operations in the
+normalized terms. Type-checking those terms requires some time because it
+makes a large use of the conversion rule, but
+memory requirements are much smaller. </P><H2 CLASS="section"><A NAME="toc139"></A><A NAME="htoc436">20.11</A>  Discussion</H2><P>
+<A NAME="DiscussReflection"></A></P><P>Efficiency is not the only motivation to use reflection
+here. <TT>ring</TT> also deals with constants, it rewrites for example the
+expression 34 + 2*<I>x</I> &#X2212;<I>x</I> + 12 to the expected result <I>x</I> + 46. For the
+tactic <TT>ACDSimpl</TT>, the only constants were 0 and 1. So the
+expression 34 + 2*(<I>x</I> &#X2212; 1) + 12 is interpreted as 
+<I>V</I><SUB>0</SUB> &#X2295; <I>V</I><SUB>1</SUB> &#X2297; (<I>V</I><SUB>2</SUB> &#X2296; 1) &#X2295; <I>V</I><SUB>3</SUB>, 
+with the variables mapping 
+{<I>V</I><SUB>0</SUB> &#X21A6; 34; <I>V</I><SUB>1</SUB> &#X21A6; 2; <I>V</I><SUB>2</SUB> &#X21A6; <I>x</I>; <I>V</I><SUB>3</SUB> &#X21A6; 12 }. Then it is
+rewritten to 34 &#X2212; <I>x</I> + 2*<I>x</I> + 12, very far from the expected
+result. Here rewriting is not sufficient: you have to do some kind of
+reduction (some kind of <I>computation</I>) to achieve the
+normalization.</P><P>The tactic <TT>ring</TT> is not only faster than a classical one:
+using reflection, we get for free integration of computation and
+reasoning that would be very complex to implement in the classic fashion.</P><P>Is it the ultimate way to write tactics? The answer is: yes and
+no. The <TT>ring</TT> tactic uses intensively the conversion rule of
+p<SPAN STYLE="font-variant:small-caps">Cic</SPAN>, that is replaces proof by computation the most as it is
+possible. It can be useful in all situations where a classical tactic
+generates huge proof terms. Symbolic Processing and Tautologies are in
+that case. But there are also tactics like <TT>auto</TT> or
+<TT>linear</TT> that do many complex computations, using side-effects
+and backtracking, and generate a small proof term. Clearly, it would
+be significantly less efficient to replace them by tactics using
+reflection.</P><P>Another idea suggested by Benjamin Werner: reflection could be used to
+couple an external tool (a rewriting program or a model checker) with
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN>. We define (in <SPAN STYLE="font-variant:small-caps">Coq</SPAN>) a type of terms, a type of <EM>traces</EM>,
+and prove a correction theorem that states that <EM>replaying
+traces</EM> is safe w.r.t some interpretation. Then we let the external
+tool do every computation (using side-effects, backtracking,
+exception, or others features that are not available in pure lambda
+calculus) to produce the trace: now we can check in Coq that the
+trace has the expected semantic by applying the correction lemma.</P><HR CLASS="footnoterule"><DL CLASS="thefootnotes"><DT CLASS="dt-thefootnotes">
+<A NAME="note26" HREF="#text26">1</A></DT><DD CLASS="dd-thefootnotes">based on previous work from
+Patrick Loiseleur and Samuel Boutin
+</DD></DL>
+<HR>
+<A HREF="Reference-Manual024.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual026.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

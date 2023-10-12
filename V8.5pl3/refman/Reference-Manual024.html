@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 21  Omega: a solver of quantifier-free problems in
+Presburger Arithmetic</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec696" class="chapter">Chapter 21  Omega: a solver of quantifier-free problems in
+Presburger Arithmetic</h1>
+<ul>
+<li><a href="Reference-Manual024.html#sec697">21.1  Description of <span style="font-family:monospace">omega</span></a>
+</li><li><a href="Reference-Manual024.html#sec700">21.2  Using <span style="font-family:monospace">omega</span></a>
+</li><li><a href="Reference-Manual024.html#sec701">21.3  Technical data</a>
+</li><li><a href="Reference-Manual024.html#sec704">21.4  Bugs</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Pierre Crégut</span></span> <br>
+<br>
+
+<a id="OmegaChapter"></a></p>
+<h2 id="sec697" class="section">21.1  Description of <span style="font-family:monospace">omega</span></h2>
+<p>
+<a id="hevea_default961"></a><a id="hevea_tactic220"></a>
+<a id="description"></a></p><p><span style="font-family:monospace">omega</span> solves a goal in Presburger arithmetic, i.e. a universally
+quantified formula made of equations and inequations. Equations may
+be specified either on the type <code>nat</code> of natural numbers or on
+the type <code>Z</code> of binary-encoded integer numbers. Formulas on
+<code>nat</code> are automatically injected into <code>Z</code>. The procedure
+may use any hypothesis of the current proof session to solve the goal.</p><p>Multiplication is handled by <span style="font-family:monospace">omega</span> but only goals where at
+least one of the two multiplicands of products is a constant are
+solvable. This is the restriction meant by “Presburger arithmetic”.</p><p>If the tactic cannot solve the goal, it fails with an error message.
+In any case, the computation eventually stops.</p>
+<h3 id="sec698" class="subsection">21.1.1  Arithmetical goals recognized by <span style="font-family:monospace">omega</span></h3>
+<p><span style="font-family:monospace">omega</span> applied only to quantifier-free formulas built from the
+connectors</p><blockquote class="quote">
+<code>/\, \/, ~, -&gt;</code>
+</blockquote><p>on atomic formulas. Atomic formulas are built from the predicates </p><blockquote class="quote">
+<code>=, le, lt, gt, ge</code>
+</blockquote><p>on <code>nat</code> or from the predicates</p><blockquote class="quote">
+<code>=, &lt;, &lt;=, &gt;, &gt;=</code>
+</blockquote><p>on <code>Z</code>. In expressions of type <code>nat</code>, <span style="font-family:monospace">omega</span> recognizes </p><blockquote class="quote">
+<code>plus, minus, mult, pred, S, O</code>
+</blockquote><p>and in expressions of type <code>Z</code>, <span style="font-family:monospace">omega</span> recognizes </p><blockquote class="quote">
+<code>+, -, *, Z.succ</code>, and constants.
+</blockquote><p>All expressions of type <code>nat</code> or <code>Z</code> not built on these
+operators are considered abstractly as if they
+were arbitrary variables of type <code>nat</code> or <code>Z</code>.</p>
+<h3 id="sec699" class="subsection">21.1.2  Messages from <span style="font-family:monospace">omega</span></h3>
+<p>
+<a id="errors"></a></p><p>When <span style="font-family:monospace">omega</span> does not solve the goal, one of the following errors
+is generated:</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate"><span style="font-family:monospace">omega can’t solve this system</span><a id="hevea_error151"></a><p>This may happen if your goal is not quantifier-free (if it is
+universally quantified, try <span style="font-family:monospace">intros</span> first; if it contains
+existentials quantifiers too, <span style="font-family:monospace">omega</span> is not strong enough to solve your
+goal). This may happen also if your goal contains arithmetical
+operators unknown from <span style="font-family:monospace">omega</span>. Finally, your goal may be really
+wrong!</p></li><li class="li-enumerate"><span style="font-family:monospace">omega: Not a quantifier-free goal</span><a id="hevea_error152"></a><p>If your goal is universally quantified, you should first apply <span style="font-family:monospace">intro</span> as many time as needed.</p></li><li class="li-enumerate"><span style="font-family:monospace">omega: Unrecognized predicate or connective: </span><span style="font-family:monospace"><span style="font-style:oblique">ident</span></span><a id="hevea_error153"></a></li><li class="li-enumerate"><span style="font-family:monospace">omega: Unrecognized atomic proposition: </span><span style="font-family:monospace"><span style="font-style:oblique">prop</span></span><a id="hevea_error154"></a></li><li class="li-enumerate"><span style="font-family:monospace">omega: Can’t solve a goal with proposition variables</span><a id="hevea_error155"></a></li><li class="li-enumerate"><span style="font-family:monospace">omega: Unrecognized proposition</span><a id="hevea_error156"></a></li><li class="li-enumerate"><span style="font-family:monospace">omega: Can’t solve a goal with non-linear products</span><a id="hevea_error157"></a></li><li class="li-enumerate"><span style="font-family:monospace">omega: Can’t solve a goal with equality on </span><span style="font-family:monospace"><span style="font-style:oblique">type</span></span><a id="hevea_error158"></a></li></ol>
+<h2 id="sec700" class="section">21.2  Using <span style="font-family:monospace">omega</span></h2>
+<p>The <span style="font-family:monospace">omega</span> tactic does not belong to the core system. It should be
+loaded by
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Require Import Omega.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Open Scope Z</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope.</span></span><span style="font-size:small"><br>
+</span></div><p>
+<br>
+<span style="font-weight:bold">Example 3: </span>
+</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall m n:Z, 1 + 2 * m </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 2 * n.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall m n : Z, 1 + 2 * m </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 * n</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros; omega.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><p>
+<br>
+<span style="font-weight:bold">Example 4: </span>
+</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall z:Z, z </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 2 * z + 1 </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> z.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall z : Z, z </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 * z + 1 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> z</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intro; omega.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h2 id="sec701" class="section">21.3  Technical data</h2>
+<p>
+<a id="technical"></a></p>
+<h3 id="sec702" class="subsection">21.3.1  Overview of the tactic</h3>
+<ul class="itemize"><li class="li-itemize">The goal is negated twice and the first negation is introduced as an
+hypothesis.
+</li><li class="li-itemize">Hypothesis are decomposed in simple equations or inequations. Multiple
+goals may result from this phase.
+</li><li class="li-itemize">Equations and inequations over <code>nat</code> are translated over
+<code>Z</code>, multiple goals may result from the translation of
+substraction.
+</li><li class="li-itemize">Equations and inequations are normalized.
+</li><li class="li-itemize">Goals are solved by the <span style="font-style:italic">OMEGA</span> decision procedure.
+</li><li class="li-itemize">The script of the solution is replayed.</li></ul>
+<h3 id="sec703" class="subsection">21.3.2  Overview of the <span style="font-style:italic">OMEGA</span> decision procedure</h3>
+<p>The <span style="font-style:italic">OMEGA</span> decision procedure involved in the <span style="font-family:monospace">omega</span> tactic uses
+a small subset of the decision procedure presented in</p><blockquote class="quote">
+"The Omega Test: a fast and practical integer programming
+algorithm for dependence analysis", William Pugh, Communication of the
+ACM , 1992, p 102-114.
+</blockquote><p>Here is an overview, look at the original paper for more information.</p><ul class="itemize"><li class="li-itemize">Equations and inequations are normalized by division by the GCD of their
+coefficients.
+</li><li class="li-itemize">Equations are eliminated, using the Banerjee test to get a coefficient 
+equal to one.
+</li><li class="li-itemize">Note that each inequation defines a half space in the space of real value
+of the variables.
+</li><li class="li-itemize">Inequations are solved by projecting on the hyperspace
+defined by cancelling one of the variable. They are partitioned
+according to the sign of the coefficient of the eliminated
+variable. Pairs of inequations from different classes define a
+new edge in the projection.
+</li><li class="li-itemize">Redundant inequations are eliminated or merged in new
+equations that can be eliminated by the Banerjee test.
+</li><li class="li-itemize">The last two steps are iterated until a contradiction is reached
+(success) or there is no more variable to eliminate (failure).</li></ul><p>It may happen that there is a real solution and no integer one. The last
+steps of the Omega procedure (dark shadow) are not implemented, so the 
+decision procedure is only partial.</p>
+<h2 id="sec704" class="section">21.4  Bugs</h2>
+<ul class="itemize"><li class="li-itemize">
+The simplification procedure is very dumb and this results in
+many redundant cases to explore.</li><li class="li-itemize">Much too slow.</li><li class="li-itemize">Certainly other bugs! You can report them to <a href="https://coq.inria.fr/bugs/"><span style="font-family:monospace">https://coq.inria.fr/bugs/</span></a>.</li></ul>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

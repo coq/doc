@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 23  Extraction of programs in Objective Caml and Haskell</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec739" class="chapter">Chapter 23  Extraction of programs in Objective Caml and Haskell</h1>
+<ul>
+<li><a href="Reference-Manual026.html#sec740">23.1  Generating ML code</a>
+</li><li><a href="Reference-Manual026.html#sec741">23.2  Extraction options</a>
+</li><li><a href="Reference-Manual026.html#sec748">23.3  Differences between <span style="font-variant:small-caps">Coq</span> and ML type systems</a>
+</li><li><a href="Reference-Manual026.html#sec749">23.4  Some examples</a>
+</li></ul>
+<p>
+<a id="Extraction"></a>
+<span style="font-size:x-large"><span style="font-weight:bold">Jean-Christophe Filliâtre and Pierre Letouzey</span></span> <br>
+<br>
+
+<a id="hevea_default1005"></a></p><p>We present here the <span style="font-variant:small-caps">Coq</span> extraction commands, used to build certified
+and relatively efficient functional programs, extracting them from
+either <span style="font-variant:small-caps">Coq</span> functions or <span style="font-variant:small-caps">Coq</span> proofs of specifications. The
+functional languages available as output are currently <span style="font-variant:small-caps">Objective Caml</span>,
+<span style="font-variant:small-caps">Haskell</span> and <span style="font-variant:small-caps">Scheme</span>. In the following, “ML” will
+be used (abusively) to refer to any of the three.</p>
+<h2 id="sec740" class="section">23.1  Generating ML code</h2>
+<p>
+<a id="hevea_default1006"></a><a id="hevea_command273"></a>
+<a id="hevea_default1007"></a><a id="hevea_command274"></a>
+<a id="hevea_default1008"></a><a id="hevea_command275"></a>
+<a id="hevea_default1009"></a><a id="hevea_command276"></a>
+<a id="hevea_default1010"></a><a id="hevea_command277"></a></p><p>The next two commands are meant to be used for rapid preview of
+extraction. They both display extracted term(s) inside <span style="font-variant:small-caps">Coq</span>.</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extraction </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace">.</span>  <p>Extraction of a constant or module in the <span style="font-variant:small-caps">Coq</span> toplevel.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Recursive Extraction</span> <span style="font-style:oblique">qualid</span><sub>1</sub> … <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub>.  <p>Recursive extraction of all the globals (or modules) <span style="font-style:oblique">qualid</span><sub>1</sub> …
+ <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub> and all their dependencies in the <span style="font-variant:small-caps">Coq</span> toplevel.
+</p></dd></dl><p>All the following commands produce real ML files. User can choose to produce
+one monolithic file or one file per <span style="font-variant:small-caps">Coq</span> library. </p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extraction "</span><span style="font-family:monospace"><em>file</em></span><span style="font-family:monospace">"</span> 
+<span style="font-style:oblique">qualid</span><sub>1</sub> … <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub>.  <p>Recursive extraction of all the globals (or modules) <span style="font-style:oblique">qualid</span><sub>1</sub> …
+ <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub> and all their dependencies in one monolithic file <em>file</em>.
+Global and local identifiers are renamed according to the chosen ML
+language to fulfill its syntactic conventions, keeping original
+names as much as possible.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Extraction Library</span> <span style="font-style:oblique">ident</span>.  <p>Extraction of the whole <span style="font-variant:small-caps">Coq</span> library <span style="font-style:oblique">ident</span><span style="font-family:monospace">.v</span> to an ML module
+<span style="font-style:oblique">ident</span><span style="font-family:monospace">.ml</span>. In case of name clash, identifiers are here renamed
+using prefixes <code>coq_</code> or <code>Coq_</code> to ensure a
+session-independent renaming.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Recursive Extraction Library</span> <span style="font-style:oblique">ident</span>.  <p>Extraction of the <span style="font-variant:small-caps">Coq</span> library <span style="font-style:oblique">ident</span><span style="font-family:monospace">.v</span> and all other modules 
+<span style="font-style:oblique">ident</span><span style="font-family:monospace">.v</span> depends on. </p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Separate Extraction</span>
+<span style="font-style:oblique">qualid</span><sub>1</sub> … <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub>.  <p>Recursive extraction of all the globals (or modules) <span style="font-style:oblique">qualid</span><sub>1</sub> …
+ <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub> and all their dependencies, just as <span style="font-family:monospace">Extraction "</span><span style="font-family:monospace"><em>file</em></span><span style="font-family:monospace">"</span>, but instead of producing one monolithic
+file, this command splits the produced code in separate ML files, one per
+corresponding Coq <span style="font-family:monospace">.v</span> file. This command is hence quite similar
+to <span style="font-family:monospace">Recursive Extraction Library</span>, except that only the needed
+parts of Coq libraries are extracted instead of the whole. The
+naming convention in case of name clash is the same one as
+<span style="font-family:monospace">Extraction Library</span>: identifiers are here renamed
+using prefixes <code>coq_</code> or <code>Coq_</code>.
+</p></dd></dl><p>The list of globals <span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">i</span></sub> does not need to be
+exhaustive: it is automatically completed into a complete and minimal
+environment. </p>
+<h2 id="sec741" class="section">23.2  Extraction options</h2>
+<h3 id="sec742" class="subsection">23.2.1  Setting the target language</h3>
+<p>
+<a id="hevea_default1011"></a><a id="hevea_command278"></a></p><p>The ability to fix target language is the first and more important
+of the extraction options. Default is Ocaml.
+</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extraction Language Ocaml</span>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Extraction Language Haskell</span>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Extraction Language Scheme</span>.
+</dd></dl>
+<h3 id="sec743" class="subsection">23.2.2  Inlining and optimizations</h3>
+<p>Since Objective Caml is a strict language, the extracted code has to
+be optimized in order to be efficient (for instance, when using
+induction principles we do not want to compute all the recursive calls
+but only the needed ones). So the extraction mechanism provides an
+automatic optimization routine that will be called each time the user
+want to generate Ocaml programs. The optimizations can be split in two
+groups: the type-preserving ones – essentially constant inlining and
+reductions – and the non type-preserving ones – some function
+abstractions of dummy types are removed when it is deemed safe in order
+to have more elegant types. Therefore some constants may not appear in the
+resulting monolithic Ocaml program. In the case of modular extraction,
+even if some inlining is done, the inlined constant are nevertheless
+printed, to ensure session-independent programs.</p><p>Concerning Haskell, type-preserving optimizations are less useful
+because of laziness. We still make some optimizations, for example in
+order to produce more readable code.</p><p>The type-preserving optimizations are controlled by the following <span style="font-variant:small-caps">Coq</span> options:</p><dl class="description"><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1012"></a><a id="hevea_option80"></a> <span style="font-family:monospace">Unset Extraction Optimize.</span><p>Default is Set. This controls all type-preserving optimizations made on
+the ML terms (mostly reduction of dummy beta/iota redexes, but also
+simplifications on Cases, etc). Put this option to Unset if you want a
+ML term as close as possible to the Coq term.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1013"></a><a id="hevea_option81"></a>
+<span style="font-family:monospace">Set Extraction Conservative Types.</span><p>Default is Unset. This controls the non type-preserving optimizations
+made on ML terms (which try to avoid function abstraction of dummy
+types). Turn this option to Set to make sure that <span style="font-family:monospace">e:t</span>
+implies that <span style="font-family:monospace">e’:t’</span> where <span style="font-family:monospace">e’</span> and <span style="font-family:monospace">t’</span> are the extracted
+code of <span style="font-family:monospace">e</span> and <span style="font-family:monospace">t</span> respectively.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1014"></a><a id="hevea_option82"></a>
+<span style="font-family:monospace">Set Extraction KeepSingleton.</span><p>Default is Unset. Normally, when the extraction of an inductive type
+produces a singleton type (i.e. a type with only one constructor, and
+only one argument to this constructor), the inductive structure is
+removed and this type is seen as an alias to the inner type.
+The typical example is <span style="font-family:monospace">sig</span>. This option allows disabling this
+optimization when one wishes to preserve the inductive structure of types.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1015"></a><a id="hevea_option83"></a> <span style="font-family:monospace">Unset Extraction AutoInline.</span><p>Default is Set. The extraction mechanism
+inlines the bodies of some defined constants, according to some heuristics
+like size of bodies, uselessness of some arguments, etc. Those heuristics are
+not always perfect; if you want to disable this feature, do it by Unset.</p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1016"></a><a id="hevea_command279"></a> <a id="hevea_default1017"></a><a id="hevea_command280"></a>
+<span style="font-family:monospace">Extraction [Inline|NoInline] </span><span style="font-style:oblique">qualid</span><sub>1</sub><span style="font-family:monospace"> … </span><span style="font-style:oblique">qualid</span><sub><span style="font-style:italic">n</span></sub>.<p>In addition to the automatic inline feature, you can tell to
+inline some more constants by the <span style="font-family:monospace">Extraction Inline</span> command. Conversely, 
+you can forbid the automatic inlining of some specific constants by
+the <span style="font-family:monospace">Extraction NoInline</span> command.
+Those two commands enable a precise control of what is inlined and what is not. </p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1018"></a><a id="hevea_command281"></a>
+<span style="font-family:monospace">Print Extraction Inline</span>. <p>Prints the current state of the table recording the custom inlinings 
+declared by the two previous commands. </p></dd><dt class="dt-description"></dt><dd class="dd-description"><a id="hevea_default1019"></a><a id="hevea_command282"></a>
+<span style="font-family:monospace">Reset Extraction Inline</span>. <p>Puts the table recording the custom inlinings back to empty. </p></dd></dl>
+<h5 id="sec744" class="paragraph">Inlining and printing of a constant declaration.</h5>
+<p>A user can explicitly ask for a constant to be extracted by two means:
+</p><ul class="itemize"><li class="li-itemize">
+by mentioning it on the extraction command line
+</li><li class="li-itemize">by extracting the whole <span style="font-variant:small-caps">Coq</span> module of this constant.
+</li></ul><p>
+In both cases, the declaration of this constant will be present in the
+produced file. 
+But this same constant may or may not be inlined in the following
+terms, depending on the automatic/custom inlining mechanism. </p><p>For the constants non-explicitly required but needed for dependency
+reasons, there are two cases: 
+</p><ul class="itemize"><li class="li-itemize">
+If an inlining decision is taken, whether automatically or not,
+all occurrences of this constant are replaced by its extracted body, and
+this constant is not declared in the generated file.
+</li><li class="li-itemize">If no inlining decision is taken, the constant is normally
+declared in the produced file. 
+</li></ul>
+<h3 id="sec745" class="subsection">23.2.3  Extra elimination of useless arguments</h3>
+<p>The following command provides some extra manual control on the
+code elimination performed during extraction, in a way which
+is independent but complementary to the main elimination
+principles of extraction (logical parts and types).</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><a id="hevea_default1020"></a><a id="hevea_command283"></a>
+<span style="font-family:monospace">Extraction Implicit</span> <span style="font-style:oblique">qualid</span> [ <span style="font-style:oblique">ident</span><sub>1</sub> … <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> ].<p>This experimental command allows declaring some arguments of
+<span style="font-style:oblique">qualid</span> as implicit, i.e. useless in extracted code and hence to
+be removed by extraction. Here <span style="font-style:oblique">qualid</span> can be any function or
+inductive constructor, and <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub> are the names of the concerned
+arguments. In fact, an argument can also be referred by a number
+indicating its position, starting from 1.
+</p></dd></dl><p>When an actual extraction takes place, an error is normally raised if the
+<span style="font-family:monospace">Extraction Implicit</span>
+declarations cannot be honored, that is if any of the implicited
+variables still occurs in the final code. This behavior can be relaxed
+via the following option:</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><a id="hevea_default1021"></a><a id="hevea_option84"></a> <span style="font-family:monospace">Unset Extraction SafeImplicits.</span><p>Default is Set. When this option is Unset, a warning is emitted
+instead of an error if some implicited variables still occur in the
+final code of an extraction. This way, the extracted code may be
+obtained nonetheless and reviewed manually to locate the source of the issue
+(in the code, some comments mark the location of these remaining
+implicited variables).
+Note that this extracted code might not compile or run properly,
+depending of the use of these remaining implicited variables.</p></dd></dl>
+<h3 id="sec746" class="subsection">23.2.4  Realizing axioms</h3>
+<p><a id="extraction:axioms"></a></p><p>Extraction will fail if it encounters an informative
+axiom not realized (see Section <a href="#extraction%3Aaxioms">23.2.4</a>). 
+A warning will be issued if it encounters a logical axiom, to remind the
+user that inconsistent logical axioms may lead to incorrect or
+non-terminating extracted terms. </p><p>It is possible to assume some axioms while developing a proof. Since
+these axioms can be any kind of proposition or object or type, they may
+perfectly well have some computational content. But a program must be
+a closed term, and of course the system cannot guess the program which
+realizes an axiom. Therefore, it is possible to tell the system
+what ML term corresponds to a given axiom. </p><p><a id="hevea_default1022"></a><a id="hevea_command284"></a>
+</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extract Constant </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> =&gt; </span><span style="font-style:oblique">string</span><span style="font-family:monospace">.</span>  <p>Give an ML extraction for the given constant.
+The <span style="font-style:oblique">string</span> may be an identifier or a quoted string.
+</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Extract Inlined Constant </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> =&gt; </span><span style="font-style:oblique">string</span><span style="font-family:monospace">.</span>  <p>Same as the previous one, except that the given ML terms will
+be inlined everywhere instead of being declared via a let.
+</p></dd></dl><p>Note that the <span style="font-family:monospace">Extract Inlined Constant</span> command is sugar
+for an <span style="font-family:monospace">Extract Constant</span> followed by a <span style="font-family:monospace">Extraction Inline</span>. 
+Hence a <span style="font-family:monospace">Reset Extraction Inline</span> will have an effect on the
+realized and inlined axiom.</p><p>Of course, it is the responsibility of the user to ensure that the ML
+terms given to realize the axioms do have the expected types. In
+fact, the strings containing realizing code are just copied to the
+extracted files. The extraction recognizes whether the realized axiom
+should become a ML type constant or a ML object declaration.</p><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Axiom X:Set.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Axiom x:X.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Constant X =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "int".</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Constant x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "0".</span></span><span style="font-size:small"><br>
+</span></div><p>Notice that in the case of type scheme axiom (i.e. whose type is an
+arity, that is a sequence of product finished by a sort), then some type
+variables have to be given. The syntax is then:</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extract Constant </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> </span><span style="font-style:oblique">string</span><sub>1</sub><span style="font-family:monospace"> … </span><span style="font-style:oblique">string</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace"> =&gt; </span><span style="font-style:oblique">string</span><span style="font-family:monospace">.</span>
+</dd></dl><p>The number of type variables is checked by the system. </p><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Axiom Y : Set -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Constant Y "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">a" "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">b" =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> " </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">a*</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">b ".</span></span><span style="font-size:small"><br>
+</span></div><p>Realizing an axiom via <span style="font-family:monospace">Extract Constant</span> is only useful in the
+case of an informative axiom (of sort Type or Set). A logical axiom
+have no computational content and hence will not appears in extracted
+terms. But a warning is nonetheless issued if extraction encounters a
+logical axiom. This warning reminds user that inconsistent logical
+axioms may lead to incorrect or non-terminating extracted terms.</p><p>If an informative axiom has not been realized before an extraction, a
+warning is also issued and the definition of the axiom is filled with
+an exception labeled <span style="font-family:monospace">AXIOM TO BE REALIZED</span>. The user must then
+search these exceptions inside the extracted file and replace them by
+real code.</p><p><a id="hevea_default1023"></a><a id="hevea_command285"></a> </p><p>The system also provides a mechanism to specify ML terms for inductive
+types and constructors. For instance, the user may want to use the ML
+native boolean type instead of <span style="font-variant:small-caps">Coq</span> one. The syntax is the following:</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extract Inductive </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> =&gt; </span><span style="font-style:oblique">string</span><span style="font-family:monospace"> [ </span><span style="font-style:oblique">string</span><span style="font-family:monospace"> … </span><span style="font-style:oblique">string</span><span style="font-family:monospace"> ] </span><span style="font-family:monospace"><span style="font-style:italic">optstring</span></span><span style="font-family:monospace">.</span><p>Give an ML extraction for the given inductive type. You must specify
+extractions for the type itself (first <span style="font-style:oblique">string</span>) and all its
+constructors (between square brackets). If given, the final optional
+string should contain a function emulating pattern-matching over this
+inductive type. If this optional string is not given, the ML
+extraction must be an ML inductive datatype, and the native
+pattern-matching of the language will be used.
+</p></dd></dl><p>For an inductive type with <span style="font-style:italic">k</span> constructor, the function used to
+emulate the match should expect (<span style="font-style:italic">k</span>+1) arguments, first the <span style="font-style:italic">k</span>
+branches in functional form, and then the inductive element to
+destruct. For instance, the match branch <code>| S n =&gt; foo</code> gives the
+functional form <code>(fun n -&gt; foo)</code>. Note that a constructor with no
+argument is considered to have one unit argument, in order to block
+early evaluation of the branch: <code>| O =&gt; bar</code> leads to the functional
+form <code>(fun () -&gt; bar)</code>. For instance, when extracting <span style="font-family:monospace">nat</span>
+into <span style="font-family:monospace">int</span>, the code to provide has type:
+<span style="font-family:monospace">(unit-&gt;’a)-&gt;(int-&gt;’a)-&gt;int-&gt;’a</span>.</p><p>As for <span style="font-family:monospace">Extract Inductive</span>, this command should be used with care:
+</p><ul class="itemize"><li class="li-itemize">
+The ML code provided by the user is currently <em>not</em> checked at all by
+extraction, even for syntax errors.</li><li class="li-itemize">Extracting an inductive type to a pre-existing ML inductive type
+is quite sound. But extracting to a general type (by providing an
+ad-hoc pattern-matching) will often <em>not</em> be fully rigorously
+correct. For instance, when extracting <span style="font-family:monospace">nat</span> to Ocaml’s <span style="font-family:monospace">int</span>, it is theoretically possible to build <span style="font-family:monospace">nat</span> values that are
+larger than Ocaml’s <span style="font-family:monospace">max_int</span>. It is the user’s responsibility to
+be sure that no overflow or other bad events occur in practice.</li><li class="li-itemize">Translating an inductive type to an ML type does <em>not</em>
+magically improve the asymptotic complexity of functions, even if the
+ML type is an efficient representation. For instance, when extracting
+<span style="font-family:monospace">nat</span> to Ocaml’s <span style="font-family:monospace">int</span>, the function <span style="font-family:monospace">mult</span> stays
+quadratic. It might be interesting to associate this translation with
+some specific <span style="font-family:monospace">Extract Constant</span> when primitive counterparts exist.
+</li></ul><p><br>
+<span style="font-weight:bold">Example: </span>Typical examples are the following:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive unit =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "unit" [ "()" ].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive bool =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "bool" [ "true" "false" ].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive sumbool =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "bool" [ "true" "false" ].</span></span><span style="font-size:small"><br>
+</span></div><p>If an inductive constructor or type has arity 2 and the corresponding 
+string is enclosed by parenthesis, then the rest of the string is used
+as infix constructor or type. 
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive list =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "list" [ "[]" "(::)" ].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive prod =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> "(*)"  [ "(,)" ].</span></span><span style="font-size:small"><br>
+</span></div><p>As an example of translation to a non-inductive datatype, let’s turn
+<span style="font-family:monospace">nat</span> into Ocaml’s <span style="font-family:monospace">int</span> (see caveat above):
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extract Inductive nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> int [ "0" "succ" ]</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       "(fun fO fS n -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> if n=0 then fO () else fS (n-1))".</span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="sec747" class="subsection">23.2.5  Avoiding conflicts with existing filenames</h3>
+<p><a id="hevea_default1024"></a><a id="hevea_command286"></a></p><p>When using <span style="font-family:monospace">Extraction Library</span>, the names of the extracted files
+directly depends from the names of the <span style="font-variant:small-caps">Coq</span> files. It may happen that
+these filenames are in conflict with already existing files, 
+either in the standard library of the target language or in other
+code that is meant to be linked with the extracted code. 
+For instance the module <span style="font-family:monospace">List</span> exists both in <span style="font-variant:small-caps">Coq</span> and in Ocaml.
+It is possible to instruct the extraction not to use particular filenames.</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><span style="font-family:monospace">Extraction Blacklist</span> <span style="font-style:oblique">ident</span> … <span style="font-style:oblique">ident</span>.  <p>Instruct the extraction to avoid using these names as filenames
+for extracted code. 
+</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Print Extraction Blacklist.</span>  <p>Show the current list of filenames the extraction should avoid.
+</p></dd><dt class="dt-description"></dt><dd class="dd-description"><span style="font-family:monospace">Reset Extraction Blacklist.</span>  <p>Allow the extraction to use any filename.
+</p></dd></dl><p>For Ocaml, a typical use of these commands is
+<span style="font-family:monospace">Extraction Blacklist String List</span>.</p>
+<h2 id="sec748" class="section">23.3  Differences between <span style="font-variant:small-caps">Coq</span> and ML type systems</h2>
+<p>Due to differences between <span style="font-variant:small-caps">Coq</span> and ML type systems, 
+some extracted programs are not directly typable in ML. 
+We now solve this problem (at least in Ocaml) by adding 
+when needed some unsafe casting <span style="font-family:monospace">Obj.magic</span>, which give
+a generic type <span style="font-family:monospace">’a</span> to any term.</p><p>For example, here are two kinds of problem that can occur:</p><ul class="itemize"><li class="li-itemize">
+If some part of the program is <em>very</em> polymorphic, there
+may be no ML type for it. In that case the extraction to ML works
+alright but the generated code may be refused by the ML
+type-checker. A very well known example is the <em>distr-pair</em>
+function:
+<pre class="verbatim">Definition dp := 
+ fun (A B:Set)(x:A)(y:B)(f:forall C:Set, C-&gt;C) =&gt; (f A x, f B y).
+</pre><p>In Ocaml, for instance, the direct extracted term would be
+</p><pre class="verbatim">let dp x y f = Pair((f () x),(f () y))
+</pre><p>and would have type
+</p><pre class="verbatim">dp : 'a -&gt; 'a -&gt; (unit -&gt; 'a -&gt; 'b) -&gt; ('b,'b) prod
+</pre><p>which is not its original type, but a restriction.</p><p>We now produce the following correct version:
+</p><pre class="verbatim">let dp x y f = Pair ((Obj.magic f () x), (Obj.magic f () y))
+</pre></li><li class="li-itemize">Some definitions of <span style="font-variant:small-caps">Coq</span> may have no counterpart in ML. This
+happens when there is a quantification over types inside the type
+of a constructor; for example:
+<pre class="verbatim">Inductive anything : Type := dummy : forall A:Set, A -&gt; anything.
+</pre><p>which corresponds to the definition of an ML dynamic type.
+In Ocaml, we must cast any argument of the constructor dummy.</p></li></ul><p>Even with those unsafe castings, you should never get error like
+“segmentation fault”. In fact even if your program may seem
+ill-typed to the Ocaml type-checker, it can’t go wrong: it comes 
+from a Coq well-typed terms, so for example inductives will always 
+have the correct number of arguments, etc. </p><p>More details about the correctness of the extracted programs can be 
+found in [<a href="biblio.html#Let02">99</a>].</p><p>We have to say, though, that in most “realistic” programs, these
+problems do not occur. For example all the programs of Coq library are
+accepted by Caml type-checker without any <span style="font-family:monospace">Obj.magic</span> (see examples below).</p>
+<h2 id="sec749" class="section">23.4  Some examples</h2>
+<p>We present here two examples of extractions, taken from the 
+<span style="font-variant:small-caps">Coq</span> Standard Library. We choose <span style="font-variant:small-caps">Objective Caml</span> as target language, 
+but all can be done in the other dialects with slight modifications.
+We then indicate where to find other examples and tests of Extraction.</p>
+<h3 id="sec750" class="subsection">23.4.1  A detailed example: Euclidean division</h3>
+<p>The file <span style="font-family:monospace">Euclid</span> contains the proof of Euclidean division
+(theorem <span style="font-family:monospace">eucl_dev</span>). The natural numbers defined in the example
+files are unary integers defined by two constructors <span style="font-style:italic">O</span> and <span style="font-style:italic">S</span>:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive nat : Set :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O : nat</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat.</span></span><span style="font-size:small"><br>
+</span></div><p>This module contains a theorem <span style="font-family:monospace">eucl_dev</span>, whose type is
+</p><pre class="verbatim">forall b:nat, b &gt; 0 -&gt; forall a:nat, diveucl a b
+</pre><p>where <span style="font-family:monospace">diveucl</span> is a type for the pair of the quotient and the
+modulo, plus some logical assertions that disappear during extraction.
+We can now extract this program to <span style="font-variant:small-caps">Objective Caml</span>:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Require Import Euclid Wf</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">nat.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Extraction Inline gt</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">wf</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">rec lt</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">wf</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">rec induction</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">ltof2.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Recursive Extraction eucl</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">dev.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type nat =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| O</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| S of nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type sumbool =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| Left</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| Right</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(** val sub : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat **)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">let rec sub n m =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  match n with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | O -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> n</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | S k -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    (match m with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     | O -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> n</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     | S l -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> sub k l)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(** val le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> sumbool **)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">let rec le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec n m =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  match n with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | O -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Left</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  | S n0 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    (match m with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     | O -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Right</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     | S m0 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec n0 m0)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(** val le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">gt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> sumbool **)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">let le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">gt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec n m =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">lt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec n m</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type diveucl =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">| Divex of nat * nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(** val eucl</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dev : nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> diveucl **)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">let rec eucl</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dev n m =</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  let s = le</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">gt</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dec n m in</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  (match s with</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   | Left -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     let d = let y = sub m n in eucl</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">dev n y in</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     let Divex (q, r) = d in Divex ((S q), r)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   | Right -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Divex (O, m))</span></span></span><span style="font-size:small"><br>
+</span></div><p>The inlining of <span style="font-family:monospace">gt_wf_rec</span> and others is not
+mandatory. It only enhances readability of extracted code.
+You can then copy-paste the output to a file <span style="font-family:monospace">euclid.ml</span> or let 
+<span style="font-variant:small-caps">Coq</span> do it for you with the following command: </p><pre class="verbatim">Extraction "euclid" eucl_dev.
+</pre><p>Let us play the resulting program:</p><pre class="verbatim"># #use "euclid.ml";;
+type nat = O | S of nat
+type sumbool = Left | Right
+val minus : nat -&gt; nat -&gt; nat = &lt;fun&gt;
+val le_lt_dec : nat -&gt; nat -&gt; sumbool = &lt;fun&gt;
+val le_gt_dec : nat -&gt; nat -&gt; sumbool = &lt;fun&gt;
+type diveucl = Divex of nat * nat
+val eucl_dev : nat -&gt; nat -&gt; diveucl = &lt;fun&gt;
+# eucl_dev (S (S O)) (S (S (S (S (S O)))));;
+- : diveucl = Divex (S (S O), S O)
+</pre><p>It is easier to test on <span style="font-variant:small-caps">Objective Caml</span> integers:
+</p><pre class="verbatim"># let rec nat_of_int = function 0 -&gt; O | n -&gt; S (nat_of_int (n-1));;
+val nat_of_int : int -&gt; nat = &lt;fun&gt;
+# let rec int_of_nat = function O -&gt; 0 | S p -&gt; 1+(int_of_nat p);;
+val int_of_nat : nat -&gt; int = &lt;fun&gt;
+# let div a b = 
+     let Divex (q,r) = eucl_dev (nat_of_int b) (nat_of_int a)
+     in (int_of_nat q, int_of_nat r);;
+val div : int -&gt; int -&gt; int * int = &lt;fun&gt;
+# div 173 15;;
+- : int * int = (11, 8)
+</pre><p>Note that these <span style="font-family:monospace">nat_of_int</span> and <span style="font-family:monospace">int_of_nat</span> are now
+available via a mere <span style="font-family:monospace">Require Import ExtrOcamlIntConv</span> and then
+adding these functions to the list of functions to extract. This file
+<span style="font-family:monospace">ExtrOcamlIntConv.v</span> and some others in <span style="font-family:monospace">plugins/extraction/</span>
+are meant to help building concrete program via extraction.</p>
+<h3 id="sec751" class="subsection">23.4.2  Extraction’s horror museum</h3>
+<p>Some pathological examples of extraction are grouped in the file<br>
+<span style="font-family:monospace">test-suite/success/extraction.v</span> of the sources of <span style="font-variant:small-caps">Coq</span>.</p>
+<h3 id="sec752" class="subsection">23.4.3  Users’ Contributions</h3>
+<p>Several of the <span style="font-variant:small-caps">Coq</span> Users’ Contributions use extraction to produce
+certified programs. In particular the following ones have an automatic
+extraction test:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">additions</span>
+</li><li class="li-itemize"><span style="font-family:monospace">bdds</span>
+</li><li class="li-itemize"><span style="font-family:monospace">canon-bdds</span>
+</li><li class="li-itemize"><span style="font-family:monospace">chinese</span>
+</li><li class="li-itemize"><span style="font-family:monospace">continuations</span>
+</li><li class="li-itemize"><span style="font-family:monospace">coq-in-coq</span>
+</li><li class="li-itemize"><span style="font-family:monospace">exceptions</span>
+</li><li class="li-itemize"><span style="font-family:monospace">firing-squad</span>
+</li><li class="li-itemize"><span style="font-family:monospace">founify</span>
+</li><li class="li-itemize"><span style="font-family:monospace">graphs</span>
+</li><li class="li-itemize"><span style="font-family:monospace">higman-cf</span>
+</li><li class="li-itemize"><span style="font-family:monospace">higman-nw</span>
+</li><li class="li-itemize"><span style="font-family:monospace">hardware</span>
+</li><li class="li-itemize"><span style="font-family:monospace">multiplier</span>
+</li><li class="li-itemize"><span style="font-family:monospace">search-trees</span>
+</li><li class="li-itemize"><span style="font-family:monospace">stalmarck</span>
+</li></ul><p><span style="font-family:monospace">continuations</span> and <span style="font-family:monospace">multiplier</span> are a bit particular. They are
+examples of developments where <span style="font-family:monospace">Obj.magic</span> are needed. This is
+probably due to an heavy use of impredicativity. After compilation, those
+two examples run nonetheless, thanks to the correction of the
+extraction [<a href="biblio.html#Let02">99</a>].</p>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 25  The ring and field tactic families</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec738" class="chapter">Chapter 25  The <span style="font-family:monospace">ring</span> and <span style="font-family:monospace">field</span> tactic families</h1>
+<ul>
+<li><a href="Reference-Manual028.html#sec739">25.1  What does this tactic do?</a>
+</li><li><a href="Reference-Manual028.html#sec740">25.2  The variables map</a>
+</li><li><a href="Reference-Manual028.html#sec741">25.3  Is it automatic?</a>
+</li><li><a href="Reference-Manual028.html#sec742">25.4  Concrete usage in <span style="font-variant:small-caps">Coq</span>
+</a>
+</li><li><a href="Reference-Manual028.html#sec743">25.5  Adding a ring structure
+</a>
+</li><li><a href="Reference-Manual028.html#sec744">25.6  How does it work?</a>
+</li><li><a href="Reference-Manual028.html#sec745">25.7  Dealing with fields
+
+
+</a>
+</li><li><a href="Reference-Manual028.html#sec746">25.8  Adding a new field structure
+</a>
+</li><li><a href="Reference-Manual028.html#sec747">25.9  History of <span style="font-family:monospace">ring</span></a>
+</li><li><a href="Reference-Manual028.html#sec748">25.10  Discussion</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Bruno Barras, Benjamin Grégoire, Assia
+Mahboubi, Laurent Théry</span></span><sup><a id="text26" href="#note26"><span style="font-size:x-large"><span style="font-weight:bold">1</span></span></a></sup> <br>
+<br>
+
+<a id="ring"></a>
+<a id="hevea_default1001"></a><a id="hevea_tactic225"></a></p><p>This chapter presents the tactics dedicated to deal with ring and
+field equations.</p>
+<h2 id="sec739" class="section">25.1  What does this tactic do?</h2>
+<p><span style="font-family:monospace">ring</span> does associative-commutative rewriting in ring and semi-ring
+structures. Assume you have two binary functions ⊕ and ⊗
+that are associative and commutative, with ⊕ distributive on
+⊗, and two constants 0 and 1 that are unities for ⊕ and
+⊗. A <span style="font-style:italic">polynomial</span> is an expression built on variables <span style="font-style:italic">V</span><sub>0</sub>, <span style="font-style:italic">V</span><sub>1</sub>,
+… and constants by application of ⊕ and ⊗.</p><p>Let an <span style="font-style:italic">ordered product</span> be a product of variables <span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span><sub>1</sub></sub>
+⊗ … ⊗ <span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span><sub><span style="font-style:italic">n</span></sub></sub> verifying <span style="font-style:italic">i</span><sub>1</sub> ≤ <span style="font-style:italic">i</span><sub>2</sub> ≤ … ≤
+<span style="font-style:italic">i</span><sub><span style="font-style:italic">n</span></sub>. Let a <span style="font-style:italic">monomial</span> be the product of a constant and an
+ordered product. We can order the monomials by the lexicographic
+order on products of variables. Let a <span style="font-style:italic">canonical sum</span> be an
+ordered sum of monomials that are all different, i.e. each monomial in
+the sum is strictly less than the following monomial according to the
+lexicographic order. It is an easy theorem to show that every
+polynomial is equivalent (modulo the ring properties) to exactly one
+canonical sum. This canonical sum is called the <span style="font-style:italic">normal form</span>
+of the polynomial. In fact, the actual representation shares monomials
+with same prefixes. So what does <span style="font-family:monospace">ring</span>? It normalizes
+polynomials over any ring or semi-ring structure. The basic use of
+<span style="font-family:monospace">ring</span> is to simplify ring expressions, so that the user does
+not have to deal manually with the theorems of associativity and
+commutativity.</p><p><br>
+<span style="font-weight:bold">Examples:</span>
+</p><ol class="enumerate" type=1><li class="li-enumerate">
+In the ring of integers, the normal form of 
+<span style="font-style:italic">x</span> (3 + <span style="font-style:italic">yx</span> + 25(1 − <span style="font-style:italic">z</span>)) + <span style="font-style:italic">zx</span> is 28<span style="font-style:italic">x</span> + (−24)<span style="font-style:italic">xz</span> + <span style="font-style:italic">xxy</span>.
+</li></ol><p><span style="font-family:monospace">ring</span> is also able to compute a normal form modulo monomial 
+equalities. For example, under the hypothesis that 2<span style="font-style:italic">x</span><sup>2</sup> = <span style="font-style:italic">yz</span>+1,
+the normal form of 2(<span style="font-style:italic">x</span> + 1)<span style="font-style:italic">x</span> − <span style="font-style:italic">x</span> − <span style="font-style:italic">zy</span> is <span style="font-style:italic">x</span>+1.</p>
+<h2 id="sec740" class="section">25.2  The variables map</h2>
+<p>It is frequent to have an expression built with + and
+×, but rarely on variables only.
+Let us associate a number to each subterm of a ring
+expression in the <span style="font-variant:small-caps">Gallina</span> language. For example in the ring
+<span style="font-family:monospace">nat</span>, consider the expression:</p><blockquote class="quotation">
+<pre class="verbatim">(plus (mult (plus (f (5)) x) x)
+      (mult (if b then (4) else (f (3))) (2)))
+</pre></blockquote><p>As a ring expression, it has 3 subterms. Give each subterm a
+number in an arbitrary order:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >0</td><td style="text-align:center;white-space:nowrap" >↦</td><td style="text-align:left;white-space:nowrap" ><code>if b then (4) else (f (3))</code> </td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >1</td><td style="text-align:center;white-space:nowrap" >↦</td><td style="text-align:left;white-space:nowrap" ><code>(f (5))</code> </td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >2</td><td style="text-align:center;white-space:nowrap" >↦</td><td style="text-align:left;white-space:nowrap" ><code>x</code> </td></tr>
+</table><p>Then normalize the “abstract” polynomial </p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">((<span style="font-style:italic">V</span><sub>1</sub> ⊗ <span style="font-style:italic">V</span><sub>2</sub>) ⊕ <span style="font-style:italic">V</span><sub>2</sub>) ⊕ (<span style="font-style:italic">V</span><sub>0</sub> ⊗ 2) </td></tr>
+</table><p>In our example the normal form is:</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">(2 ⊗ <span style="font-style:italic">V</span><sub>0</sub>) ⊕ (<span style="font-style:italic">V</span><sub>1</sub> ⊗ <span style="font-style:italic">V</span><sub>2</sub>) ⊕ (<span style="font-style:italic">V</span><sub>2</sub> ⊗ <span style="font-style:italic">V</span><sub>2</sub>)</td></tr>
+</table><p>Then substitute the variables by their values in the variables map to
+get the concrete normal polynomial:</p><blockquote class="quotation">
+<pre class="verbatim">(plus (mult (2) (if b then (4) else (f (3)))) 
+      (plus (mult (f (5)) x) (mult x x))) 
+</pre></blockquote>
+<h2 id="sec741" class="section">25.3  Is it automatic?</h2>
+<p>Yes, building the variables map and doing the substitution after
+normalizing is automatically done by the tactic. So you can just forget
+this paragraph and use the tactic according to your intuition.</p>
+<h2 id="sec742" class="section">25.4  Concrete usage in <span style="font-variant:small-caps">Coq</span><a id="hevea_default1002"></a><a id="hevea_tactic226"></a>
+<a id="hevea_default1003"></a><a id="hevea_tactic227"></a></h2>
+<p>The <span style="font-family:monospace">ring</span> tactic solves equations upon polynomial expressions of
+a ring (or semi-ring) structure. It proceeds by normalizing both hand
+sides of the equation (w.r.t. associativity, commutativity and
+distributivity, constant propagation, rewriting of monomials) 
+and comparing syntactically the results.</p><p><span style="font-family:monospace">ring_simplify</span> applies the normalization procedure described
+above to the terms given. The tactic then replaces all occurrences of
+the terms given in the conclusion of the goal by their normal
+forms. If no term is given, then the conclusion should be an equation
+and both hand sides are normalized. 
+The tactic can also be applied in a hypothesis.</p><p>The tactic must be loaded by <span style="font-family:monospace">Require Import Ring</span>. The ring
+structures must be declared with the <span style="font-family:monospace">Add Ring</span> command (see
+below). The ring of booleans is predefined; if one wants to use the
+tactic on <span style="font-family:monospace">nat</span> one must first require the module
+<span style="font-family:monospace">ArithRing</span> (exported by <span style="font-family:monospace">Arith</span>);
+for <span style="font-family:monospace">Z</span>, do <span style="font-family:monospace">Require Import
+ZArithRing</span> or simply <span style="font-family:monospace">Require Import ZArith</span>; 
+for <span style="font-family:monospace">N</span>, do <span style="font-family:monospace">Require Import NArithRing</span> or 
+<span style="font-family:monospace">Require Import NArith</span>.</p><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Require Import ZArith.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Open Scope Z</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall a b c:Z,</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (a + b + c)</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2  =</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        a * a + b</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2 + c * c + 2 * a * b + 2 * a * c + 2 * b * c.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall a b c : Z,</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  (a + b + c) </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 = a * a + b </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 + c * c + 2 * a * b + 2 * a * c + 2 * b * c</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros; ring.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall a b:Z, 2*a*b = 30 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">              (a+b)</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2 = a</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2 + b</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2 + 30.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall a b : Z, 2 * a * b = 30 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (a + b) </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 = a </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 + b </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 2 + 30</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros a b H; ring [H].</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">ring [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">]</span> decides the equality of two
+terms modulo ring operations and rewriting of the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. Each of <span style="font-style:oblique">term</span><sub>1</sub>
+… <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub> has to be a proof of some equality <span style="font-style:italic">m</span> = <span style="font-style:italic">p</span>,
+where <span style="font-style:italic">m</span> is a monomial (after “abstraction”),
+<span style="font-style:italic">p</span> a polynomial and = the corresponding equality of the ring structure.</li><li class="li-enumerate"><span style="font-family:monospace">ring_simplify [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">] </span><span style="font-style:italic">t</span><sub>1</sub> … <span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub><span style="font-family:monospace"> in 
+</span><span style="font-style:oblique">ident</span>
+performs the simplification in the hypothesis named <span style="font-family:monospace">ident</span>.
+</li></ol><p><br>
+<span style="font-weight:bold">Warning: </span><span style="font-family:monospace">ring_simplify </span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace">; ring_simplify </span><span style="font-style:oblique">term</span><sub>2</sub> is
+not equivalent to <span style="font-family:monospace">ring_simplify </span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub>2</sub>. In the
+latter case the variables map is shared between the two terms, and
+common subterm <span style="font-style:italic">t</span> of <span style="font-style:oblique">term</span><sub>1</sub> and <span style="font-style:oblique">term</span><sub>2</sub> will have the same
+associated variable number. So the first alternative should be
+avoided for terms belonging to the same ring theory.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">not a valid ring equation</span><a id="hevea_error161"></a>
+The conclusion of the goal is not provable in the corresponding ring
+theory.
+</li><li class="li-enumerate"><span style="font-family:monospace">arguments of ring_simplify do not have all the same type</span><a id="hevea_error162"></a>
+<span style="font-family:monospace">ring_simplify</span> cannot simplify terms of several rings at the
+same time. Invoke the tactic once per ring structure.
+</li><li class="li-enumerate"><span style="font-family:monospace">cannot find a declared ring structure over </span><span style="font-family:monospace">term</span><a id="hevea_error163"></a>
+No ring has been declared for the type of the terms to be
+simplified. Use <span style="font-family:monospace">Add Ring</span> first.
+</li><li class="li-enumerate"><span style="font-family:monospace">cannot find a declared ring structure for equality
+</span><span style="font-family:monospace">term</span><a id="hevea_error164"></a>
+Same as above is the case of the <span style="font-family:monospace">ring</span> tactic.
+</li></ol>
+<h2 id="sec743" class="section">25.5  Adding a ring structure
+<a id="hevea_default1004"></a><a id="hevea_command295"></a></h2>
+<p>Declaring a new ring consists in proving that a ring signature (a
+carrier set, an equality, and ring operations: <span style="font-family:monospace">Ring_theory.ring_theory</span> and <span style="font-family:monospace">Ring_theory.semi_ring_theory</span>)
+satisfies the ring axioms. Semi-rings (rings without + inverse) are
+also supported. The equality can be either Leibniz equality, or any
+relation declared as a setoid (see <a href="Reference-Manual030.html#setoidtactics">27.2.2</a>). The definition
+of ring and semi-rings (see module <span style="font-family:monospace">Ring_theory</span>) is:
+</p><pre class="verbatim">Record ring_theory : Prop := mk_rt {
+  Radd_0_l    : forall x, 0 + x == x;
+  Radd_sym    : forall x y, x + y == y + x;
+  Radd_assoc  : forall x y z, x + (y + z) == (x + y) + z;
+  Rmul_1_l    : forall x, 1 * x == x;
+  Rmul_sym    : forall x y, x * y == y * x;
+  Rmul_assoc  : forall x y z, x * (y * z) == (x * y) * z;
+  Rdistr_l    : forall x y z, (x + y) * z == (x * z) + (y * z);
+  Rsub_def    : forall x y, x - y == x + -y;
+  Ropp_def    : forall x, x + (- x) == 0
+}.
+
+Record semi_ring_theory : Prop := mk_srt {
+  SRadd_0_l   : forall n, 0 + n == n;
+  SRadd_sym   : forall n m, n + m == m + n ;
+  SRadd_assoc : forall n m p, n + (m + p) == (n + m) + p;
+  SRmul_1_l   : forall n, 1*n == n;
+  SRmul_0_l   : forall n, 0*n == 0;
+  SRmul_sym   : forall n m, n*m == m*n;
+  SRmul_assoc : forall n m p, n*(m*p) == (n*m)*p;
+  SRdistr_l   : forall n m p, (n + m)*p == n*p + m*p
+}.
+</pre><p>This implementation of <span style="font-family:monospace">ring</span> also features a notion of constant
+that can be parameterized. This can be used to improve the handling of
+closed expressions when operations are effective. It consists in
+introducing a type of <em>coefficients</em> and an implementation of the
+ring operations, and a morphism from the coefficient type to the ring
+carrier type. The morphism needs not be injective, nor surjective. </p><p>As
+an example, one can consider the real numbers. The set of coefficients
+could be the rational numbers, upon which the ring operations can be
+implemented. The fact that there exists a morphism is defined by the
+following properties:
+</p><pre class="verbatim">Record ring_morph : Prop := mkmorph {
+  morph0    : [cO] == 0;
+  morph1    : [cI] == 1;
+  morph_add : forall x y, [x +! y] == [x]+[y];
+  morph_sub : forall x y, [x -! y] == [x]-[y];
+  morph_mul : forall x y, [x *! y] == [x]*[y];
+  morph_opp : forall x, [-!x] == -[x];
+  morph_eq  : forall x y, x?=!y = true -&gt; [x] == [y]
+}.
+
+Record semi_morph : Prop := mkRmorph {
+  Smorph0 : [cO] == 0;
+  Smorph1 : [cI] == 1;
+  Smorph_add : forall x y, [x +! y] == [x]+[y];
+  Smorph_mul : forall x y, [x *! y] == [x]*[y];
+  Smorph_eq  : forall x y, x?=!y = true -&gt; [x] == [y]
+}.
+</pre><p>where <span style="font-family:monospace">c0</span> and <span style="font-family:monospace">cI</span> denote the 0 and 1 of the coefficient set,
+<span style="font-family:monospace">+!</span>, <span style="font-family:monospace">*!</span>, <span style="font-family:monospace">-!</span> are the implementations of the ring
+operations, <span style="font-family:monospace">==</span> is the equality of the coefficients, <span style="font-family:monospace">?+!</span> is
+an implementation of this equality, and <span style="font-family:monospace">[x]</span> is a notation for
+the image of <span style="font-family:monospace">x</span> by the ring morphism.</p><p>Since <span style="font-family:monospace">Z</span> is an initial ring (and <span style="font-family:monospace">N</span> is an initial
+semi-ring), it can always be considered as a set of
+coefficients. There are basically three kinds of (semi-)rings:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">abstract rings</span></dt><dd class="dd-description"> to be used when operations are not
+effective. The set of coefficients is <span style="font-family:monospace">Z</span> (or <span style="font-family:monospace">N</span> for
+semi-rings).
+</dd><dt class="dt-description"><span style="font-weight:bold">computational rings</span></dt><dd class="dd-description"> to be used when operations are
+effective. The set of coefficients is the ring itself. The user only
+has to provide an implementation for the equality.
+</dd><dt class="dt-description"><span style="font-weight:bold">customized ring</span></dt><dd class="dd-description"> for other cases. The user has to provide the
+coefficient set and the morphism.
+</dd></dl><p>This implementation of ring can also recognize simple 
+power expressions as ring expressions. A power function is specified by 
+the following property:
+</p><pre class="verbatim">Section POWER.
+  Variable Cpow : Set.
+  Variable Cp_phi : N -&gt; Cpow.
+  Variable rpow : R -&gt; Cpow -&gt; R.
+
+  Record power_theory : Prop := mkpow_th {
+    rpow_pow_N : forall r n, req (rpow r (Cp_phi n)) (pow_N rI rmul r n)
+  }.
+
+End POWER.
+</pre><p>The syntax for adding a new ring is <span style="font-family:monospace">Add Ring </span><span style="font-style:italic">name</span><span style="font-family:monospace"> : </span><span style="font-style:italic">ring</span><span style="font-family:monospace">
+(</span><span style="font-style:italic">mod</span><sub>1</sub><span style="font-family:monospace">,…,</span><span style="font-style:italic">mod</span><sub>2</sub><span style="font-family:monospace">)</span>. The name is not relevant. It is just used
+for error messages. The term <span style="font-style:italic">ring</span> is a proof that the ring signature
+satisfies the (semi-)ring axioms. The optional list of modifiers is
+used to tailor the behavior of the tactic. The following list
+describes their syntax and effects:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">abstract</span></dt><dd class="dd-description"> declares the ring as abstract. This is the default.
+</dd><dt class="dt-description"><span style="font-weight:bold">decidable </span><span style="font-style:oblique">term</span></dt><dd class="dd-description"> declares the ring as computational. The expression 
+<span style="font-style:oblique">term</span> is
+the correctness proof of an equality test <span style="font-family:monospace">?=!</span> (which should be
+evaluable). Its type should be of
+the form <span style="font-family:monospace">forall x y, x?=!y = true </span>→<span style="font-family:monospace"> x == y</span>.
+</dd><dt class="dt-description"><span style="font-weight:bold">morphism </span><span style="font-style:oblique">term</span></dt><dd class="dd-description"> declares the ring as a customized one. The expression 
+<span style="font-style:oblique">term</span> is
+a proof that there exists a morphism between a set of coefficient
+and the ring carrier (see <span style="font-family:monospace">Ring_theory.ring_morph</span> and <span style="font-family:monospace">Ring_theory.semi_morph</span>).
+</dd><dt class="dt-description"><span style="font-weight:bold">setoid </span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-weight:bold"> </span><span style="font-style:oblique">term</span><sub>2</sub></dt><dd class="dd-description"> forces the use of given setoid. The 
+expression <span style="font-style:oblique">term</span><sub>1</sub> is a proof that the equality is indeed a setoid
+(see <span style="font-family:monospace">Setoid.Setoid_Theory</span>), and <span style="font-style:oblique">term</span><sub>2</sub> a proof that the
+ring operations are morphisms (see <span style="font-family:monospace">Ring_theory.ring_eq_ext</span> and
+<span style="font-family:monospace">Ring_theory.sring_eq_ext</span>). This modifier needs not be used if the
+setoid and morphisms have been declared.
+</dd><dt class="dt-description"><span style="font-weight:bold">constants [</span><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub></dt><dd class="dd-description">] specifies a tactic expression that, given a term,
+returns either an object of the coefficient set that is mapped to
+the expression via the morphism, or returns <span style="font-family:monospace">InitialRing.NotConstant</span>. The default behavior is to map only 0 and
+1 to their counterpart in the coefficient set. This is generally not
+desirable for non trivial computational rings.
+</dd><dt class="dt-description"><span style="font-weight:bold">preprocess [</span><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub></dt><dd class="dd-description">]
+specifies a tactic that is applied as a preliminary step for <span style="font-family:monospace">ring</span> and <span style="font-family:monospace">ring_simplify</span>. It can be used to transform a goal
+so that it is better recognized. For instance, <span style="font-family:monospace">S n</span> can be
+changed to <span style="font-family:monospace">plus 1 n</span>.
+</dd><dt class="dt-description"><span style="font-weight:bold">postprocess [</span><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub></dt><dd class="dd-description">] specifies a tactic that is applied as a final step
+for <span style="font-family:monospace">ring_simplify</span>. For instance, it can be used to undo
+modifications of the preprocessor.
+</dd><dt class="dt-description"><span style="font-weight:bold">power_tac </span><span style="font-style:oblique">term</span><span style="font-weight:bold"> [</span><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub></dt><dd class="dd-description">] allows <span style="font-family:monospace">ring</span> and <span style="font-family:monospace">ring_simplify</span> to
+recognize power expressions with a constant positive integer exponent 
+(example: <span style="font-style:italic">x</span><sup>2</sup>). The term <span style="font-style:oblique">term</span> is a proof that a given power function
+satisfies the specification of a power function (<span style="font-style:oblique">term</span> has to be a
+proof of <span style="font-family:monospace">Ring_theory.power_theory</span>) and <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> specifies a
+tactic expression that, given a term, “abstracts” it into an
+object of type <span style="font-family:monospace">N</span> whose interpretation via <span style="font-family:monospace">Cp_phi</span> (the
+evaluation function of power coefficient) is the original term, or
+returns <span style="font-family:monospace">InitialRing.NotConstant</span> if not a constant coefficient
+(i.e. <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> is the inverse function of <span style="font-family:monospace">Cp_phi</span>).
+See files <span style="font-family:monospace">plugins/setoid_ring/ZArithRing.v</span> and
+<span style="font-family:monospace">plugins/setoid_ring/RealField.v</span> for examples.
+By default the tactic does not recognize power expressions as ring
+expressions.
+</dd><dt class="dt-description"><span style="font-weight:bold">sign </span><span style="font-style:oblique">term</span></dt><dd class="dd-description"> allows <span style="font-family:monospace">ring_simplify</span> to use a minus operation
+when outputing its normal form, i.e writing <span style="font-style:italic">x</span> − <span style="font-style:italic">y</span> instead of <span style="font-style:italic">x</span> + (−<span style="font-style:italic">y</span>). 
+The term <span style="font-style:oblique">term</span> is a proof that a given sign function indicates expressions
+that are signed (<span style="font-style:oblique">term</span> has to be a
+proof of <span style="font-family:monospace">Ring_theory.get_sign</span>). See <span style="font-family:monospace">plugins/setoid_ring/IntialRing.v</span> for examples of sign function.
+</dd><dt class="dt-description"><span style="font-weight:bold">div </span><span style="font-style:oblique">term</span></dt><dd class="dd-description"> allows <span style="font-family:monospace">ring</span> and <span style="font-family:monospace">ring_simplify</span> to use moniomals
+with coefficient other than 1 in the rewriting. The term <span style="font-style:oblique">term</span> is a proof that a given division function satisfies the specification of an euclidean
+division function (<span style="font-style:oblique">term</span> has to be a
+proof of <span style="font-family:monospace">Ring_theory.div_theory</span>). For example, this function is
+called when trying to rewrite 7<span style="font-style:italic">x</span> by 2<span style="font-style:italic">x</span> = <span style="font-style:italic">z</span> to tell that 7 = 3 * 2 + 1.
+See <span style="font-family:monospace">plugins/setoid_ring/IntialRing.v</span> for examples of div function.</dd></dl><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">bad ring structure</span><a id="hevea_error165"></a>
+The proof of the ring structure provided is not of the expected type.
+</li><li class="li-enumerate"><span style="font-family:monospace">bad lemma for decidability of equality</span><a id="hevea_error166"></a>
+The equality function provided in the case of a computational ring
+has not the expected type.
+</li><li class="li-enumerate"><span style="font-family:monospace">ring </span><span style="font-family:monospace"><span style="font-style:italic">operation</span></span><span style="font-family:monospace"> should be declared as a morphism</span><a id="hevea_error167"></a>
+A setoid associated to the carrier of the ring structure as been
+found, but the ring operation should be declared as
+morphism. See <a href="Reference-Manual030.html#setoidtactics">27.2.2</a>.
+</li></ol>
+<h2 id="sec744" class="section">25.6  How does it work?</h2>
+<p>The code of <span style="font-family:monospace">ring</span> is a good example of tactic written using
+<span style="font-style:italic">reflection</span>. What is reflection? Basically, it is writing
+<span style="font-variant:small-caps">Coq</span> tactics in <span style="font-variant:small-caps">Coq</span>, rather than in <span style="font-variant:small-caps">Objective Caml</span>. From the philosophical
+point of view, it is using the ability of the Calculus of
+Constructions to speak and reason about itself. For the <span style="font-family:monospace">ring</span>
+tactic we used <span style="font-variant:small-caps">Coq</span> as a programming language and also as a proof
+environment to build a tactic and to prove it correctness.</p><p>The interested reader is strongly advised to have a look at the file
+<span style="font-family:monospace">Ring_polynom.v</span>. Here a type for polynomials is defined: </p><div class="flushleft"><span style="font-size:small">
+</span><pre class="verbatim"><span style="font-size:small">Inductive PExpr : Type :=
+  | PEc : C -&gt; PExpr
+  | PEX : positive -&gt; PExpr
+  | PEadd : PExpr -&gt; PExpr -&gt; PExpr
+  | PEsub : PExpr -&gt; PExpr -&gt; PExpr
+  | PEmul : PExpr -&gt; PExpr -&gt; PExpr
+  | PEopp : PExpr -&gt; PExpr
+  | PEpow : PExpr -&gt; N -&gt; PExpr.
+</span></pre></div><p>Polynomials in normal form are defined as:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><pre class="verbatim"><span style="font-size:small">Inductive Pol : Type :=
+  | Pc : C -&gt; Pol 
+  | Pinj : positive -&gt; Pol -&gt; Pol                   
+  | PX : Pol -&gt; positive -&gt; Pol -&gt; Pol.
+</span></pre></div><p><span style="font-size:small">
+</span>
+where <span style="font-family:monospace">Pinj n P</span> denotes <span style="font-style:italic">P</span> in which <span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span></sub> is replaced by
+<span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span>+<span style="font-style:italic">n</span></sub>, and <span style="font-family:monospace">PX P n Q</span> denotes <span style="font-style:italic">P</span> ⊗ <span style="font-style:italic">V</span><sub>1</sub><sup><span style="font-style:italic">n</span></sup> ⊕ <span style="font-style:italic">Q</span>′,
+<span style="font-style:italic">Q</span>′ being <span style="font-style:italic">Q</span> where <span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span></sub> is replaced by <span style="font-style:italic">V</span><sub><span style="font-style:italic">i</span>+1</sub>. </p><p>Variables maps are represented by list of ring elements, and two
+interpretation functions, one that maps a variables map and a
+polynomial to an element of the concrete ring, and the second one that
+does the same for normal forms:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><pre class="verbatim"><span style="font-size:small">Definition PEeval : list R -&gt; PExpr -&gt; R := [...].
+Definition Pphi_dev : list R -&gt; Pol -&gt; R := [...].
+</span></pre></div><p>A function to normalize polynomials is defined, and the big theorem is
+its correctness w.r.t interpretation, that is:</p><div class="flushleft"><span style="font-size:small">
+</span><pre class="verbatim"><span style="font-size:small">Definition norm : PExpr -&gt; Pol := [...].
+Lemma Pphi_dev_ok :
+   forall l pe npe, norm pe = npe -&gt; PEeval l pe == Pphi_dev l npe.
+</span></pre></div><p>So now, what is the scheme for a normalization proof? Let <span style="font-family:monospace">p</span>
+be the polynomial expression that the user wants to normalize. First a
+little piece of ML code guesses the type of <span style="font-family:monospace">p</span>, the ring
+theory <span style="font-family:monospace">T</span> to use, an abstract polynomial <span style="font-family:monospace">ap</span> and a
+variables map <span style="font-family:monospace">v</span> such that <span style="font-family:monospace">p</span> is
+βδι-equivalent to <code>(PEeval v ap)</code>. Then we
+replace it by <code>(Pphi_dev v (norm ap))</code>, using the
+main correctness theorem and we reduce it to a concrete expression
+<span style="font-family:monospace">p’</span>, which is the concrete normal form of
+<span style="font-family:monospace">p</span>. This is summarized in this diagram:
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span style="font-family:monospace">p</span></td><td style="text-align:center;white-space:nowrap" >→<sub>βδι</sub></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(PEeval v ap)</span> </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >=<sub>(<span style="font-style:italic">by</span> <span style="font-style:italic">the</span> <span style="font-style:italic">main</span> <span style="font-style:italic">correctness</span> <span style="font-style:italic">theorem</span>)</sub> </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><span style="font-family:monospace">p’</span></td><td style="text-align:center;white-space:nowrap" >←<sub>βδι</sub></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(Pphi_dev v (norm ap))</span>
+</td></tr>
+</table>
+</div><p>
+The user do not see the right part of the diagram. 
+From outside, the tactic behaves like a
+βδι simplification extended with AC rewriting rules.
+Basically, the proof is only the application of the main
+correctness theorem to well-chosen arguments.</p>
+<h2 id="sec745" class="section">25.7  Dealing with fields
+<a id="hevea_default1005"></a><a id="hevea_tactic228"></a>
+<a id="hevea_default1006"></a><a id="hevea_tactic229"></a>
+<a id="hevea_default1007"></a><a id="hevea_tactic230"></a></h2>
+<p>The <span style="font-family:monospace">field</span> tactic is an extension of the <span style="font-family:monospace">ring</span> to deal with
+rational expression. Given a rational expression <span style="font-style:italic">F</span>=0. It first reduces the
+expression <span style="font-style:italic">F</span> to a common denominator <span style="font-style:italic">N</span>/<span style="font-style:italic">D</span>= 0 where <span style="font-style:italic">N</span> and <span style="font-style:italic">D</span> are two ring
+expressions.
+For example, if we take <span style="font-style:italic">F</span> = (1 − 1/<span style="font-style:italic">x</span>) <span style="font-style:italic">x</span> − <span style="font-style:italic">x</span> + 1, this gives 
+ <span style="font-style:italic">N</span>= (<span style="font-style:italic">x</span> −1) <span style="font-style:italic">x</span> − <span style="font-style:italic">x</span><sup>2</sup> + <span style="font-style:italic">x</span> and <span style="font-style:italic">D</span>= <span style="font-style:italic">x</span>. It then calls <span style="font-family:monospace">ring</span> 
+to solve <span style="font-style:italic">N</span>=0. Note that <span style="font-family:monospace">field</span> also generates non-zero conditions
+for all the denominators it encounters in the reduction.
+In our example, it generates the condition <span style="font-style:italic">x</span> ≠ 0. These
+conditions appear as one subgoal which is a conjunction if there are
+several denominators.
+Non-zero conditions are <span style="font-style:italic">always</span> polynomial expressions. For example 
+when reducing the expression 1/(1 + 1/<span style="font-style:italic">x</span>), two side conditions are
+generated: <span style="font-style:italic">x</span>≠ 0 and <span style="font-style:italic">x</span> + 1 ≠ 0. Factorized expressions are
+broken since a field is an integral domain, and when the equality test
+on coefficients is complete w.r.t. the equality of the target field,
+constants can be proven different from zero automatically.</p><p>The tactic must be loaded by <span style="font-family:monospace">Require Import Field</span>. New field
+structures can be declared to the system with the <span style="font-family:monospace">Add Field</span>
+command (see below). The field of real numbers is defined in module
+<span style="font-family:monospace">RealField</span> (in textttplugins/setoid_ring). It is exported
+by module <span style="font-family:monospace">Rbase</span>, so that requiring <span style="font-family:monospace">Rbase</span> or
+<span style="font-family:monospace">Reals</span> is enough to use the field tactics on real
+numbers. Rational numbers in canonical form are also declared as a
+field in module <span style="font-family:monospace">Qcanon</span>.</p><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Require Import Reals.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Open Scope R</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x,  x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">         (1 - 1/x) * x - x + 1 = 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall x : R, x </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (1 - 1 / x) * x - x + 1 = 0</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros; field; auto.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x y, y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y = x -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x/y = 1.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall x y : R, y </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> 0 -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> y = x -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x / y = 1</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros x y H H1; field [H1]; auto.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">field [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">]</span> decides the equality of two
+terms modulo field operations and rewriting of the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. Each of <span style="font-style:oblique">term</span><sub>1</sub>
+… <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub> has to be a proof of some equality <span style="font-style:italic">m</span> = <span style="font-style:italic">p</span>,
+where <span style="font-style:italic">m</span> is a monomial (after “abstraction”),
+<span style="font-style:italic">p</span> a polynomial and = the corresponding equality of the field structure.
+Beware that rewriting works with the equality <span style="font-style:italic">m</span>=<span style="font-style:italic">p</span> only if <span style="font-style:italic">p</span> is a 
+polynomial since rewriting is handled by the underlying <span style="font-family:monospace">ring</span>
+tactic.
+</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify</span> 
+performs the simplification in the conclusion of the goal, <span style="font-style:italic">F</span><sub>1</sub> = <span style="font-style:italic">F</span><sub>2</sub>
+becomes <span style="font-style:italic">N</span><sub>1</sub>/<span style="font-style:italic">D</span><sub>1</sub> = <span style="font-style:italic">N</span><sub>2</sub>/<span style="font-style:italic">D</span><sub>2</sub>. A normalization step (the same as the
+one for rings) is then applied to <span style="font-style:italic">N</span><sub>1</sub>, <span style="font-style:italic">D</span><sub>1</sub>, <span style="font-style:italic">N</span><sub>2</sub> and
+<span style="font-style:italic">D</span><sub>2</sub>. This way, polynomials remain in factorized form during the
+fraction simplifications. This yields smaller expressions when
+reducing to the same denominator since common factors can be
+canceled.</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">]</span>
+performs the simplification in the conclusion of the goal using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>.</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">] </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub>
+performs the simplification in the terms <span style="font-style:italic">t</span><sub>1</sub> …<span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub>
+of the conclusion of the goal using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. </li><li class="li-enumerate"><span style="font-family:monospace">field_simplify in </span><span style="font-style:italic">H</span> 
+performs the simplification in the assumption <span style="font-style:italic">H</span>.</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">] in </span><span style="font-style:italic">H</span>
+performs the simplification in the assumption <span style="font-style:italic">H</span> using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. </li><li class="li-enumerate"><span style="font-family:monospace">field_simplify [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">] </span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace"> …</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub><span style="font-family:monospace"> in </span><span style="font-style:italic">H</span>
+performs the simplification in the terms <span style="font-style:italic">t</span><sub>1</sub> …<span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>
+of the assumption <span style="font-style:italic">H</span> using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">m</span></sub>. </li><li class="li-enumerate"><span style="font-family:monospace">field_simplify_eq</span>
+performs the simplification in the conclusion of the goal removing
+the denominator. <span style="font-style:italic">F</span><sub>1</sub> = <span style="font-style:italic">F</span><sub>2</sub>
+becomes <span style="font-style:italic">N</span><sub>1</sub> <span style="font-style:italic">D</span><sub>2</sub> = <span style="font-style:italic">N</span><sub>2</sub> <span style="font-style:italic">D</span><sub>1</sub>.</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify_eq [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">]</span>
+performs the simplification in the conclusion of the goal using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. </li><li class="li-enumerate"><span style="font-family:monospace">field_simplify_eq</span> in <span style="font-style:italic">H</span>
+performs the simplification in the assumption <span style="font-style:italic">H</span>.</li><li class="li-enumerate"><span style="font-family:monospace">field_simplify_eq [</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">] in </span><span style="font-style:italic">H</span>
+performs the simplification in the assumption <span style="font-style:italic">H</span> using
+the equalities
+defined by <span style="font-style:oblique">term</span><sub>1</sub> … <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub>. 
+</li></ol>
+<h2 id="sec746" class="section">25.8  Adding a new field structure
+<a id="hevea_default1008"></a><a id="hevea_command296"></a></h2>
+<p>Declaring a new field consists in proving that a field signature (a
+carrier set, an equality, and field operations: <span style="font-family:monospace">Field_theory.field_theory</span> and <span style="font-family:monospace">Field_theory.semi_field_theory</span>)
+satisfies the field axioms. Semi-fields (fields without + inverse) are
+also supported. The equality can be either Leibniz equality, or any
+relation declared as a setoid (see <a href="Reference-Manual030.html#setoidtactics">27.2.2</a>). The definition
+of fields and semi-fields is:
+</p><pre class="verbatim">Record field_theory : Prop := mk_field {
+  F_R : ring_theory rO rI radd rmul rsub ropp req;
+  F_1_neq_0 : ~ 1 == 0;
+  Fdiv_def : forall p q, p / q == p * / q;
+  Finv_l : forall p, ~ p == 0 -&gt;  / p * p == 1
+}.
+
+Record semi_field_theory : Prop := mk_sfield {
+  SF_SR : semi_ring_theory rO rI radd rmul req;
+  SF_1_neq_0 : ~ 1 == 0;
+  SFdiv_def : forall p q, p / q == p * / q;
+  SFinv_l : forall p, ~ p == 0 -&gt;  / p * p == 1
+}.
+</pre><p>The result of the normalization process is a fraction represented by
+the following type:
+</p><pre class="verbatim">Record linear : Type := mk_linear {
+  num : PExpr C;
+  denum : PExpr C;
+  condition : list (PExpr C)
+}.
+</pre><p>where <span style="font-family:monospace">num</span> and <span style="font-family:monospace">denum</span> are the numerator and denominator;
+<span style="font-family:monospace">condition</span> is a list of expressions that have appeared as a
+denominator during the normalization process. These expressions must
+be proven different from zero for the correctness of the algorithm.</p><p>The syntax for adding a new field is <span style="font-family:monospace">Add Field </span><span style="font-style:italic">name</span><span style="font-family:monospace"> : </span><span style="font-style:italic">field</span><span style="font-family:monospace">
+(</span><span style="font-style:italic">mod</span><sub>1</sub><span style="font-family:monospace">,…,</span><span style="font-style:italic">mod</span><sub>2</sub><span style="font-family:monospace">)</span>. The name is not relevant. It is just used
+for error messages. <span style="font-style:italic">field</span> is a proof that the field signature
+satisfies the (semi-)field axioms. The optional list of modifiers is
+used to tailor the behavior of the tactic. Since field tactics are
+built upon ring tactics, all modifiers of the <span style="font-family:monospace">Add Ring</span>
+apply. There is only one specific modifier:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">completeness </span><span style="font-style:oblique">term</span></dt><dd class="dd-description"> allows the field tactic to prove
+automatically that the image of non-zero coefficients are mapped to
+non-zero elements of the field. <span style="font-style:oblique">term</span>is a proof of <span style="font-family:monospace">forall x y,
+[x] == [y] -&gt; x?=!y = true</span>, which is the completeness of equality
+on coefficients w.r.t. the field equality.
+</dd></dl>
+<h2 id="sec747" class="section">25.9  History of <span style="font-family:monospace">ring</span></h2>
+<p>First Samuel Boutin designed the tactic <span style="font-family:monospace">ACDSimpl</span>. 
+This tactic did lot of rewriting. But the proofs
+terms generated by rewriting were too big for <span style="font-variant:small-caps">Coq</span>’s type-checker.
+Let us see why:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x y z:Z, x + 3 + y + y * z = x + 3 + y + z * y.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  forall x y z : Z, x + 3 + y + y * z = x + 3 + y + z * y</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> intros; rewrite (Z.mul</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">comm y z); reflexivity.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Save toto.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print toto.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">toto = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun x y z : Z =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">eq</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">r (fun z0 : Z =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x + 3 + y + z0 = x + 3 + y + z * y) eq</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">refl</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  (Z.mul</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">comm y z)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : forall x y z : Z, x + 3 + y + y * z = x + 3 + y + z * y</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scopes are [Z</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope Z</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope Z</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span></div><p>At each step of rewriting, the whole context is duplicated in the proof
+term. Then, a tactic that does hundreds of rewriting generates huge proof
+terms. Since <span style="font-family:monospace">ACDSimpl</span> was too slow, Samuel Boutin rewrote it
+using reflection (see his article in TACS’97 [<a href="biblio.html#Bou97">19</a>]). Later, the
+stuff was rewritten by Patrick
+Loiseleur: the new tactic does not any more require <span style="font-family:monospace">ACDSimpl</span>
+to compile and it makes use of βδι-reduction 
+not only to replace the rewriting steps, but also to achieve the
+interleaving of computation and 
+reasoning (see <a href="#DiscussReflection">25.10</a>). He also wrote a
+few ML code for the <span style="font-family:monospace">Add Ring</span> command, that allow to register
+new rings dynamically.</p><p>Proofs terms generated by <span style="font-family:monospace">ring</span> are quite small, they are
+linear in the number of ⊕ and ⊗ operations in the
+normalized terms. Type-checking those terms requires some time because it
+makes a large use of the conversion rule, but
+memory requirements are much smaller. </p>
+<h2 id="sec748" class="section">25.10  Discussion</h2>
+<p>
+<a id="DiscussReflection"></a></p><p>Efficiency is not the only motivation to use reflection
+here. <span style="font-family:monospace">ring</span> also deals with constants, it rewrites for example the
+expression 34 + 2*<span style="font-style:italic">x</span> −<span style="font-style:italic">x</span> + 12 to the expected result <span style="font-style:italic">x</span> + 46. For the
+tactic <span style="font-family:monospace">ACDSimpl</span>, the only constants were 0 and 1. So the
+expression 34 + 2*(<span style="font-style:italic">x</span> − 1) + 12 is interpreted as 
+<span style="font-style:italic">V</span><sub>0</sub> ⊕ <span style="font-style:italic">V</span><sub>1</sub> ⊗ (<span style="font-style:italic">V</span><sub>2</sub> ⊖ 1) ⊕ <span style="font-style:italic">V</span><sub>3</sub>, 
+with the variables mapping 
+{<span style="font-style:italic">V</span><sub>0</sub> ↦ 34; <span style="font-style:italic">V</span><sub>1</sub> ↦ 2; <span style="font-style:italic">V</span><sub>2</sub> ↦ <span style="font-style:italic">x</span>; <span style="font-style:italic">V</span><sub>3</sub> ↦ 12 }. Then it is
+rewritten to 34 − <span style="font-style:italic">x</span> + 2*<span style="font-style:italic">x</span> + 12, very far from the expected
+result. Here rewriting is not sufficient: you have to do some kind of
+reduction (some kind of <span style="font-style:italic">computation</span>) to achieve the
+normalization.</p><p>The tactic <span style="font-family:monospace">ring</span> is not only faster than a classical one:
+using reflection, we get for free integration of computation and
+reasoning that would be very complex to implement in the classic fashion.</p><p>Is it the ultimate way to write tactics? The answer is: yes and
+no. The <span style="font-family:monospace">ring</span> tactic uses intensively the conversion rule of
+<span style="font-variant:small-caps">Cic</span>, that is replaces proof by computation the most as it is
+possible. It can be useful in all situations where a classical tactic
+generates huge proof terms. Symbolic Processing and Tautologies are in
+that case. But there are also tactics like <span style="font-family:monospace">auto</span> or
+<span style="font-family:monospace">linear</span> that do many complex computations, using side-effects
+and backtracking, and generate a small proof term. Clearly, it would
+be significantly less efficient to replace them by tactics using
+reflection.</p><p>Another idea suggested by Benjamin Werner: reflection could be used to
+couple an external tool (a rewriting program or a model checker) with
+<span style="font-variant:small-caps">Coq</span>. We define (in <span style="font-variant:small-caps">Coq</span>) a type of terms, a type of <em>traces</em>,
+and prove a correction theorem that states that <em>replaying
+traces</em> is safe w.r.t some interpretation. Then we let the external
+tool do every computation (using side-effects, backtracking,
+exception, or others features that are not available in pure lambda
+calculus) to produce the trace: now we can check in Coq that the
+trace has the expected semantic by applying the correction lemma.</p>
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note26" href="#text26">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">based on previous work from
+Patrick Loiseleur and Samuel Boutin</div></dd></dl>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

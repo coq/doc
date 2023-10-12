@@ -1,0 +1,809 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<LINK rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<STYLE type="text/css" media="all">@import "/modules/node/node.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/modules/system/defaults.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/system/system.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/user/user.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</STYLE>
+<TITLE>Chapter 12  Syntax extensions and interpretation scopes</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home"></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc359">Chapter 12</A>  Syntax extensions and interpretation scopes<A NAME="Addoc-syntax"></A></H1><UL>
+<LI><A HREF="Reference-Manual015.html#toc84">12.1  Notations</A>
+</LI><LI><A HREF="Reference-Manual015.html#toc85">12.2  Interpretation scopes</A>
+</LI><LI><A HREF="Reference-Manual015.html#toc86">12.3  Abbreviations</A>
+</LI><LI><A HREF="Reference-Manual015.html#toc87">12.4  Tactic Notations</A>
+</LI></UL>
+<P>In this chapter, we introduce advanced commands to modify the way
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> parses and prints objects, i.e. the translations between the
+concrete and internal representations of terms and commands. The main
+commands are <TT>Notation</TT> and <TT>Infix</TT> which are described in
+section <A HREF="#Notation">12.1</A>. It also happens that the same symbolic
+notation is expected in different contexts. To achieve this form of
+overloading, <SPAN STYLE="font-variant:small-caps">Coq</SPAN> offers a notion of interpretation scope. This is
+described in Section <A HREF="#scopes">12.2</A>.</P><P><BR>
+<B>Remark: </B>The commands <TT>Grammar</TT>, <TT>Syntax</TT> and <TT>Distfix</TT> which
+were present for a while in <SPAN STYLE="font-variant:small-caps">Coq</SPAN> are no longer available from <SPAN STYLE="font-variant:small-caps">Coq</SPAN>
+version 8.0. The underlying AST structure is also no longer available.
+The functionalities of the command <TT>Syntactic Definition</TT> are
+still available, see Section <A HREF="#Abbreviations">12.3</A>.</P><H2 CLASS="section"><A NAME="toc84"></A><A NAME="htoc360">12.1</A>  Notations<A NAME="Notation"></A>
+<A NAME="@default775"></A><A NAME="@command247"></A></H2><H3 CLASS="subsection"><A NAME="htoc361">12.1.1</A>  Basic notations</H3><P>A <EM>notation</EM> is a symbolic abbreviation denoting some term
+or term pattern.</P><P>A typical notation is the use of the infix symbol <CODE>/\</CODE> to denote
+the logical conjunction (<TT>and</TT>). Such a notation is declared
+by</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "A /</TT><TT>\</TT><TT> B" := (and A B).</TT><BR>
+</DIV><P>The expression <TT>(and A B)</TT> is the abbreviated term and the
+string <CODE>"A /\ B"</CODE> (called a <EM>notation</EM>) tells how it is 
+symbolically written.</P><P>A notation is always surrounded by double quotes (excepted when the
+abbreviation is a single identifier, see <A HREF="#Abbreviations">12.3</A>). The
+notation is composed of <EM>tokens</EM> separated by spaces. Identifiers
+in the string (such as <TT>A</TT> and <TT>B</TT>) are the <EM>parameters</EM> of the notation. They must occur at least once each in the
+denoted term. The other elements of the string (such as <CODE>/\</CODE>) are
+the <EM>symbols</EM>.</P><P>An identifier can be used as a symbol but it must be surrounded by
+simple quotes to avoid the confusion with a parameter. Similarly,
+every symbol of at least 3 characters and starting with a simple quote
+must be quoted (then it starts by two single quotes). Here is an example.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "&#X2019;IF&#X2019; c1 &#X2019;then&#X2019; c2 &#X2019;else&#X2019; c3" := (IF_then_else c1 c2 c3).</TT><BR>
+</DIV><P>A notation binds a syntactic expression to a term. Unless the parser
+and pretty-printer of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> already know how to deal with the
+syntactic expression (see <A HREF="#ReservedNotation">12.1.7</A>), explicit precedences and
+associativity rules have to be given.</P><H3 CLASS="subsection"><A NAME="htoc362">12.1.2</A>  Precedences and associativity<A NAME="@default776"></A>
+<A NAME="@default777"></A></H3><P>Mixing different symbolic notations in a same text may cause serious
+parsing ambiguity. To deal with the ambiguity of notations, <SPAN STYLE="font-variant:small-caps">Coq</SPAN>
+uses precedence levels ranging from 0 to 100 (plus one extra level
+numbered 200) and associativity rules.</P><P>Consider for example the new notation</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "A </TT><TT>\</TT><TT>/ B" := (or A B).</TT><BR>
+</DIV><P>Clearly, an expression such as <TT>forall A:Prop, True </TT><CODE><TT>/\</TT></CODE><TT> A </TT><CODE><TT>\/</TT></CODE><TT>
+A </TT><CODE><TT>\/</TT></CODE><TT> False</TT> is ambiguous. To tell the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> parser how to
+interpret the expression, a priority between the symbols <CODE>/\</CODE> and
+<CODE>\/</CODE> has to be given. Assume for instance that we want conjunction
+to bind more than disjunction. This is expressed by assigning a
+precedence level to each notation, knowing that a lower level binds
+more than a higher level. Hence the level for disjunction must be
+higher than the level for conjunction.</P><P>Since connectives are the less tight articulation points of a text, it
+is reasonable to choose levels not so far from the higher level which
+is 100, for example 85 for disjunction and 80 for
+conjunction<SUP><A NAME="text20" HREF="Reference-Manual016.html#note20">1</A></SUP>.</P><P>Similarly, an associativity is needed to decide whether <TT>True </TT><CODE><TT>/\</TT></CODE><TT>
+False </TT><CODE><TT>/\</TT></CODE><TT> False</TT> defaults to <TT>True </TT><CODE><TT>/\</TT></CODE><TT> (False
+</TT><CODE><TT>/\</TT></CODE><TT> False)</TT> (right associativity) or to <TT>(True
+</TT><CODE><TT>/\</TT></CODE><TT> False) </TT><CODE><TT>/\</TT></CODE><TT> False</TT> (left associativity). We may
+even consider that the expression is not well-formed and that
+parentheses are mandatory (this is a &#X201C;no associativity&#X201D;)<SUP><A NAME="text21" HREF="Reference-Manual016.html#note21">2</A></SUP>.
+We don&#X2019;t know of a special convention of the associativity of
+disjunction and conjunction, let&#X2019;s apply for instance a right
+associativity (which is the choice of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>).</P><P>Precedence levels and associativity rules of notations have to be
+given between parentheses in a list of modifiers that the
+<TT>Notation</TT> command understands. Here is how the previous
+examples refine.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "A /</TT><TT>\</TT><TT> B" := (and A B) (at level 80, right associativity).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "A </TT><TT>\</TT><TT>/ B" := (or A B)  (at level 85, right associativity).</TT><BR>
+</DIV><P>By default, a notation is considered non associative, but the
+precedence level is mandatory (except for special cases whose level is
+canonical). The level is either a number or the mention <TT>next
+level</TT> whose meaning is obvious. The list of levels already assigned
+is on Figure <A HREF="Reference-Manual005.html#init-notations">3.1</A>.</P><H3 CLASS="subsection"><A NAME="htoc363">12.1.3</A>  Complex notations</H3><P>Notations can be made from arbitraly complex symbols. One can for
+instance define prefix notations.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "</TT><TT>~</TT><TT> x" := (not x) (at level 75, right associativity).</TT><BR>
+</DIV><P>One can also define notations for incomplete terms, with the hole
+expected to be inferred at typing time.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "x = y" := (@eq _ x y) (at level 70, no associativity).</TT><BR>
+</DIV><P>One can define <EM>closed</EM> notations whose both sides are symbols. In
+this case, the default precedence level for inner subexpression is 200.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "( x , y )" := (@pair _ _ x y) (at level 0).</TT><BR>
+</DIV><P>One can also define notations for binders.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "{ x : A  |  P }" := (sig A (fun x =</TT><TT>&gt;</TT><TT> P)) (at level 0).</TT><BR>
+</DIV><P>In the last case though, there is a conflict with the notation for
+type casts. This last notation, as shown by the command <TT>Print Grammar
+constr</TT> is at level 100. To avoid <CODE>x : A</CODE> being parsed as a type cast,
+it is necessary to put <TT>x</TT> at a level below 100, typically 99. Hence, a
+correct definition is </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "{ x : A  |  P }" := (sig A (fun x =</TT><TT>&gt;</TT><TT> P)) (at level 0, x at level 99).</TT><BR>
+</DIV><P>See the next section for more about factorization.</P><H3 CLASS="subsection"><A NAME="htoc364">12.1.4</A>  Simple factorization rules</H3><P><SPAN STYLE="font-variant:small-caps">Coq</SPAN> extensible parsing is performed by Camlp5 which is essentially a
+LL1 parser. Hence, some care has to be taken not to hide already
+existing rules by new rules. Some simple left factorization work has
+to be done. Here is an example.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "x </TT><TT>&lt;</TT><TT> y"     := (lt x y) (at level 70).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "x </TT><TT>&lt;</TT><TT> y </TT><TT>&lt;</TT><TT> z" := (x </TT><TT>&lt;</TT><TT> y /</TT><TT>\</TT><TT> y </TT><TT>&lt;</TT><TT> z) (at level 70).</TT><BR>
+</DIV><P>In order to factorize the left part of the rules, the subexpression
+referred by <TT>y</TT> has to be at the same level in both rules. However
+the default behavior puts <TT>y</TT> at the next level below 70
+in the first rule (no associativity is the default), and at the level
+200 in the second rule (level 200 is the default for inner expressions).
+To fix this, we need to force the parsing level of <TT>y</TT>,
+as follows.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "x </TT><TT>&lt;</TT><TT> y"     := (lt x y) (at level 70).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "x </TT><TT>&lt;</TT><TT> y </TT><TT>&lt;</TT><TT> z" := (x </TT><TT>&lt;</TT><TT> y /</TT><TT>\</TT><TT> y </TT><TT>&lt;</TT><TT> z) (at level 70, y at next level).</TT><BR>
+</DIV><P>For the sake of factorization with <SPAN STYLE="font-variant:small-caps">Coq</SPAN> predefined rules, simple
+rules have to be observed for notations starting with a symbol:
+e.g. rules starting with &#X201C;{&#X201D; or &#X201C;(&#X201D; should be put at level 0. The
+list of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> predefined notations can be found in Chapter <A HREF="Reference-Manual005.html#Theories">3</A>.</P><P>The command to display the current state of the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> term parser is
+<A NAME="@default778"></A><A NAME="@command248"></A></P><BLOCKQUOTE CLASS="quote">
+<TT>Print Grammar constr.
+</TT></BLOCKQUOTE><P><BR>
+<B>Variant: </B></P><P><A NAME="@default779"></A><A NAME="@command249"></A>
+<TT>Print Grammar pattern.</TT><BR>
+
+This displays the state of the subparser of patterns (the parser
+used in the grammar of the <TT>match</TT> <TT>with</TT> constructions).</P><H3 CLASS="subsection"><A NAME="htoc365">12.1.5</A>  Displaying symbolic notations</H3><P>The command <TT>Notation</TT> has an effect both on the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> parser and
+on the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> printer. For example:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check (and True True).</TT><BR>
+<TT><I>True /</I></TT><TT><I>\</I></TT><TT><I> True</I></TT><BR>
+<TT><I>     : Prop</I></TT><BR>
+</DIV><P>However, printing, especially pretty-printing, requires
+more care than parsing. We may want specific indentations,
+line breaks, alignment if on several lines, etc. </P><P>The default printing of notations is very rudimentary. For printing a
+notation, a <EM>formatting box</EM> is opened in such a way that if the
+notation and its arguments cannot fit on a single line, a line break
+is inserted before the symbols of the notation and the arguments on
+the next lines are aligned with the argument on the first line.</P><P>A first, simple control that a user can have on the printing of a
+notation is the insertion of spaces at some places of the
+notation. This is performed by adding extra spaces between the symbols
+and parameters: each extra space (other than the single space needed
+to separate the components) is interpreted as a space to be inserted
+by the printer. Here is an example showing how to add spaces around
+the bar of the notation.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "{{ x : A  |  P }}" := (sig (fun x : A =</TT><TT>&gt;</TT><TT> P))</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (at level 0, x at level 99).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check (sig (fun x : nat =</TT><TT>&gt;</TT><TT> x=x)).</TT><BR>
+<TT><I>{{x : nat | x = x}}</I></TT><BR>
+<TT><I>     : Set</I></TT><BR>
+</DIV><P>The second, more powerful control on printing is by using the <TT>format</TT> modifier. Here is an example</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "&#X2019;If&#X2019; c1 &#X2019;then&#X2019; c2 &#X2019;else&#X2019; c3" := (IF_then_else c1 c2 c3)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> (at level 200, right associativity, format</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> "&#X2019;[v   &#X2019; &#X2019;If&#X2019;  c1 &#X2019;/&#X2019; &#X2019;[&#X2019; &#X2019;then&#X2019;  c2  &#X2019;]&#X2019; &#X2019;/&#X2019; &#X2019;[&#X2019; &#X2019;else&#X2019;  c3 &#X2019;]&#X2019; &#X2019;]&#X2019;").</TT><BR>
+<TT><I>Defining &#X2019;If&#X2019; as keyword</I></TT><BR>
+</DIV><P>A <EM>format</EM> is an extension of the string denoting the notation with
+the possible following elements delimited by single quotes:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+extra spaces are translated into simple spaces
+</LI><LI CLASS="li-itemize">tokens of the form <CODE>'/  '</CODE> are translated into breaking point,
+in case a line break occurs, an indentation of the number of spaces
+after the &#X201C;<CODE>/</CODE>&#X201D; is applied (2 spaces in the given example)
+</LI><LI CLASS="li-itemize">token of the form <CODE>'//'</CODE> force writing on a new line
+</LI><LI CLASS="li-itemize">well-bracketed pairs of tokens of the form <CODE>'[    '</CODE> and <CODE>']'</CODE>
+are translated into printing boxes; in case a line break occurs,
+an extra indentation of the number of spaces given after the &#X201C;<CODE>[</CODE>&#X201D;
+is applied (4 spaces in the example)
+</LI><LI CLASS="li-itemize">well-bracketed pairs of tokens of the form <CODE>'[hv   '</CODE> and <CODE>']'</CODE>
+are translated into horizontal-orelse-vertical printing boxes; 
+if the content of the box does not fit on a single line, then every breaking
+point forces a newline and an extra indentation of the number of spaces
+given after the &#X201C;<CODE>[</CODE>&#X201D; is applied at the beginning of each newline
+(3 spaces in the example)
+</LI><LI CLASS="li-itemize">well-bracketed pairs of tokens of the form <CODE>'[v '</CODE> and
+<CODE>']'</CODE> are translated into vertical printing boxes; every
+breaking point forces a newline, even if the line is large enough to
+display the whole content of the box, and an extra indentation of the
+number of spaces given after the &#X201C;<CODE>[</CODE>&#X201D; is applied at the beginning
+of each newline
+</LI></UL><P>Thus, for the previous example, we get
+</P><P>Notations do not survive the end of sections. No typing of the denoted
+expression is performed at definition time. Type-checking is done only
+at the time of use of the notation.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  (IF_then_else (IF_then_else True False True) </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    (IF_then_else True False True)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    (IF_then_else True False True)).   </TT><BR>
+<TT><I>If If True</I></TT><BR>
+<TT><I>      then False </I></TT><BR>
+<TT><I>      else True</I></TT><BR>
+<TT><I>   then If True</I></TT><BR>
+<TT><I>           then False </I></TT><BR>
+<TT><I>           else True </I></TT><BR>
+<TT><I>   else If True</I></TT><BR>
+<TT><I>           then False </I></TT><BR>
+<TT><I>           else True</I></TT><BR>
+<TT><I>     : Prop</I></TT><BR>
+</DIV><P><BR>
+<B>Remark: </B>Sometimes, a notation is expected only for the parser.
+To do so, the option <EM>only parsing</EM> is allowed in the list of modifiers of
+<TT>Notation</TT>.</P><H3 CLASS="subsection"><A NAME="htoc366">12.1.6</A>  The <TT>Infix</TT> command
+<A NAME="@default780"></A><A NAME="@command250"></A></H3><P>The <TT>Infix</TT> command is a shortening for declaring notations of
+infix symbols. Its syntax is </P><BLOCKQUOTE CLASS="quote">
+<TT>Infix "</TT><I><FONT COLOR=maroon>symbol</FONT></I><TT>" :=</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>(</TT> <EM>modifier</EM> <TT>,</TT> &#X2026; <TT>,</TT> <EM>modifier</EM> <TT>)</TT>.
+</BLOCKQUOTE><P>and it is equivalent to</P><BLOCKQUOTE CLASS="quote">
+<TT>Notation "x </TT><I><FONT COLOR=maroon>symbol</FONT></I><TT> y" := (</TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> x y) (</TT> <EM>modifier</EM> <TT>,</TT> &#X2026; <TT>,</TT> <EM>modifier</EM> <TT>)</TT>.
+</BLOCKQUOTE><P>where <TT>x</TT> and <TT>y</TT> are fresh names distinct from <I><FONT COLOR=maroon>qualid</FONT></I>. Here is an example.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Infix "/</TT><TT>\</TT><TT>" := and (at level 80, right associativity).</TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc367">12.1.7</A>  Reserving notations
+<A NAME="ReservedNotation"></A>
+<A NAME="@default781"></A><A NAME="@command251"></A></H3><P>A given notation may be used in different contexts. <SPAN STYLE="font-variant:small-caps">Coq</SPAN> expects all
+uses of the notation to be defined at the same precedence and with the
+same associativity. To avoid giving the precedence and associativity
+every time, it is possible to declare a parsing rule in advance
+without giving its interpretation. Here is an example from the initial
+state of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Reserved Notation "x = y" (at level 70, no associativity).</TT><BR>
+</DIV><P>Reserving a notation is also useful for simultaneously defined an
+inductive type or a recursive constant and a notation for it.</P><P><BR>
+<B>Remark: </B>The notations mentioned on Figure <A HREF="Reference-Manual005.html#init-notations">3.1</A> are
+reserved. Hence their precedence and associativity cannot be changed.</P><H3 CLASS="subsection"><A NAME="htoc368">12.1.8</A>  Simultaneous definition of terms and notations
+<A NAME="@default782"></A><A NAME="@command252"></A>
+<A NAME="@default783"></A><A NAME="@command253"></A>
+<A NAME="@default784"></A><A NAME="@command254"></A></H3><P>Thanks to reserved notations, the inductive, coinductive, recursive
+and corecursive definitions can benefit of customized notations. To do
+this, insert a <TT>where</TT> notation clause after the definition of the
+(co)inductive type or (co)recursive term (or after the definition of
+each of them in case of mutual definitions). The exact syntax is given
+on Figure <A HREF="#notation-syntax">12.1</A>. Here are examples:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive and (A B:Prop) : Prop := conj : A -</TT><TT>&gt;</TT><TT> B -</TT><TT>&gt;</TT><TT> A /</TT><TT>\</TT><TT> B </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> where "A /</TT><TT>\</TT><TT> B" := (and A B).</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint plus (n m:nat) {struct n} : nat :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | O =</TT><TT>&gt;</TT><TT> m</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S p =</TT><TT>&gt;</TT><TT> S (p+m)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> where "n + m" := (plus n m).</TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc369">12.1.9</A>  Displaying informations about notations
+<A NAME="@default785"></A><A NAME="@command255"></A>
+<A NAME="@default786"></A><A NAME="@command256"></A></H3><P>To deactivate the printing of all notations, use the command
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Unset Printing Notations.
+</TT></BLOCKQUOTE><P>
+To reactivate it, use the command
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Set Printing Notations.
+</TT></BLOCKQUOTE><P>
+The default is to use notations for printing terms wherever possible.</P><P><BR>
+<B>See also: </B><TT>Set Printing All</TT> in Section <A HREF="Reference-Manual004.html#SetPrintingAll">2.9</A>.</P><H3 CLASS="subsection"><A NAME="htoc370">12.1.10</A>  Locating notations
+<A NAME="@default787"></A><A NAME="@command257"></A>
+<A NAME="LocateSymbol"></A></H3><P>To know to which notations a given symbol belongs to, use the command
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Locate </TT><I><FONT COLOR=maroon>symbol</FONT></I><TT>
+</TT></BLOCKQUOTE><P>
+where symbol is any (composite) symbol surrounded by quotes. To locate
+a particular notation, use a string where the variables of the
+notation are replaced by &#X201C;_&#X201D;.</P><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Locate "exists".</TT><BR>
+<TT><I>Notation            Scope     </I></TT><BR>
+<TT><I>"&#X2019;exists&#X2019; x : t , p" := ex (fun x : t =</I></TT><TT><I>&gt;</I></TT><TT><I> p)</I></TT><BR>
+<TT><I>                      : type_scope</I></TT><BR>
+<TT><I>                      (default interpretation)</I></TT><BR>
+<TT><I>"&#X2019;exists&#X2019; x , p" := ex (fun x =</I></TT><TT><I>&gt;</I></TT><TT><I> p)</I></TT><BR>
+<TT><I>                      : type_scope</I></TT><BR>
+<TT><I>                      (default interpretation)</I></TT><BR>
+<TT><I>"&#X2019;exists&#X2019; ! x : A , P" := ex (unique (fun x : A =</I></TT><TT><I>&gt;</I></TT><TT><I> P))</I></TT><BR>
+<TT><I>                      : type_scope</I></TT><BR>
+<TT><I>                      (default interpretation)</I></TT><BR>
+<TT><I>"&#X2019;exists&#X2019; ! x , P" := ex (unique (fun x =</I></TT><TT><I>&gt;</I></TT><TT><I> P))</I></TT><BR>
+<TT><I>                      : type_scope</I></TT><BR>
+<TT><I>                      (default interpretation)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Locate "&#X2019;exists&#X2019; _ , _".</TT><BR>
+<TT><I>Unknown notation</I></TT><BR>
+</DIV><P><BR>
+<B>See also: </B>Section <A HREF="Reference-Manual009.html#Locate">6.3.10</A>.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+
+<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>sentence</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP> <I><FONT COLOR=maroon>[</FONT></I><TT>Local</TT><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> </TT><TT>Notation</TT><TT> </TT><I><FONT COLOR=maroon>string</FONT></I><TT> </TT><TT>:=</TT><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><TT> 
+</TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>modifiers</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> </TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><TT>:</TT><I><FONT COLOR=maroon>scope</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> .</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP> <I><FONT COLOR=maroon>[</FONT></I><TT>Local</TT><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> </TT><TT>Infix</TT><TT> </TT><I><FONT COLOR=maroon>string</FONT></I><TT> </TT><TT>:=</TT><TT> </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> 
+</TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>modifiers</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> </TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><TT>:</TT><I><FONT COLOR=maroon>scope</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> .</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP> <I><FONT COLOR=maroon>[</FONT></I><TT>Local</TT><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> </TT><TT>Reserved Notation</TT><TT> </TT><I><FONT COLOR=maroon>string</FONT></I><TT>
+</TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>modifiers</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> .</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>Inductive</TT>
+<I><FONT COLOR=maroon>ind_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>with</TT> &#X2026; <TT>with</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I><TT>.</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>CoInductive</TT>
+<I><FONT COLOR=maroon>ind_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>with</TT> &#X2026; <TT>with</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I><TT>.</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>Fixpoint</TT>
+<I><FONT COLOR=maroon>fix_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>with</TT> &#X2026; <TT>with</TT> <I><FONT COLOR=maroon>fix_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>.</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>CoFixpoint</TT>
+<I><FONT COLOR=maroon>cofix_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>with</TT> &#X2026; <TT>with</TT> <I><FONT COLOR=maroon>cofix_body</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>decl_notation</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>.</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>decl_notation</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP> <I><FONT COLOR=maroon>[</FONT></I><TT>where</TT> <I><FONT COLOR=maroon>string</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <I><FONT COLOR=maroon>[</FONT></I>:<I><FONT COLOR=maroon>scope</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>and</TT> &#X2026; <TT>and</TT> <I><FONT COLOR=maroon>string</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <I><FONT COLOR=maroon>[</FONT></I>:<I><FONT COLOR=maroon>scope</FONT></I><I><FONT COLOR=maroon>]</FONT></I><I><FONT COLOR=maroon>]</FONT></I>.</TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>modifiers</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>,</TT> &#X2026; <TT>,</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>at level</TT> <I><FONT COLOR=maroon>natural</FONT></I></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>,</TT> &#X2026; <TT>,</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>at next level</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>at level</TT> <I><FONT COLOR=maroon>natural</FONT></I></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>left associativity</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>right associativity</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>no associativity</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>ident</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>binder</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>closed binder</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>global</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <TT>bigint</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>only parsing</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>format</TT> <I><FONT COLOR=maroon>string</FONT></I></TD></TR>
+</TABLE>
+</DIV>
+
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 12.1: Syntax of the variants of <TT>Notation</TT></TD></TR>
+</TABLE></DIV>
+<A NAME="notation-syntax"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><H3 CLASS="subsection"><A NAME="htoc371">12.1.11</A>  Notations and simple binders</H3><P>Notations can be defined for binders as in the example:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "{ x : A  |  P  }" := (sig (fun x : A =</TT><TT>&gt;</TT><TT> P)) (at level 0).</TT><BR>
+</DIV><P>The binding variables in the left-hand-side that occur as a parameter
+of the notation naturally bind all their occurrences appearing in
+their respective scope after instantiation of the parameters of the
+notation.</P><P>Contrastingly, the binding variables that are not a parameter of the
+notation do not capture the variables of same name that
+could appear in their scope after instantiation of the
+notation. E.g., for the notation</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "&#X2019;exists_different&#X2019; n" := (exists p:nat, p</TT><TT>&lt;</TT><TT>&gt;</TT><TT>n) (at level 200).</TT><BR>
+</DIV><P>
+
+the next command fails because <TT>p</TT> does not bind in 
+the instance of <TT>n</TT>.
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check (exists_different p).</TT><BR>
+<TT><I>Coq </I></TT><TT><I>&lt;</I></TT><TT><I> Coq </I></TT><TT><I>&lt;</I></TT><TT><I> Toplevel input, characters 144-145:</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I> Check (exists_different p).</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I>                         </I></TT><TT><I>^</I></TT><BR>
+<TT><I>Error: The reference p was not found in the current environment.</I></TT><BR>
+</DIV><P><BR>
+<B>Remark: </B>Binding variables must not necessarily be parsed using the
+<TT>ident</TT> entry. For factorization purposes, they can be said to be
+parsed at another level (e.g. <TT>x</TT> in <CODE>"{ x : A | P }"</CODE> must be
+parsed at level 99 to be factorized with the notation
+<CODE>"{ A } + { B }"</CODE> for which <TT>A</TT> can be any term). 
+However, even if parsed as a term, this term must at the end be effectively 
+a single identifier.</P><H3 CLASS="subsection"><A NAME="htoc372">12.1.12</A>  Notations with recursive patterns</H3><P>
+<A NAME="RecursiveNotations"></A></P><P>A mechanism is provided for declaring elementary notations with
+recursive patterns. The basic example is:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "[ x ; .. ; y ]" := (cons x .. (cons y nil) ..).</TT><BR>
+</DIV><P>On the right-hand side, an extra construction of the form <TT>..</TT> <I>t</I>
+<TT>..</TT> can be used. Notice that <TT>..</TT> is part of the <SPAN STYLE="font-variant:small-caps">Coq</SPAN>
+syntax and it must not be confused with the three-dots notation
+&#X2026; used in this manual to denote a sequence of arbitrary size.</P><P>On the left-hand side, the part &#X201C;<I>x</I> <I>s</I> <TT>..</TT> <I>s</I> <I>y</I>&#X201D; of the
+notation parses any number of time (but at least one time) a sequence
+of expressions separated by the sequence of tokens <I>s</I> (in the
+example, <I>s</I> is just &#X201C;<TT>;</TT>&#X201D;).</P><P>In the right-hand side, the term enclosed within <TT>..</TT> must be a
+pattern with two holes of the form &#X3C6;([ ]<SUB><I>E</I></SUB>,[ ]<SUB><I>I</I></SUB>) where the first
+hole is occupied either by <I>x</I> or by <I>y</I> and the second hole is
+occupied by an arbitrary term <I>t</I> called the <I>terminating</I>
+expression of the recursive notation. The subterm <TT>..</TT> &#X3C6;(<I>x</I>,<I>t</I>)
+<TT>..</TT> (or <TT>..</TT> &#X3C6;(<I>y</I>,<I>t</I>) <TT>..</TT>) must itself occur at
+second position of the same pattern where the first hole is occupied
+by the other variable, <I>y</I> or <I>x</I>. Otherwise said, the right-hand side
+must contain a subterm of the form either &#X3C6;(<I>x</I>,<TT>..</TT>
+&#X3C6;(<I>y</I>,<I>t</I>) <TT>..</TT>) or &#X3C6;(<I>y</I>,<TT>..</TT> &#X3C6;(<I>x</I>,<I>t</I>) <TT>..</TT>).
+The pattern &#X3C6; is the <EM>iterator</EM> of the recursive notation
+and, of course, the name <I>x</I> and <I>y</I> can be chosen arbitrarily.</P><P>The parsing phase produces a list of expressions which are used to
+fill in order the first hole of the iterating pattern which is
+repeatedly nested as many times as the length of the list, the second
+hole being the nesting point. In the innermost occurrence of the
+nested iterating pattern, the second hole is finally filled with the
+terminating expression.</P><P>In the example above, the iterator &#X3C6;([ ]<SUB><I>E</I></SUB>,[ ]<SUB><I>I</I></SUB>) is <TT>cons
+</TT><TT>[ ]</TT><SUB><TT><I>E</I></TT></SUB><TT> </TT><TT>[ ]</TT><SUB><TT><I>I</I></TT></SUB> and the terminating expression is <TT>nil</TT>. Here are
+other examples:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "( x , y , .. , z )" := (pair .. (pair x y) .. z) (at level 0).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "[| t * ( x , y , .. , z ) ; ( a , b , .. , c )  * u |]" :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (pair (pair .. (pair (pair t x) (pair t y)) .. (pair t z))</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         (pair .. (pair (pair a u) (pair b u)) .. (pair c u)))</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (t at level 39).</TT><BR>
+</DIV><P>Notations with recursive patterns can be reserved like standard
+notations, they can also be declared within interpretation scopes (see
+section <A HREF="#scopes">12.2</A>).</P><H3 CLASS="subsection"><A NAME="htoc373">12.1.13</A>  Notations with recursive patterns involving binders</H3><P>Recursive notations can also be used with binders. The basic example is:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "&#X2019;exists&#X2019; x .. y , p" := (ex (fun x =</TT><TT>&gt;</TT><TT> .. (ex (fun y =</TT><TT>&gt;</TT><TT> p)) ..))</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (at level 200, x binder, y binder, right associativity).</TT><BR>
+</DIV><P>The principle is the same as in Section <A HREF="#RecursiveNotations">12.1.12</A>
+except that in the iterator &#X3C6;([ ]<SUB><I>E</I></SUB>,[ ]<SUB><I>I</I></SUB>), the first hole is a
+placeholder occurring at the position of the binding variable of a <TT>fun</TT> or a <TT>forall</TT>.</P><P>To specify that the part &#X201C;<I>x</I> <TT>..</TT> <I>y</I>&#X201D; of the notation
+parses a sequence of binders, <I>x</I> and <I>y</I> must be marked as <TT>binder</TT> in the list of modifiers of the notation. Then, the list of
+binders produced at the parsing phase are used to fill in the first
+hole of the iterating pattern which is repeatedly nested as many times
+as the number of binders generated. If ever the generalization
+operator <TT>&#X2018;</TT> (see Section <A HREF="Reference-Manual004.html#implicit-generalization">2.7.17</A>) is used
+in the binding list, the added binders are taken into account too.</P><P>Binders parsing exist in two flavors. If <I>x</I> and <I>y</I> are marked as
+<TT>binder</TT>, then a sequence such as <TT>a b c : T</TT> will be accepted
+and interpreted as the sequence of binders <TT>(a:T) (b:T)
+(c:T)</TT>. For instance, in the notation above, the syntax <TT>exists
+a b : nat, a = b</TT> is provided.</P><P>The variables <I>x</I> and <I>y</I> can also be marked as <TT>closed binder</TT> in
+which case only well-bracketed binders of the form <TT>(a b c:T)</TT> or
+<TT>{a b c:T}</TT> etc. are accepted.</P><P>With closed binders, the recursive sequence in the left-hand side can
+be of the general form <I>x</I> <I>s</I> <TT>..</TT> <I>s</I> <I>y</I> where <I>s</I> is an
+arbitrary sequence of tokens. With open binders though, <I>s</I> has to be
+empty. Here is an example of recursive notation with closed binders:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation "&#X2019;mylet&#X2019; f x .. y :=  t &#X2019;in&#X2019; u":=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (let f := fun x =</TT><TT>&gt;</TT><TT> .. (fun y =</TT><TT>&gt;</TT><TT> t) .. in u)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   (x closed binder, y closed binder, at level 200, right associativity).</TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc374">12.1.14</A>  Summary</H3><H5 CLASS="paragraph">Syntax of notations</H5><P>The different syntactic variants of the command <TT>Notation</TT> are
+given on Figure <A HREF="#notation-syntax">12.1</A>. The optional <TT>:</TT><I><FONT COLOR=maroon>scope</FONT></I> is
+described in the Section <A HREF="#scopes">12.2</A>.</P><P><BR>
+<B>Remark: </B>No typing of the denoted expression is performed at definition
+time. Type-checking is done only at the time of use of the notation.</P><P><BR>
+<B>Remark: </B>Many examples of <TT>Notation</TT> may be found in the files
+composing the initial state of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> (see directory <TT>$COQLIB/theories/Init</TT>).</P><P><BR>
+<B>Remark: </B>The notation <CODE>"{ x }"</CODE> has a special status in such a way
+that complex notations of the form <CODE>"x + { y }"</CODE> or
+<CODE>"x * { y }"</CODE> can be nested with correct precedences. Especially,
+every notation involving a pattern of the form <CODE>"{ x }"</CODE> is
+parsed as a notation where the pattern <CODE>"{ x }"</CODE> has been simply
+replaced by <CODE>"x"</CODE> and the curly brackets are parsed separately.
+E.g. <CODE>"y + { z }"</CODE> is not parsed as a term of the given form but
+as a term of the form <CODE>"y + z"</CODE> where <CODE>z</CODE> has been parsed
+using the rule parsing <CODE>"{ x }"</CODE>. Especially, level and
+precedences for a rule including patterns of the form <CODE>"{ x }"</CODE>
+are relative not to the textual notation but to the notation where the
+curly brackets have been removed (e.g. the level and the associativity
+given to some notation, say <CODE>"{ y } &amp; { z }"</CODE> in fact applies to
+the underlying <CODE>"{ x }"</CODE>-free rule which is <CODE>"y &amp; z"</CODE>).</P><H5 CLASS="paragraph">Persistence of notations</H5><P>Notations do not survive the end of sections. They survive modules
+unless the command <TT>Local Notation</TT> is used instead of <TT>Notation</TT>.</P><H2 CLASS="section"><A NAME="toc85"></A><A NAME="htoc375">12.2</A>  Interpretation scopes<A NAME="@default788"></A>
+<A NAME="scopes"></A></H2><P>An <EM>interpretation scope</EM> is a set of notations for terms with
+their interpretation. Interpretation scopes provides with a weak,
+purely syntactical form of notations overloading: a same notation, for
+instance the infix symbol <CODE>+</CODE> can be used to denote distinct
+definitions of an additive operator. Depending on which interpretation
+scopes is currently open, the interpretation is different.
+Interpretation scopes can include an interpretation for
+numerals and strings. However, this is only made possible at the
+<SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN> level.</P><P>See Figure <A HREF="#notation-syntax">12.1</A> for the syntax of notations including
+the possibility to declare them in a given scope. Here is a typical
+example which declares the notation for conjunction in the scope <TT>type_scope</TT>.</P><PRE CLASS="verbatim">Notation "A /\ B" := (and A B) : type_scope.
+</PRE><P><BR>
+<B>Remark: </B>A notation not defined in a scope is called a <EM>lonely</EM> notation.</P><H3 CLASS="subsection"><A NAME="htoc376">12.2.1</A>  Global interpretation rules for notations</H3><P>At any time, the interpretation of a notation for term is done within
+a <EM>stack</EM> of interpretation scopes and lonely notations. In case a
+notation has several interpretations, the actual interpretation is the
+one defined by (or in) the more recently declared (or open) lonely
+notation (or interpretation scope) which defines this notation.
+Typically if a given notation is defined in some scope <I><FONT COLOR=maroon>scope</FONT></I> but
+has also an interpretation not assigned to a scope, then, if <I><FONT COLOR=maroon>scope</FONT></I>
+is open before the lonely interpretation is declared, then the lonely
+interpretation is used (and this is the case even if the
+interpretation of the notation in <I><FONT COLOR=maroon>scope</FONT></I> is given after the lonely
+interpretation: otherwise said, only the order of lonely
+interpretations and opening of scopes matters, and not the declaration
+of interpretations within a scope).</P><P>The initial state of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> declares three interpretation scopes and
+no lonely notations. These scopes, in opening order, are <TT>core_scope</TT>, <TT>type_scope</TT> and <TT>nat_scope</TT>.</P><P>The command to add a scope to the interpretation scope stack is
+<A NAME="@default789"></A><A NAME="@command258"></A>
+<A NAME="@default790"></A><A NAME="@command259"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Open Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.
+</BLOCKQUOTE><P>
+It is also possible to remove a scope from the interpretation scope
+stack by using the command
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Close Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.
+</BLOCKQUOTE><P>
+Notice that this command does not only cancel the last <TT>Open Scope
+</TT><I><FONT COLOR=maroon>scope</FONT></I> but all the invocation of it.</P><P><BR>
+<B>Remark: </B><TT>Open Scope</TT> and <TT>Close Scope</TT> do not survive the end of
+sections where they occur. When defined outside of a section, they are
+exported to the modules that import the module where they occur.</P><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate"><TT>Local Open Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.</LI><LI CLASS="li-enumerate"><TT>Local Close Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.<P>These variants are not exported to the modules that import the module
+where they occur, even if outside a section.</P></LI><LI CLASS="li-enumerate"><TT>Global Open Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.</LI><LI CLASS="li-enumerate"><TT>Global Close Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I>.<P>These variants survive sections. They behave as if <TT>Global</TT> were
+absent when not inside a section.</P></LI></OL><H3 CLASS="subsection"><A NAME="htoc377">12.2.2</A>  Local interpretation rules for notations</H3><P>In addition to the global rules of interpretation of notations, some
+ways to change the interpretation of subterms are available.</P><H4 CLASS="subsubsection">Local opening of an interpretation scope 
+<A NAME="scopechange"></A>
+<A NAME="@default791"></A>
+<A NAME="@default792"></A><A NAME="@command260"></A></H4><P>It is possible to locally extend the interpretation scope stack using
+the syntax (<I><FONT COLOR=maroon>term</FONT></I>)%<I><FONT COLOR=maroon>key</FONT></I> (or simply <I><FONT COLOR=maroon>term</FONT></I>%<I><FONT COLOR=maroon>key</FONT></I>
+for atomic terms), where <I><FONT COLOR=maroon>key</FONT></I> is a special identifier called
+<EM>delimiting key</EM> and bound to a given scope.</P><P>In such a situation, the term <I><FONT COLOR=maroon>term</FONT></I>, and all its subterms, are
+interpreted in the scope stack extended with the scope bound to
+<I><FONT COLOR=maroon>key</FONT></I>.</P><P>To bind a delimiting key to a scope, use the command</P><BLOCKQUOTE CLASS="quote">
+<TT>Delimit Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I> <TT>with</TT> <I><FONT COLOR=maroon>ident</FONT></I> 
+</BLOCKQUOTE><H4 CLASS="subsubsection">Binding arguments of a constant to an interpretation scope
+<A NAME="@default793"></A><A NAME="@command261"></A></H4><P>It is possible to set in advance that some arguments of a given
+constant have to be interpreted in a given scope. The command is
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Arguments Scope</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>[ </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT> ]</TT>
+</BLOCKQUOTE><P>
+where the list is a list made either of <TT>_</TT> or of a scope name.
+Each scope in the list is bound to the corresponding parameter of
+<I><FONT COLOR=maroon>qualid</FONT></I> in order. When interpreting a term, if some of the
+arguments of <I><FONT COLOR=maroon>qualid</FONT></I> are built from a notation, then this notation
+is interpreted in the scope stack extended by the scopes bound (if any)
+to these arguments.</P><P><BR>
+<B>Variants: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>Global Arguments Scope</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>[ </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT> ]</TT><P>This behaves like <TT>Arguments Scope</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>[
+</TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT> ]</TT> but survives when a section is closed instead
+of stopping working at section closing. Without the <TT>Global</TT> modifier,
+the effect of the command stops when the section it belongs to ends.</P></LI><LI CLASS="li-enumerate"><TT>Local Arguments Scope</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>[ </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT> ]</TT><P>This behaves like <TT>Arguments Scope</TT> <I><FONT COLOR=maroon>qualid</FONT></I> <TT>[
+</TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>opt_scope</FONT></I><TT> ]</TT> but does not survive modules and files.
+Without the <TT>Local</TT> modifier, the effect of the command is
+visible from within other modules or files.</P></LI></OL><P><BR>
+<B>See also: </B>The command to show the scopes bound to the arguments of a
+function is described in Section <A HREF="Reference-Manual009.html#About">2</A>.</P><H4 CLASS="subsubsection">Binding types of arguments to an interpretation scope</H4><P>When an interpretation scope is naturally associated to a type
+(e.g. the scope of operations on the natural numbers), it may be
+convenient to bind it to this type. The effect of this is that any
+argument of a function that syntactically expects a parameter of this
+type is interpreted using scope. More precisely, it applies only if
+this argument is built from a notation, and if so, this notation is
+interpreted in the scope stack extended by this particular scope. It
+does not apply to the subterms of this notation (unless the
+interpretation of the notation itself expects arguments of the same
+type that would trigger the same scope).</P><P><A NAME="@default794"></A><A NAME="@command262"></A>
+More generally, any <I><FONT COLOR=maroon>class</FONT></I> (see Chapter <A HREF="Reference-Manual023.html#Coercions-full">17</A>) can be
+bound to an interpretation scope. The command to do it is
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Bind Scope</TT> <I><FONT COLOR=maroon>scope</FONT></I> <TT>with</TT> <I><FONT COLOR=maroon>class</FONT></I>
+</BLOCKQUOTE><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Parameter U : Set.</TT><BR>
+<TT><I>U is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Bind Scope U_scope with U.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Parameter Uplus : U -</TT><TT>&gt;</TT><TT> U -</TT><TT>&gt;</TT><TT> U.</TT><BR>
+<TT><I>Uplus is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Parameter P : forall T:Set, T -</TT><TT>&gt;</TT><TT> U -</TT><TT>&gt;</TT><TT> Prop.</TT><BR>
+<TT><I>P is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Parameter f : forall T:Set, T -</TT><TT>&gt;</TT><TT> U.</TT><BR>
+<TT><I>f is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Infix "+" := Uplus : U_scope.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Unset Printing Notations.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Open Scope nat_scope. (* Define + on the nat as the default for + *)</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check (fun x y1 y2 z t =</TT><TT>&gt;</TT><TT> P _ (x + t) ((f _ (y1 + y2) + z))).</TT><BR>
+<TT><I>fun (x y1 y2 : nat) (z : U) (t : nat) =</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>P nat (Peano.plus x t) (Uplus (f nat (Peano.plus y1 y2)) z)</I></TT><BR>
+<TT><I>     : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> U -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+</DIV><P><BR>
+<B>Remark: </B>The scope <TT>type_scope</TT> has also a local effect on
+interpretation. See the next section.</P><P><BR>
+<B>See also: </B>The command to show the scopes bound to the arguments of a
+function is described in Section <A HREF="Reference-Manual009.html#About">2</A>.</P><H3 CLASS="subsection"><A NAME="htoc378">12.2.3</A>  The <TT>type_scope</TT> interpretation scope<A NAME="@default795"></A></H3><P>The scope <TT>type_scope</TT> has a special status. It is a primitive
+interpretation scope which is temporarily activated each time a
+subterm of an expression is expected to be a type. This includes goals
+and statements, types of binders, domain and codomain of implication,
+codomain of products, and more generally any type argument of a
+declared or defined constant.</P><H3 CLASS="subsection"><A NAME="htoc379">12.2.4</A>  Interpretation scopes used in the standard library of <SPAN STYLE="font-variant:small-caps">Coq</SPAN></H3><P>We give an overview of the scopes used in the standard library of
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN>. For a complete list of notations in each scope, use the
+commands <TT>Print Scopes</TT> or <TT>Print Scopes </TT><I><FONT COLOR=maroon>scope</FONT></I>.</P><H4 CLASS="subsubsection"><TT>type_scope</TT></H4><P>This includes infix <TT>*</TT> for product types and infix <TT>+</TT> for
+sum types. It is delimited by key <TT>type</TT>.</P><H4 CLASS="subsubsection"><TT>nat_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>nat</TT>. Positive numerals in this scope are mapped to their
+canonical representent built from <TT>O</TT> and <TT>S</TT>. The scope is
+delimited by key <TT>nat</TT>.</P><H4 CLASS="subsubsection"><TT>N_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>N</TT> (binary natural numbers). It is delimited by key <TT>N</TT>
+and comes with an interpretation for numerals as closed term of type <TT>Z</TT>.</P><H4 CLASS="subsubsection"><TT>Z_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>Z</TT> (binary integer numbers). It is delimited by key <TT>Z</TT> 
+and comes with an interpretation for numerals as closed term of type <TT>Z</TT>.</P><H4 CLASS="subsubsection"><TT>positive_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>positive</TT> (binary strictly positive numbers). It is
+delimited by key <TT>positive</TT> and comes with an interpretation for
+numerals as closed term of type <TT>positive</TT>.</P><H4 CLASS="subsubsection"><TT>Q_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>Q</TT> (rational numbers defined as fractions of an integer and
+a strictly positive integer modulo the equality of the
+numerator-denominator cross-product). As for numerals, only 0 and
+1 have an interpretation in scope <TT>Q_scope</TT> (their
+interpretations are 0/1 and 1/1 respectively).</P><H4 CLASS="subsubsection"><TT>Qc_scope</TT></H4><P>This includes the standard arithmetical operators and relations on the
+type <TT>Qc</TT> of rational numbers defined as the type of irreducible
+fractions of an integer and a strictly positive integer.</P><H4 CLASS="subsubsection"><TT>real_scope</TT></H4><P>This includes the standard arithmetical operators and relations on
+type <TT>R</TT> (axiomatic real numbers). It is delimited by key <TT>R</TT>
+and comes with an interpretation for numerals as term of type <TT>R</TT>. The interpretation is based on the binary decomposition. The
+numeral 2 is represented by 1+1. The interpretation &#X3C6;(<I>n</I>) of an
+odd positive numerals greater <I>n</I> than 3 is <TT>1+(1+1)*</TT><TT>&#X3C6;((<I>n</I>-1)/2)</TT>.
+The interpretation &#X3C6;(<I>n</I>) of an even positive numerals greater <I>n</I>
+than 4 is <TT>(1+1)*</TT><TT>&#X3C6;(<I>n</I>/2)</TT>. Negative numerals are represented as the
+opposite of the interpretation of their absolute value. E.g. the
+syntactic object <TT>-11</TT> is interpreted as <TT>-(1+(1+1)*((1+1)*(1+(1+1))))</TT> where the unit 1 and all the operations are
+those of <TT>R</TT>.</P><H4 CLASS="subsubsection"><TT>bool_scope</TT></H4><P>This includes notations for the boolean operators. It is
+delimited by key <TT>bool</TT>.</P><H4 CLASS="subsubsection"><TT>list_scope</TT></H4><P>This includes notations for the list operators. It is
+delimited by key <TT>list</TT>.</P><H4 CLASS="subsubsection"><TT>core_scope</TT></H4><P>This includes the notation for pairs. It is delimited by key <TT>core</TT>.</P><H4 CLASS="subsubsection"><TT>string_scope</TT></H4><P>This includes notation for strings as elements of the type <TT>string</TT>. Special characters and escaping follow <SPAN STYLE="font-variant:small-caps">Coq</SPAN> conventions
+on strings (see Section <A HREF="Reference-Manual003.html#strings">1.1</A>). Especially, there is no
+convention to visualize non printable characters of a string. The
+file <TT>String.v</TT> shows an example that contains quotes, a newline
+and a beep (i.e. the ascii character of code 7).</P><H4 CLASS="subsubsection"><TT>char_scope</TT></H4><P>This includes interpretation for all strings of the form
+<CODE>"</CODE><I>c</I><CODE>"</CODE> where <I>c</I> is an ascii character, or of the form
+<CODE>"</CODE><I>nnn</I><CODE>"</CODE> where <I>nnn</I> is a three-digits number (possibly
+with leading 0&#X2019;s), or of the form <CODE>""""</CODE>. Their respective
+denotations are the ascii code of <I>c</I>, the decimal ascii code <I>nnn</I>,
+or the ascii code of the character <CODE>"</CODE> (i.e. the ascii code
+34), all of them being represented in the type <TT>ascii</TT>.</P><H3 CLASS="subsection"><A NAME="htoc380">12.2.5</A>  Displaying informations about scopes</H3><H4 CLASS="subsubsection"><TT>Print Visibility</TT><A NAME="@default796"></A><A NAME="@command263"></A></H4><P>This displays the current stack of notations in scopes and lonely
+notations that is used to interpret a notation. The top of the stack
+is displayed last. Notations in scopes whose interpretation is hidden
+by the same notation in a more recently open scope are not
+displayed. Hence each notation is displayed only once.</P><P><BR>
+<B>Variant: </B></P><P><TT>Print Visibility </TT><I><FONT COLOR=maroon>scope</FONT></I><BR>
+
+This displays the current stack of notations in scopes and lonely
+notations assuming that <I><FONT COLOR=maroon>scope</FONT></I> is pushed on top of the stack. This
+is useful to know how a subterm locally occurring in the scope of
+<I><FONT COLOR=maroon>scope</FONT></I> is interpreted.</P><H4 CLASS="subsubsection"><TT>Print Scope </TT><I><FONT COLOR=maroon>scope</FONT></I><A NAME="@default797"></A><A NAME="@command264"></A></H4><P>This displays all the notations defined in interpretation scope
+<I><FONT COLOR=maroon>scope</FONT></I>. It also displays the delimiting key if any and the class to
+which the scope is bound, if any.</P><H4 CLASS="subsubsection"><TT>Print Scopes</TT><A NAME="@default798"></A><A NAME="@command265"></A></H4><P>This displays all the notations, delimiting keys and corresponding
+class of all the existing interpretation scopes.
+It also displays the lonely notations.</P><H2 CLASS="section"><A NAME="toc86"></A><A NAME="htoc381">12.3</A>  Abbreviations<A NAME="@default799"></A>
+<A NAME="Abbreviations"></A>
+<A NAME="@default800"></A><A NAME="@command266"></A></H2><P>An <EM>abbreviation</EM> is a name, possibly applied to arguments, that
+denotes a (presumably) more complex expression. Here are examples:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation Nlist := (list nat).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check 1 :: 2 :: 3 :: nil.</TT><BR>
+<TT><I>[1; 2; 3]</I></TT><BR>
+<TT><I>     : Nlist</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation reflexive R := (forall x, R x x).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check forall A:Prop, A </TT><TT>&lt;</TT><TT>-</TT><TT>&gt;</TT><TT> A.</TT><BR>
+<TT><I>reflexive iff</I></TT><BR>
+<TT><I>     : Prop</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check reflexive iff.</TT><BR>
+<TT><I>reflexive iff</I></TT><BR>
+<TT><I>     : Prop</I></TT><BR>
+</DIV><P>An abbreviation expects no precedence nor associativity, since it
+follows the usual syntax of application. Abbreviations are used as
+much as possible by the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> printers unless the modifier
+<CODE>(only parsing)</CODE> is given.</P><P>Abbreviations are bound to an absolute name as an ordinary
+definition is, and they can be referred by qualified names too.</P><P>Abbreviations are syntactic in the sense that they are bound to
+expressions which are not typed at the time of the definition of the
+abbreviation but at the time it is used. Especially, abbreviations can
+be bound to terms with holes (i.e. with &#X201C;_&#X201D;). The general syntax
+for abbreviations is
+</P><BLOCKQUOTE CLASS="quote">
+<I><FONT COLOR=maroon>[</FONT></I><TT>Local</TT><I><FONT COLOR=maroon>]</FONT></I> <TT>Notation</TT> <I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>ident</FONT></I> &#X2026; <I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>ident</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> 
+<I><FONT COLOR=maroon>[</FONT></I><TT>(only parsing)</TT><I><FONT COLOR=maroon>]</FONT></I> <CODE>.</CODE>
+</BLOCKQUOTE><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Definition explicit_id (A:Set) (a:A) := a.</TT><BR>
+<TT><I>explicit_id is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation id := (explicit_id _).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check (id 0).</TT><BR>
+<TT><I>id 0</I></TT><BR>
+<TT><I>     : nat</I></TT><BR>
+</DIV><P>Abbreviations do not survive the end of sections. No typing of the denoted
+expression is performed at definition time. Type-checking is done only
+at the time of use of the abbreviation.</P><H2 CLASS="section"><A NAME="toc87"></A><A NAME="htoc382">12.4</A>  Tactic Notations</H2><P>Tactic notations allow to customize the syntax of the tactics of the
+tactic language<SUP><A NAME="text22" HREF="Reference-Manual016.html#note22">3</A></SUP>. Tactic notations obey the following
+syntax
+<BR>
+</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>sentence</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><TT>Tactic Notation</TT> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>tactic_level</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <I><FONT COLOR=maroon>production_item</FONT></I>  &#X2026;  <I><FONT COLOR=maroon>production_item</FONT></I></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><TT>:= </TT><I><FONT COLOR=maroon>tactic</FONT></I><TT> .</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>production_item</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>string</FONT></I> | <I><FONT COLOR=maroon>tactic_argument_type</FONT></I><TT>(</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>)</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tactic_level</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><TT>(at level</TT> <I><FONT COLOR=maroon>natural</FONT></I><TT>)</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tactic_argument_type</FONT></I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><TT>ident</TT> |
+<TT>simple_intropattern</TT> |
+<TT>reference</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>hyp</TT> |
+<TT>hyp_list</TT> |
+<TT>ne_hyp_list</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>constr</TT> |
+<TT>constr_list</TT> |
+<TT>ne_constr_list</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>integer</TT> |
+<TT>integer_list</TT> |
+<TT>ne_integer_list</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>int_or_var</TT> |
+<TT>int_or_var_list</TT> |
+<TT>ne_int_or_var_list</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>tactic</TT> | <TT>tactic</TT><TT><I>n</I></TT>     (for 0&#X2264; <I>n</I>&#X2264; 5)</TD></TR>
+</TABLE><P>
+<BR>
+</P><P>A tactic notation <TT>Tactic Notation </TT><I><FONT COLOR=maroon>tactic_level</FONT></I><TT>
+</TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>production_item</FONT></I><TT>  </TT><TT>&#X2026;</TT><TT>  </TT><I><FONT COLOR=maroon>production_item</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> := </TT><I><FONT COLOR=maroon>tactic</FONT></I> extends the parser and
+pretty-printer of tactics with a new rule made of the list of
+production items. It then evaluates into the tactic expression
+<I><FONT COLOR=maroon>tactic</FONT></I>. For simple tactics, it is recommended to use a terminal
+symbol, i.e. a <I><FONT COLOR=maroon>string</FONT></I>, for the first production item. The tactic
+level indicates the parsing precedence of the tactic notation. This
+information is particularly relevant for notations of tacticals.
+Levels 0 to 5 are available (default is 0). 
+To know the parsing precedences of the
+existing tacticals, use the command <TT>Print Grammar tactic.</TT></P><P>Each type of tactic argument has a specific semantic regarding how it
+is parsed and how it is interpreted. The semantic is described in the
+following table. The last command gives examples of tactics which
+use the corresponding kind of argument.</P><P><BR>
+</P><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=1><TR><TD ALIGN=left NOWRAP>Tactic argument type</TD><TD ALIGN=left NOWRAP>parsed as</TD><TD ALIGN=left NOWRAP>interpreted as</TD><TD ALIGN=left NOWRAP>as in tactic</TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>ident</TT></TD><TD ALIGN=left NOWRAP>identifier</TD><TD ALIGN=left NOWRAP>a user-given name</TD><TD ALIGN=left NOWRAP><TT>intro</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>simple_intropattern</TT></TD><TD ALIGN=left NOWRAP>intro_pattern</TD><TD ALIGN=left NOWRAP>an intro_pattern</TD><TD ALIGN=left NOWRAP><TT>intros</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>hyp</TT></TD><TD ALIGN=left NOWRAP>identifier</TD><TD ALIGN=left NOWRAP>an hypothesis defined in context</TD><TD ALIGN=left NOWRAP><TT>clear</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>reference</TT></TD><TD ALIGN=left NOWRAP>qualified identifier</TD><TD ALIGN=left NOWRAP>a global reference of term</TD><TD ALIGN=left NOWRAP><TT>unfold</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>constr</TT></TD><TD ALIGN=left NOWRAP>term</TD><TD ALIGN=left NOWRAP>a term</TD><TD ALIGN=left NOWRAP><TT>exact</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>integer</TT></TD><TD ALIGN=left NOWRAP>integer</TD><TD ALIGN=left NOWRAP>an integer</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>int_or_var</TT></TD><TD ALIGN=left NOWRAP>identifier or integer</TD><TD ALIGN=left NOWRAP>an integer</TD><TD ALIGN=left NOWRAP><TT>do</TT></TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>tactic</TT></TD><TD ALIGN=left NOWRAP>tactic at level 5</TD><TD ALIGN=left NOWRAP>a tactic</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>tactic</TT><TT><I>n</I></TT></TD><TD ALIGN=left NOWRAP>tactic at level <I>n</I></TD><TD ALIGN=left NOWRAP>a tactic</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>entry</FONT></I><TT>_list</TT></TD><TD ALIGN=left NOWRAP>list of <I><FONT COLOR=maroon>entry</FONT></I></TD><TD ALIGN=left NOWRAP>a list of how <I><FONT COLOR=maroon>entry</FONT></I> is interpreted</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+<TR><TD ALIGN=left NOWRAP><TT>ne_</TT><I><FONT COLOR=maroon>entry</FONT></I><TT>_list</TT></TD><TD ALIGN=left NOWRAP>non-empty list of <I><FONT COLOR=maroon>entry</FONT></I></TD><TD ALIGN=left NOWRAP>a list of how <I><FONT COLOR=maroon>entry</FONT></I> is interpreted</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
+</TABLE><P><BR>
+<B>Remark: </B>In order to be bound in tactic definitions, each syntactic entry
+for argument type must include the case of simple <FONT COLOR=red> <I>L</I></FONT><SUB><I>tac</I></SUB> identifier
+as part of what it parses. This is naturally the case for <TT>ident</TT>,
+<TT>simple_intropattern</TT>, <TT>reference</TT>, <TT>constr</TT>, ... but not
+for <TT>integer</TT>. This is the reason for introducing a special entry
+<TT>int_or_var</TT> which evaluates to integers only but which
+syntactically includes identifiers in order to be usable in tactic
+definitions.</P><P><BR>
+<B>Remark: </B>The <I><FONT COLOR=maroon>entry</FONT></I><TT>_list</TT> and <TT>ne_</TT><I><FONT COLOR=maroon>entry</FONT></I><TT>_list</TT>
+entries can be used in primitive tactics or in other notations at
+places where a list of the underlying entry can be used: <I><FONT COLOR=maroon>entry</FONT></I> is
+either <TT>constr</TT>, <TT>hyp</TT>, <TT>integer</TT> or
+<TT>int_or_var</TT>.</P>
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

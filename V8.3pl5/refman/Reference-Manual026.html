@@ -1,0 +1,255 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<LINK rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<STYLE type="text/css" media="all">@import "/modules/node/node.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/modules/system/defaults.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/system/system.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/user/user.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</STYLE>
+<TITLE>Chapter 20  Micromega : tactics for solving arithmetics goals over ordered rings</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home"></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc483">Chapter 20</A>  Micromega : tactics for solving arithmetics goals over ordered rings</H1><UL>
+<LI><A HREF="Reference-Manual026.html#toc142">20.1  The <TT>psatz</TT> tactic in a hurry</A>
+</LI><LI><A HREF="Reference-Manual026.html#toc143">20.2  <EM>Positivstellensatz</EM> refutations</A>
+</LI><LI><A HREF="Reference-Manual026.html#toc144">20.3   <TT>lia</TT> : the linear integer arithmetic tactic </A>
+</LI></UL>
+<P>
+<FONT SIZE=5><B>Frédéric Besson and Evgeny Makarov</B></FONT> <BR>
+<BR>
+
+</P><P>For using the tactics out-of-the-box, read Section <A HREF="#sec:psatz-hurry">20.1</A>.
+Section <A HREF="#sec:psatz-back">20.2</A> presents some background explaining the proof principle for solving polynomials goals.
+Section <A HREF="#sec:lia">20.3</A> explains how to get a complete procedure for linear integer arithmetic.</P><H2 CLASS="section"><A NAME="toc142"></A><A NAME="htoc484">20.1</A>  The <TT>psatz</TT> tactic in a hurry</H2><P>
+<A NAME="@default872"></A><A NAME="@tactic193"></A>
+<A NAME="sec:psatz-hurry"></A>
+Load the <TT>Psatz</TT> module (<TT>Require Psatz</TT>.). This module defines the tactics:
+<TT>lia</TT>, <TT>psatzl D</TT>, and <TT>psatz D n</TT> where <TT>D</TT> is <TT>Z</TT>, <TT>Q</TT> or <TT>R</TT> and <TT>n</TT> is an optional integer limiting the proof search depth.
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+The <TT>psatzl</TT> tactic solves linear goals using an embedded (naive) linear programming prover <EM>i.e.</EM>,
+fourier elimination.
+</LI><LI CLASS="li-itemize">The <TT>psatz</TT> tactic solves polynomial goals using John Harrison&#X2019;s Hol light driver to the external prover <TT>cspd</TT><SUP><A NAME="text28" HREF="#note28">1</A></SUP>. Note that the <TT>csdp</TT> driver is generating 
+a <EM>proof cache</EM> thus allowing to rerun scripts even without <TT>csdp</TT>. 
+</LI><LI CLASS="li-itemize">The <TT>lia</TT> (linear integer arithmetic) tactic is specialised to solve linear goals over &#X2124;.
+It extends <TT>psatzl Z</TT> and exploits the discreetness of &#X2124;.
+</LI></UL><P>These tactics solve propositional formulas parameterised by atomic arithmetics expressions
+interpreted over a domain <I>D</I> &#X2208; {&#X2124;, &#X211A;, &#X211D; }.
+The syntax of the formulas is the following:
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP> <I>F</I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I>A</I> &#X2223; <I>P</I> &#X2223; <I><I>True</I></I> &#X2223; <I><I>False</I></I> &#X2223; <I>F</I><SUB>1</SUB> &#X2227; <I>F</I><SUB>2</SUB> &#X2223; <I>F</I><SUB>1</SUB> &#X2228; <I>F</I><SUB>2</SUB> &#X2223; <I>F</I><SUB>1</SUB> &#X2194; <I>F</I><SUB>2</SUB> &#X2223; <I>F</I><SUB>1</SUB> &#X2192; <I>F</I><SUB>2</SUB> &#X2223; &#X223C; <I>F</I></TD></TR>
+<TR><TD ALIGN=left NOWRAP> <I>A</I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I>p</I><SUB>1</SUB> = <I>p</I><SUB>2</SUB> &#X2223;  <I>p</I><SUB>1</SUB> &gt; <I>p</I><SUB>2</SUB> &#X2223; <I>p</I><SUB>1</SUB> &lt; <I>p</I><SUB>2</SUB> &#X2223; <I>p</I><SUB>1</SUB> &#X2265; <I>p</I><SUB>2</SUB> &#X2223; <I>p</I><SUB>1</SUB> &#X2264; <I>p</I><SUB>2</SUB> </TD></TR>
+<TR><TD ALIGN=left NOWRAP> <I>p</I></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I>c</I> &#X2223; <I>x</I> &#X2223; &#X2212;<I>p</I> &#X2223; <I>p</I><SUB>1</SUB> &#X2212; <I>p</I><SUB>2</SUB> &#X2223; <I>p</I><SUB>1</SUB> + <I>p</I><SUB>2</SUB> &#X2223; <I>p</I><SUB>1</SUB> × <I>p</I><SUB>2</SUB> &#X2223; <I>p</I> <CODE>^</CODE> <I>n</I></TD></TR>
+</TABLE></TD></TR>
+</TABLE><P>
+where <I>c</I> is a numeric constant, <I>x</I>&#X2208; <I>D</I> is a numeric variable and the operators &#X2212;, +, ×, are
+respectively subtraction, addition, product, <I>p</I> <CODE>^</CODE><I>n</I>  is exponentiation by a constant <I>n</I>, <I>P</I> is an
+arbitrary proposition. The following table details for each domain <I>D</I> &#X2208; {&#X2124;,&#X211A;,&#X211D;} the range of constants <I>c</I> and exponent <I>n</I>.
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=1><TR><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&#X2124;</TD><TD ALIGN=center NOWRAP>&#X211A;</TD><TD ALIGN=center NOWRAP>&#X211D; </TD></TR>
+<TR><TD ALIGN=center NOWRAP>  <I>c</I></TD><TD ALIGN=center NOWRAP><TT><I>Z</I></TT></TD><TD ALIGN=center NOWRAP><TT><I>Q</I></TT></TD><TD ALIGN=center NOWRAP>{<I>R</I>1, <I>R</I>0} </TD></TR>
+<TR><TD ALIGN=center NOWRAP>  <I>n</I></TD><TD ALIGN=center NOWRAP><TT><I>Z</I></TT></TD><TD ALIGN=center NOWRAP><TT><I>Z</I></TT></TD><TD ALIGN=center NOWRAP><TT><I>nat</I></TT></TD></TR>
+</TABLE></TD></TR>
+</TABLE><H2 CLASS="section"><A NAME="toc143"></A><A NAME="htoc485">20.2</A>  <EM>Positivstellensatz</EM> refutations</H2><P>
+<A NAME="sec:psatz-back"></A></P><P>The name <TT>psatz</TT> is an abbreviation for <EM>positivstellensatz</EM> &#X2013; literally positivity theorem &#X2013; which
+generalises Hilbert&#X2019;s <EM>nullstellensatz</EM>.
+It relies on the notion of <I><I>Cone</I></I>. Given a (finite) set of polynomials <I>S</I>, <I>Cone</I>(<I>S</I>) is
+inductively defined as the smallest set of polynomials closed under the following rules:
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><I>p</I> &#X2208; <I>S</I></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>p</I> &#X2208; <I>Cone</I>(<I>S</I>)</TD></TR>
+</TABLE></TD><TD CLASS="dcell">    
+</TD><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>p</I><SUP>2</SUP> &#X2208; <I>Cone</I>(<I>S</I>)</TD></TR>
+</TABLE></TD><TD CLASS="dcell">   
+</TD><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><I>p</I><SUB>1</SUB> &#X2208; <I>Cone</I>(<I>S</I>)    <I>p</I><SUB>2</SUB> &#X2208; <I>Cone</I>(<I>S</I>)    &#X2445; &#X2208; {+,*}</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>p</I><SUB>1</SUB> &#X2445; <I>p</I><SUB>2</SUB> &#X2208; <I>Cone</I>(<I>S</I>)</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE><P>
+The following theorem provides a proof principle for checking that a set of polynomial inequalities do not have solutions<SUP><A NAME="text29" HREF="#note29">2</A></SUP>:
+</P><DIV CLASS="theorem"><B>Theorem 1</B>  <EM>
+</EM><A NAME="thm:psatz"></A><EM>
+Let </EM><EM><I>S</I></EM><EM> be a set of polynomials.<BR>
+ If </EM><EM>&#X2212;</EM><EM>1</EM><EM> belongs to </EM><EM><I>Cone</I>(<I>S</I>)</EM><EM> then the conjunction </EM><EM>&#X2227;</EM><SUB><EM><I>p</I> &#X2208; <I>S</I></EM></SUB><EM> <I>p</I>&#X2265; 0</EM><EM> is unsatisfiable.
+</EM></DIV><P>
+A proof based on this theorem is called a <EM>positivstellensatz</EM> refutation.
+The tactics work as follows. Formulas are normalised into conjonctive normal form &#X2227;<SUB><I>i</I></SUB> <I>C</I><SUB><I>i</I></SUB> where
+<I>C</I><SUB><I>i</I></SUB> has the general form (&#X2227;<SUB><I>j</I>&#X2208; <I>S</I><SUB><I>i</I></SUB></SUB> <I>p</I><SUB><I>j</I></SUB> &#X2445; 0) &#X2192; <I><I>False</I></I>) and &#X2445; &#X2208; {&gt;,&#X2265;,=} for <I>D</I>&#X2208;
+{&#X211A;,&#X211D;} and &#X2445; &#X2208; {&#X2265;, =} for &#X2124;.
+For each conjunct <I>C</I><SUB><I>i</I></SUB>, the tactic calls a oracle which searches for &#X2212;1 within the cone.
+Upon success, the oracle returns a <EM>cone expression</EM> that is normalised by the <TT>ring</TT> tactic (see chapter <A HREF="Reference-Manual029.html#ring">23</A>) and checked to be
+&#X2212;1.</P><P>To illustrate the working of the tactic, consider we wish to prove the following Coq goal.<BR>
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   Goal forall x, -x</TT><TT>^</TT><TT>2 </TT><TT>&gt;</TT><TT>= 0 -</TT><TT>&gt;</TT><TT> x - 1 </TT><TT>&gt;</TT><TT>= 0 -</TT><TT>&gt;</TT><TT> False.</TT><BR>
+</DIV><P>
+
+Such a goal is solved by <TT>intro x; psatz Z 2</TT>. The oracle returns the cone expression 2 ×
+(<B><I>x</I>&#X2212;1</B>) + <B><I>x</I>&#X2212;1</B>×<B><I>x</I>&#X2212;1</B> + <B>&#X2212;<I>x</I></B><SUP><B>2</B></SUP> (polynomial hypotheses are printed in bold). By construction, this
+expression belongs to <I>Cone</I>({&#X2212;<I>x</I><SUP>2</SUP>, <I>x</I> &#X2212;1}). Moreover, by running <TT>ring</TT> we obtain &#X2212;1. By
+Theorem <A HREF="#thm:psatz">1</A>, the goal is valid.
+</P><H5 CLASS="paragraph">The <TT>psatzl</TT> tactic</H5><P> is searching for <EM>linear</EM> refutations using a fourier
+elimination<SUP><A NAME="text30" HREF="#note30">3</A></SUP>.
+As a result, this tactic explore a subset of the <I>Cone</I> defined as:
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><I>LinCone</I>(<I>S</I>) =</TD><TD CLASS="dcell">&#X23A7;<BR>
+&#X23AA;<BR>
+&#X23A8;<BR>
+&#X23AA;<BR>
+&#X23A9;</TD><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">&nbsp;</TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><FONT SIZE=6>&#X2211;</FONT></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>p</I> &#X2208; <I>S</I></TD></TR>
+</TABLE></TD><TD CLASS="dcell"> &#X3B1;<SUB><I>p</I></SUB> × <I>p</I> </TD><TD CLASS="dcell">&#X23AA;<BR>
+&#X23AA;<BR>
+&#X23AA;<BR>
+&#X23AA;</TD><TD CLASS="dcell"> &#X3B1;<SUB><I>p</I></SUB>  are positive constants </TD><TD CLASS="dcell">&#X23AB;<BR>
+&#X23AA;<BR>
+&#X23AC;<BR>
+&#X23AA;<BR>
+&#X23AD;</TD></TR>
+</TABLE><P>
+Basically, the deductive power of <TT>psatzl</TT> is the combined deductive power of <TT>ring_simplify</TT> and <TT>fourier</TT>.</P><H5 CLASS="paragraph">The <TT>psatz</TT> tactic</H5><P> explores the <I>Cone</I> by increasing degrees &#X2013; hence the depth parameter <I>n</I>.
+In theory, such a proof search is complete &#X2013; if the goal is provable the search eventually stops.
+Unfortunately, the external oracle is using numeric (approximate) optimisation techniques that might miss a
+refutation. </P><H2 CLASS="section"><A NAME="toc144"></A><A NAME="htoc486">20.3</A>   <TT>lia</TT> : the linear integer arithmetic tactic </H2><P>
+<A NAME="@default873"></A><A NAME="@tactic194"></A>
+<A NAME="sec:lia"></A></P><P>The tactic <TT>lia</TT> offers an alternative to the <TT>omega</TT> and <TT>romega</TT> tactic (see
+Chapter <A HREF="Reference-Manual025.html#OmegaChapter">19</A>). It solves goals that <TT>omega</TT> and <TT>romega</TT> do not solve, such as the
+following so-called <EM>omega nightmare</EM> [<A HREF="biblio.html#TheOmegaPaper">121</A>].
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   Goal forall x y, </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>        27 </TT><TT>&lt;</TT><TT>= 11 * x + 13 * y </TT><TT>&lt;</TT><TT>= 45 -</TT><TT>&gt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>        -10 </TT><TT>&lt;</TT><TT>= 7 * x - 9 * y </TT><TT>&lt;</TT><TT>= 4 -</TT><TT>&gt;</TT><TT>   False.</TT><BR>
+</DIV><P>
+
+The estimation of the relative efficiency of lia <EM>vs</EM> <TT>omega</TT>
+and <TT>romega</TT> is under evaluation.</P><H5 CLASS="paragraph">High level view of <TT>lia</TT>.</H5><P>
+Over &#X211D;, <EM>positivstellensatz</EM> refutations are a complete proof principle<SUP><A NAME="text31" HREF="#note31">4</A></SUP>.
+However, this is not the case over &#X2124;.
+Actually, <EM>positivstellensatz</EM> refutations are not even sufficient to decide linear <EM>integer</EM> 
+arithmetics.
+The canonical exemple is <TT>2 * x = 1 -&gt; False</TT> which is a theorem of &#X2124; but not a theorem of &#X211D;.
+To remedy this weakness, the <TT>lia</TT> tactic is using recursively a combination of:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+linear <EM>positivstellensatz</EM> refutations <EM>i.e.</EM>, <TT>psatzl Z</TT>;
+</LI><LI CLASS="li-itemize">cutting plane proofs;
+</LI><LI CLASS="li-itemize">case split.
+</LI></UL><H5 CLASS="paragraph">Cutting plane proofs</H5><P> are a way to take into account the discreetness of &#X2124; by rounding up
+(rational) constants up-to the closest integer. 
+</P><DIV CLASS="theorem"><B>Theorem 2</B>  <EM>
+Let </EM><EM><I>p</I></EM><EM> be an integer and </EM><EM><I>c</I></EM><EM> a rational constant.
+</EM><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><EM>  <I>p</I> &#X2265; <I>c</I> &#X21D2; <I>p</I> &#X2265; &#X2308; <I>c</I> &#X2309;
+</EM></TD></TR>
+</TABLE><EM>
+</EM></DIV><P>
+For instance, from 2 * <I>x</I> = 1 we can deduce 
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<I>x</I> &#X2265; 1/2 which cut plane is  <I>x</I> &#X2265; &#X2308; 1/2 &#X2309; = 1;
+</LI><LI CLASS="li-itemize"> <I>x</I> &#X2264; 1/2 which cut plane is  <I>x</I> &#X2264; &#X230A; 1/2 &#X230B; = 0.
+</LI></UL><P>
+By combining these two facts (in normal form) <I>x</I> &#X2212; 1 &#X2265; 0 and &#X2212;<I>x</I> &#X2265; 0, we conclude by exhibiting a
+<EM>positivstellensatz</EM> refutation (&#X2212;1 &#X2261; <B><I>x</I>&#X2212;1</B> + <B>&#X2212;<I>x</I></B> &#X2208; <I>Cone</I>({<I>x</I>&#X2212;1,<I>x</I>})).</P><P>Cutting plane proofs and linear <EM>positivstellensatz</EM> refutations are a complete proof principle for integer linear arithmetic.</P><H5 CLASS="paragraph">Case split</H5><P> allow to enumerate over the possible values of an expression. 
+</P><DIV CLASS="theorem"><B>Theorem 3</B>  <EM>
+Let </EM><EM><I>p</I></EM><EM> be an integer and </EM><EM><I>c</I></EM><SUB><EM>1</EM></SUB><EM> and </EM><EM><I>c</I></EM><SUB><EM>2</EM></SUB><EM> integer constants.
+</EM><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><EM>  <I>c</I></EM><SUB><EM>1</EM></SUB><EM> &#X2264; <I>p</I> &#X2264; <I>c</I></EM><SUB><EM>2</EM></SUB><EM> &#X21D2; </EM></TD><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><EM>&nbsp;</EM></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><EM><FONT SIZE=6>&#X2228;</FONT></EM></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><EM><EM><I>x</I> &#X2208; [<I>c</I></EM><SUB><EM>1</EM></SUB><EM>,<I>c</I></EM><SUB><EM>2</EM></SUB><EM>]</EM></EM></TD></TR>
+</TABLE></TD><TD CLASS="dcell"><EM> <I>p</I> = <I>x</I>
+</EM></TD></TR>
+</TABLE><EM>
+</EM></DIV><P>
+Our current oracle tries to find an expression <I>e</I> with a small range [<I>c</I><SUB>1</SUB>,<I>c</I><SUB>2</SUB>].
+We generate <I>c</I><SUB>2</SUB> &#X2212; <I>c</I><SUB>1</SUB> subgoals which contexts are enriched with an equation <I>e</I> = <I>i</I> for <I>i</I> &#X2208; [<I>c</I><SUB>1</SUB>,<I>c</I><SUB>2</SUB>] and
+recursively search for a proof.</P><HR CLASS="footnoterule"><DL CLASS="thefootnotes"><DT CLASS="dt-thefootnotes">
+<A NAME="note28" HREF="#text28">1</A></DT><DD CLASS="dd-thefootnotes">Sources and binaries can be found at <A HREF="https://projects.coin-or.org/Csdp"><TT>https://projects.coin-or.org/Csdp</TT></A>
+</DD><DT CLASS="dt-thefootnotes"><A NAME="note29" HREF="#text29">2</A></DT><DD CLASS="dd-thefootnotes">Variants deal with equalities and strict inequalities.
+</DD><DT CLASS="dt-thefootnotes"><A NAME="note30" HREF="#text30">3</A></DT><DD CLASS="dd-thefootnotes">More efficient linear programming techniques could equally be employed
+</DD><DT CLASS="dt-thefootnotes"><A NAME="note31" HREF="#text31">4</A></DT><DD CLASS="dd-thefootnotes">In practice, the oracle might fail to produce such a refutation.
+</DD></DL>
+
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

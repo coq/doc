@@ -1,0 +1,1507 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Reference Manual | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</style>
+<TITLE>Detailed examples of tactics</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc295">Chapter 10</A>  Detailed examples of tactics<A NAME="Tactics-examples"></A></H1><UL>
+<LI><A HREF="Reference-Manual013.html#toc67"><TT>refine</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc68"><TT>eapply</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc69"><TT>Scheme</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc70"><TT>Functional Scheme</TT> and <TT>functional induction</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc71"><TT>inversion</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc72"><TT>dependent induction</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc73"><TT>autorewrite</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc74"><TT>quote</TT></A>
+</LI><LI><A HREF="Reference-Manual013.html#toc75">Using the tactical language</A>
+</LI></UL>
+<P>This chapter presents detailed examples of certain tactics, to
+illustrate their behavior.</P><H2 CLASS="section"><A NAME="toc67"></A><A NAME="htoc296">10.1</A>  <TT>refine</TT><A NAME="@default746"></A><A NAME="@tactic180"></A><TT>
+</TT><A NAME="refine-example"></A></H2><P>This tactic applies to any goal. It behaves like <TT>exact</TT> with a
+big difference : the user can leave some holes (denoted by <TT>_</TT> or 
+<TT>(_:</TT><I>type</I><TT>)</TT>) in the term. 
+<TT>refine</TT> will generate as many
+subgoals as they are holes in the term. The type of holes must be
+either synthesized by the system or declared by an
+explicit cast like <CODE>(\_:nat-&gt;Prop)</CODE>. This low-level
+tactic can be useful to advanced users.</P><P><BR>
+<B>Example: </B></P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive Option : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | Fail : Option</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | Ok : bool -</TT><TT>&gt;</TT><TT> Option.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Definition get : forall x:Option, x </TT><TT>&lt;</TT><TT>&gt;</TT><TT> Fail -</TT><TT>&gt;</TT><TT> bool.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall x : Option, x </I></TT><TT><I>&lt;</I></TT><TT><I>&gt;</I></TT><TT><I> Fail -</I></TT><TT><I>&gt;</I></TT><TT><I> bool</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> refine</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  (fun x:Option =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     match x return x </TT><TT>&lt;</TT><TT>&gt;</TT><TT> Fail -</TT><TT>&gt;</TT><TT> bool with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     | Fail =</TT><TT>&gt;</TT><TT> _</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     | Ok b =</TT><TT>&gt;</TT><TT> fun _ =</TT><TT>&gt;</TT><TT> b</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     end).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : Option</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   Fail </I></TT><TT><I>&lt;</I></TT><TT><I>&gt;</I></TT><TT><I> Fail -</I></TT><TT><I>&gt;</I></TT><TT><I> bool</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; absurd (Fail = Fail); trivial.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Defined.</TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc68"></A><A NAME="htoc297">10.2</A>  <TT>eapply</TT><A NAME="@default747"></A><A NAME="@tactic181"></A><TT>
+</TT><A NAME="eapply-example"></A></H2><P>
+<BR>
+<B>Example: </B>Assume we have a relation on <TT>nat</TT> which is transitive:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable R : nat -</TT><TT>&gt;</TT><TT> nat -</TT><TT>&gt;</TT><TT> Prop.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Hypothesis Rtrans : forall x y z:nat, R x y -</TT><TT>&gt;</TT><TT> R y z -</TT><TT>&gt;</TT><TT> R x z.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variables n m p : nat.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Hypothesis Rnm : R n m.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Hypothesis Rmp : R m p.</TT><BR>
+</DIV><P>Consider the goal <TT>(R n p)</TT> provable using the transitivity of
+<TT>R</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal R n p.</TT><BR>
+</DIV><P>The direct application of <TT>Rtrans</TT> with <TT>apply</TT> fails because
+no value for <TT>y</TT> in <TT>Rtrans</TT> is found by <TT>apply</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> apply Rtrans.</TT><BR>
+<TT><I>Unnamed_thm </I></TT><TT><I>&lt;</I></TT><TT><I> Unnamed_thm </I></TT><TT><I>&lt;</I></TT><TT><I> Toplevel input, characters 144-156:</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I> apply Rtrans.</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I> </I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><TT><I>^</I></TT><BR>
+<TT><I>Error: Unable to find an instance for the variable y.</I></TT><BR>
+</DIV><P>A solution is to rather apply <TT>(Rtrans n m p)</TT>.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> apply (Rtrans n m p).</TT><BR>
+<TT><I>2 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R n m</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> R m p</I></TT><BR>
+</DIV><P>More elegantly, <TT>apply Rtrans with (y:=m)</TT> allows to only mention
+the unknown <TT>m</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   apply Rtrans with (y := m).</TT><BR>
+<TT><I>2 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R n m</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> R m p</I></TT><BR>
+</DIV><P>Another solution is to mention the proof of <TT>(R x y)</TT> in <TT>Rtrans</TT>...</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   apply Rtrans with (1 := Rnm).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R m p</I></TT><BR>
+</DIV><P>... or the proof of <TT>(R y z)</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   apply Rtrans with (2 := Rmp).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R n m</I></TT><BR>
+</DIV><P>On the opposite, one can use <TT>eapply</TT> which postpone the problem
+of finding <TT>m</TT>. Then one can apply the hypotheses <TT>Rnm</TT> and <TT>Rmp</TT>. This instantiates the existential variable and completes the proof.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> eapply Rtrans.</TT><BR>
+<TT><I>2 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R n ?9</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> R ?9 p</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> apply Rnm.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   R m p</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> apply Rmp.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc69"></A><A NAME="htoc298">10.3</A>  <TT>Scheme</TT><A NAME="@default748"></A><A NAME="@command232"></A>
+<A NAME="Scheme-examples"></A></H2><P>
+<BR>
+<B>Example 1: </B><I>Induction scheme for </I><I><TT>tree</TT></I><I> and </I><I><TT>forest</TT></I>
+</P><P>The definition of principle of mutual induction for <TT>tree</TT> and
+<TT>forest</TT> over the sort <TT>Set</TT> is defined by the command:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive tree : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     node : A -</TT><TT>&gt;</TT><TT> forest -</TT><TT>&gt;</TT><TT> tree</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> with forest : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | leaf : B -</TT><TT>&gt;</TT><TT> forest</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | cons : tree -</TT><TT>&gt;</TT><TT> forest -</TT><TT>&gt;</TT><TT> forest.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Scheme tree_forest_rec := Induction for tree Sort Set</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   with forest_tree_rec := Induction for forest Sort Set.</TT><BR>
+</DIV><P>You may now look at the type of <TT>tree_forest_rec</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check tree_forest_rec.</TT><BR>
+<TT><I>tree_forest_rec</I></TT><BR>
+<TT><I>     : forall (P : tree -</I></TT><TT><I>&gt;</I></TT><TT><I> Set) (P0 : forest -</I></TT><TT><I>&gt;</I></TT><TT><I> Set),</I></TT><BR>
+<TT><I>       (forall (a : A) (f : forest), P0 f -</I></TT><TT><I>&gt;</I></TT><TT><I> P (node a f)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall b : B, P0 (leaf b)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall t : tree, P t -</I></TT><TT><I>&gt;</I></TT><TT><I> forall f1 : forest, P0 f1 -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 (cons t f1)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall t : tree, P t</I></TT><BR>
+</DIV><P>This principle involves two different predicates for <TT>trees</TT> and
+<TT>forests</TT>; it also has three premises each one corresponding to a
+constructor of one of the inductive definitions.</P><P>The principle <TT>forest_tree_rec</TT> shares exactly the same
+premises, only the conclusion now refers to the property of forests.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check forest_tree_rec.</TT><BR>
+<TT><I>forest_tree_rec</I></TT><BR>
+<TT><I>     : forall (P : tree -</I></TT><TT><I>&gt;</I></TT><TT><I> Set) (P0 : forest -</I></TT><TT><I>&gt;</I></TT><TT><I> Set),</I></TT><BR>
+<TT><I>       (forall (a : A) (f : forest), P0 f -</I></TT><TT><I>&gt;</I></TT><TT><I> P (node a f)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall b : B, P0 (leaf b)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall t : tree, P t -</I></TT><TT><I>&gt;</I></TT><TT><I> forall f1 : forest, P0 f1 -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 (cons t f1)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall f2 : forest, P0 f2</I></TT><BR>
+</DIV><P>
+<BR>
+<B>Example 2: </B><I>Predicates </I><I><TT>odd</TT></I><I> and </I><I><TT>even</TT></I><I> on naturals</I>
+</P><P>Let <TT>odd</TT> and <TT>even</TT> be inductively defined as:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive odd : nat -</TT><TT>&gt;</TT><TT> Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     oddS : forall n:nat, even n -</TT><TT>&gt;</TT><TT> odd (S n)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> with even : nat -</TT><TT>&gt;</TT><TT> Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | evenO : even 0</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | evenS : forall n:nat, odd n -</TT><TT>&gt;</TT><TT> even (S n).</TT><BR>
+</DIV><P>The following command generates a powerful elimination
+principle:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Scheme odd_even := Minimality for   odd Sort Prop</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   with even_odd := Minimality for even Sort Prop.</TT><BR>
+<TT><I>odd_even, even_odd are recursively defined</I></TT><BR>
+</DIV><P>The type of <TT>odd_even</TT> for instance will be:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check odd_even.</TT><BR>
+<TT><I>odd_even</I></TT><BR>
+<TT><I>     : forall P P0 : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop,</I></TT><BR>
+<TT><I>       (forall n : nat, even n -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 n -</I></TT><TT><I>&gt;</I></TT><TT><I> P (S n)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       P0 0 -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall n : nat, odd n -</I></TT><TT><I>&gt;</I></TT><TT><I> P n -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 (S n)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall n : nat, odd n -</I></TT><TT><I>&gt;</I></TT><TT><I> P n</I></TT><BR>
+</DIV><P>The type of <TT>even_odd</TT> shares the same premises but the
+conclusion is <TT>(n:nat)(even n)-&gt;(Q n)</TT>.</P><H3 CLASS="subsection"><A NAME="htoc299">10.3.1</A>  <TT>Combined Scheme</TT><A NAME="@default749"></A><A NAME="@command233"></A>
+<A NAME="CombinedScheme-examples"></A></H3><P>We can define the induction principles for trees and forests using:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Scheme tree_forest_ind := Induction for tree Sort Prop</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   with forest_tree_ind := Induction for forest Sort Prop.</TT><BR>
+<TT><I>tree_forest_ind, forest_tree_ind are recursively defined</I></TT><BR>
+</DIV><P>Then we can build the combined induction principle which gives the
+conjunction of the conclusions of each individual principle:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Combined Scheme tree_forest_mutind from tree_forest_ind, forest_tree_ind.</TT><BR>
+<TT><I>tree_forest_mutind is recursively defined</I></TT><BR>
+</DIV><P>The type of <TT>tree_forest_mutrec</TT> will be:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check tree_forest_mutind.</TT><BR>
+<TT><I>tree_forest_mutind</I></TT><BR>
+<TT><I>     : forall (P : tree -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop) (P0 : forest -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop),</I></TT><BR>
+<TT><I>       (forall (a : A) (f : forest), P0 f -</I></TT><TT><I>&gt;</I></TT><TT><I> P (node a f)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall b : B, P0 (leaf b)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall t : tree, P t -</I></TT><TT><I>&gt;</I></TT><TT><I> forall f1 : forest, P0 f1 -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 (cons t f1)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall t : tree, P t) /</I></TT><TT><I>\</I></TT><TT><I> (forall f2 : forest, P0 f2)</I></TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc70"></A><A NAME="htoc300">10.4</A>  <TT>Functional Scheme</TT> and <TT>functional induction</TT><A NAME="@default750"></A><A NAME="@command234"></A><A NAME="@default751"></A><A NAME="@tactic182"></A>
+<A NAME="FunScheme-examples"></A></H2><P>
+<BR>
+<B>Example 1: </B><I>Induction scheme for </I><I><TT>div2</TT></I>
+</P><P>We define the function <TT>div2</TT> as follows:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint div2 (n:nat) : nat :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | O =</TT><TT>&gt;</TT><TT> 0</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S O =</TT><TT>&gt;</TT><TT> 0</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S (S n&#X2019;) =</TT><TT>&gt;</TT><TT> S (div2 n&#X2019;)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+</DIV><P>The definition of a principle of induction corresponding to the
+recursive structure of <TT>div2</TT> is defined by the command:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Functional Scheme div2_ind := Induction for div2 Sort Prop.</TT><BR>
+<TT><I>div2_equation is defined</I></TT><BR>
+<TT><I>div2_ind is defined</I></TT><BR>
+</DIV><P>You may now look at the type of <TT>div2_ind</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check div2_ind.</TT><BR>
+<TT><I>div2_ind</I></TT><BR>
+<TT><I>     : forall P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop,</I></TT><BR>
+<TT><I>       (forall n : nat, n = 0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P 0 0) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall n n0 : nat, n = S n0 -</I></TT><TT><I>&gt;</I></TT><TT><I> n0 = 0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P 1 0) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall n n0 : nat,</I></TT><BR>
+<TT><I>        n = S n0 -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>        forall n&#X2019; : nat,</I></TT><BR>
+<TT><I>        n0 = S n&#X2019; -</I></TT><TT><I>&gt;</I></TT><TT><I> P n&#X2019; (div2 n&#X2019;) -</I></TT><TT><I>&gt;</I></TT><TT><I> P (S (S n&#X2019;)) (S (div2 n&#X2019;))) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall n : nat, P n (div2 n)</I></TT><BR>
+</DIV><P>We can now prove the following lemma using this principle:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma div2_le&#X2019; : forall n:nat, div2 n </TT><TT>&lt;</TT><TT>= n.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intro n.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  pattern n , (div2 n).</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> apply div2_ind; intros.</TT><BR>
+<TT><I>3 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  n0 : nat</I></TT><BR>
+<TT><I>  e : n0 = 0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   0 </I></TT><TT><I>&lt;</I></TT><TT><I>= 0</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> 0 </I></TT><TT><I>&lt;</I></TT><TT><I>= 1</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> S (div2 n&#X2019;) </I></TT><TT><I>&lt;</I></TT><TT><I>= S (S n&#X2019;)</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> simpl; auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+</DIV><P>We can use directly the <TT>functional induction</TT>
+(<A HREF="Reference-Manual011.html#FunInduction">8.7.7</A>) tactic instead of the pattern/apply trick:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Reset div2_le&#X2019;.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma div2_le : forall n:nat, div2 n </TT><TT>&lt;</TT><TT>= n.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intro n.</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> functional induction (div2 n).</TT><BR>
+<TT><I>3 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   0 </I></TT><TT><I>&lt;</I></TT><TT><I>= 0</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> 0 </I></TT><TT><I>&lt;</I></TT><TT><I>= 1</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> S (div2 n&#X2019;) </I></TT><TT><I>&lt;</I></TT><TT><I>= S (S n&#X2019;)</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> auto with arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+</DIV><P><BR>
+<B>Remark: </B>There is a difference between obtaining an induction scheme for a
+function by using <TT>Function</TT> (see Section <A HREF="Reference-Manual004.html#Function">2.3</A>) and by
+using <TT>Functional Scheme</TT> after a normal definition using
+<TT>Fixpoint</TT> or <TT>Definition</TT>. See <A HREF="Reference-Manual004.html#Function">2.3</A> for
+details.</P><P>
+<BR>
+<B>Example 2: </B><I>Induction scheme for </I><I><TT>tree_size</TT></I>
+</P><P>We define trees by the following mutual inductive type:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable A : Set.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive tree : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     node : A -</TT><TT>&gt;</TT><TT> forest -</TT><TT>&gt;</TT><TT> tree</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> with forest : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | empty : forest</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | cons : tree -</TT><TT>&gt;</TT><TT> forest -</TT><TT>&gt;</TT><TT> forest.</TT><BR>
+</DIV><P>We define the function <TT>tree_size</TT> that computes the size
+of a tree or a forest. Note that we use <TT>Function</TT> which
+generally produces better principles.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Function tree_size (t:tree) : nat :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match t with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | node A f =</TT><TT>&gt;</TT><TT> S (forest_size f)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  with forest_size (f:forest) : nat :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match f with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | empty =</TT><TT>&gt;</TT><TT> 0</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | cons t f&#X2019; =</TT><TT>&gt;</TT><TT> (tree_size t + forest_size f&#X2019;)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+</DIV><P>Remark: <TT>Function</TT> generates itself non mutual induction
+principles <TT>tree_size_ind</TT> and <TT>forest_size_ind</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check tree_size_ind.</TT><BR>
+<TT><I>tree_size_ind</I></TT><BR>
+<TT><I>     : forall P : tree -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop,</I></TT><BR>
+<TT><I>       (forall (t : tree) (A : A) (f : forest),</I></TT><BR>
+<TT><I>        t = node A f -</I></TT><TT><I>&gt;</I></TT><TT><I> P (node A f) (S (forest_size f))) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall t : tree, P t (tree_size t)</I></TT><BR>
+</DIV><P>The definition of mutual induction principles following the recursive
+structure of <TT>tree_size</TT> and <TT>forest_size</TT> is defined
+by the command:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Functional Scheme tree_size_ind2 := Induction for tree_size Sort Prop</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> with forest_size_ind2 := Induction for forest_size Sort Prop.</TT><BR>
+</DIV><P>You may now look at the type of <TT>tree_size_ind2</TT>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check tree_size_ind2.</TT><BR>
+<TT><I>tree_size_ind2</I></TT><BR>
+<TT><I>     : forall (P : tree -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop) (P0 : forest -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop),</I></TT><BR>
+<TT><I>       (forall (t : tree) (A : A) (f : forest),</I></TT><BR>
+<TT><I>        t = node A f -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>        P0 f (forest_size f) -</I></TT><TT><I>&gt;</I></TT><TT><I> P (node A f) (S (forest_size f))) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall f0 : forest, f0 = empty -</I></TT><TT><I>&gt;</I></TT><TT><I> P0 empty 0) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       (forall (f1 : forest) (t : tree) (f&#X2019; : forest),</I></TT><BR>
+<TT><I>        f1 = cons t f&#X2019; -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>        P t (tree_size t) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>        P0 f&#X2019; (forest_size f&#X2019;) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>        P0 (cons t f&#X2019;) (tree_size t + forest_size f&#X2019;)) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall t : tree, P t (tree_size t)</I></TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc71"></A><A NAME="htoc301">10.5</A>  <TT>inversion</TT><A NAME="@default752"></A><A NAME="@tactic183"></A>
+<A NAME="inversion-examples"></A></H2><H3 CLASS="subsection">Generalities about inversion</H3><P>When working with (co)inductive predicates, we are very often faced to
+some of these situations:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+we have an inconsistent instance of an inductive predicate in the
+local context of hypotheses. Thus, the current goal can be trivially
+proved by absurdity. 
+</LI><LI CLASS="li-itemize">we have a hypothesis that is an instance of an inductive
+predicate, and the instance has some variables whose constraints we
+would like to derive.
+</LI></UL><P>The inversion tactics are very useful to simplify the work in these
+cases. Inversion tools can be classified in three groups:</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+tactics for inverting an instance without stocking the inversion
+lemma in the context; this includes the tactics
+(<TT>dependent</TT>) <TT>inversion</TT> and
+(<TT>dependent</TT>) <TT>inversion_clear</TT>.
+</LI><LI CLASS="li-enumerate">commands for generating and stocking in the context the inversion
+lemma corresponding to an instance; this includes <TT>Derive</TT>
+(<TT>Dependent</TT>) <TT>Inversion</TT> and <TT>Derive</TT>
+(<TT>Dependent</TT>) <TT>Inversion_clear</TT>.
+</LI><LI CLASS="li-enumerate">tactics for inverting an instance using an already defined
+inversion lemma; this includes the tactic <TT>inversion &#X2026;using</TT>.
+</LI></OL><P>As inversion proofs may be large in size, we recommend the user to
+stock the lemmas whenever the same instance needs to be inverted
+several times.</P><P>
+<BR>
+<B>Example 1: </B><I>Non-dependent inversion</I>
+</P><P>Let&#X2019;s consider the relation <TT>Le</TT> over natural numbers and the
+following variables:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive Le : nat -</TT><TT>&gt;</TT><TT> nat -</TT><TT>&gt;</TT><TT> Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | LeO : forall n:nat, Le 0 n</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | LeS : forall n m:nat, Le n m -</TT><TT>&gt;</TT><TT> Le (S n) (S m).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable P : nat -</TT><TT>&gt;</TT><TT> nat -</TT><TT>&gt;</TT><TT> Prop.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable Q : forall n m:nat, Le n m -</TT><TT>&gt;</TT><TT> Prop.</TT><BR>
+</DIV><P>For example, consider the goal:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le (S n) m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   P n m</I></TT><BR>
+</DIV><P>To prove the goal we may need to reason by cases on <TT>H</TT> and to 
+derive that <TT>m</TT> is necessarily of
+the form (<I>S</I> <I>m</I><SUB>0</SUB>) for certain <I>m</I><SUB>0</SUB> and that (<I>Le</I> <I>n</I> <I>m</I><SUB>0</SUB>). 
+Deriving these conditions corresponds to prove that the
+only possible constructor of <TT>(Le (S n) m)</TT> is
+<TT>LeS</TT> and that we can invert the 
+<TT>-&gt;</TT> in the type of <TT>LeS</TT>. 
+This inversion is possible because <TT>Le</TT> is the smallest set closed by
+the constructors <TT>LeO</TT> and <TT>LeS</TT>.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> inversion_clear H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  m0 : nat</I></TT><BR>
+<TT><I>  H0 : Le n m0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   P n (S m0)</I></TT><BR>
+</DIV><P>Note that <TT>m</TT> has been substituted in the goal for <TT>(S m0)</TT>
+and that the hypothesis <TT>(Le n m0)</TT> has been added to the
+context.</P><P>Sometimes it is
+interesting to have the equality <TT>m=(S m0)</TT> in the
+context to use it after. In that case we can use <TT>inversion</TT> that
+does not clear the equalities:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Undo.</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> inversion H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le (S n) m</I></TT><BR>
+<TT><I>  n0 : nat</I></TT><BR>
+<TT><I>  m0 : nat</I></TT><BR>
+<TT><I>  H1 : Le n m0</I></TT><BR>
+<TT><I>  H0 : n0 = n</I></TT><BR>
+<TT><I>  H2 : S m0 = m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   P n (S m0)</I></TT><BR>
+</DIV><P>
+<BR>
+<B>Example 2: </B><I>Dependent Inversion</I>
+</P><P>Let us consider the following goal:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le (S n) m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   Q (S n) m H</I></TT><BR>
+</DIV><P>As <TT>H</TT> occurs in the goal, we may want to reason by cases on its
+structure and so, we would like inversion tactics to
+substitute <TT>H</TT> by the corresponding term in constructor form. 
+Neither <TT>Inversion</TT> nor <TT>Inversion_clear</TT> make such a
+substitution. 
+To have such a behavior we use the dependent inversion tactics:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> dependent inversion_clear H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  m0 : nat</I></TT><BR>
+<TT><I>  l : Le n m0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   Q (S n) (S m0) (LeS n m0 l)</I></TT><BR>
+</DIV><P>Note that <TT>H</TT> has been substituted by <TT>(LeS n m0 l)</TT> and
+<TT>m</TT> by <TT>(S m0)</TT>.</P><P>
+<BR>
+<B>Example 3: </B><I>using already defined inversion lemmas</I>
+</P><P>For example, to generate the inversion lemma for the instance
+<TT>(Le (S n) m)</TT> and the sort <TT>Prop</TT> we do:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Derive Inversion_clear leminv with (forall n m:nat, Le (S n) m) Sort</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  Prop.</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Check leminv.</TT><BR>
+<TT><I>leminv</I></TT><BR>
+<TT><I>     : forall (n m : nat) (P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop),</I></TT><BR>
+<TT><I>       (forall m0 : nat, Le n m0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P n (S m0)) -</I></TT><TT><I>&gt;</I></TT><TT><I> Le (S n) m -</I></TT><TT><I>&gt;</I></TT><TT><I> P n m</I></TT><BR>
+</DIV><P>Then we can use the proven inversion lemma:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le (S n) m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   P n m</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> inversion H using leminv.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le (S n) m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall m0 : nat, Le n m0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P n (S m0)</I></TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc72"></A><A NAME="htoc302">10.6</A>  <TT>dependent induction</TT><A NAME="dependent-induction-example"></A></H2><P>The tactics <TT>dependent induction</TT> and <TT>dependent destruction</TT> are another solution for inverting
+inductive predicate instances and potentially doing induction at the
+same time. It is based on the <TT>BasicElim</TT> tactic of Conor McBride which
+works by abstracting each argument of an inductive instance by a variable
+and constraining it by equalities afterwards. This way, the usual 
+<TT>induction</TT> and <TT>destruct</TT> tactics can be applied to the
+abstracted instance and after simplification of the equalities we get
+the expected goals.</P><P>The abstracting tactic is called <TT>generalize_eqs</TT> and it takes as
+argument an hypothesis to generalize. It uses the <TT>JMeq</TT> datatype
+defined in <TT>Coq.Logic.JMeq</TT>, hence we need to require it before.
+For example, revisiting the first example of the inversion documentation above:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Coq.Logic.JMeq.</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall n m:nat, Le (S n) m -</TT><TT>&gt;</TT><TT> P n m.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros n m H.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> generalize_eqs H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  gen_x : nat</I></TT><BR>
+<TT><I>  H : Le gen_x m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   gen_x = S n -</I></TT><TT><I>&gt;</I></TT><TT><I> P n m</I></TT><BR>
+</DIV><P>The index <TT>S n</TT> gets abstracted by a variable here, but a
+corresponding equality is added under the abstract instance so that no
+information is actually lost. The goal is now almost ammenable to do induction
+or case analysis. One should indeed first move <TT>n</TT> into the goal to
+strengthen it before doing induction, or <TT>n</TT> will be fixed in
+the inductive hypotheses (this does not matter for case analysis). 
+As a rule of thumb, all the variables that appear inside constructors in
+the indices of the hypothesis should be generalized. This is exactly
+what the <TT>generalize_eqs_vars</TT> variant does:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> generalize_eqs_vars H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  gen_x : nat</I></TT><BR>
+<TT><I>  H : Le gen_x m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall n : nat, gen_x = S n -</I></TT><TT><I>&gt;</I></TT><TT><I> P n m</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> induction H.</TT><BR>
+<TT><I>2 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall n0 : nat, 0 = S n0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P n0 n</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> forall n0 : nat, S n = S n0 -</I></TT><TT><I>&gt;</I></TT><TT><I> P n0 (S m)</I></TT><BR>
+</DIV><P>As the hypothesis itself did not appear in the goal, we did not need to
+use an heterogeneous equality to relate the new hypothesis to the old
+one (which just disappeared here). However, the tactic works just a well
+in this case, e.g.:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall n m (p : Le (S n) m), Q (S n) m p.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall (n m : nat) (p : Le (S n) m), Q (S n) m p</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros n m p ; generalize_eqs_vars p.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  gen_x : nat</I></TT><BR>
+<TT><I>  p : Le gen_x m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   forall (n : nat) (p0 : Le (S n) m),</I></TT><BR>
+<TT><I>   gen_x = S n -</I></TT><TT><I>&gt;</I></TT><TT><I> [p : (Le gen_x m)]= [p0 : (Le (S n) m)] -</I></TT><TT><I>&gt;</I></TT><TT><I> Q (S n) m p0</I></TT><BR>
+</DIV><P>One drawback of this approach is that in the branches one will have to
+substitute the equalities back into the instance to get the right
+assumptions. Sometimes injection of constructors will also be needed to
+recover the needed equalities. Also, some subgoals should be directly
+solved because of inconsistent contexts arising from the constraints on 
+indices. The nice thing is that we can make a tactic based on
+discriminate, injection and variants of substitution to automatically 
+do such simplifications (which may involve the K axiom). 
+This is what the <TT>simplify_dep_elim</TT> tactic from
+<TT>Coq.Program.Equality</TT> does. For example, we might simplify the
+previous goals considerably:
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> induction p ; simplify_dep_elim.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n0 : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  p : Le n0 m</I></TT><BR>
+<TT><I>  IHp : forall (n : nat) (p0 : Le (S n) m),</I></TT><BR>
+<TT><I>        n0 = S n -</I></TT><TT><I>&gt;</I></TT><TT><I> [p : (Le n0 m)]= [p0 : (Le (S n) m)] -</I></TT><TT><I>&gt;</I></TT><TT><I> Q (S n) m p0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   Q (S n0) (S m) (LeS n0 m p)</I></TT><BR>
+</DIV><P>The higher-order tactic <TT>do_depind</TT> defined in <TT>Coq.Program.Equality</TT> takes a tactic and combines the
+building blocks we&#X2019;ve seen with it: generalizing by equalities 
+calling the given tactic with the
+generalized induction hypothesis as argument and cleaning the subgoals
+with respect to equalities. Its most important instantiations are
+<TT>dependent induction</TT> and <TT>dependent destruction</TT> that do induction or simply case analysis on the
+generalized hypothesis. For example we can redo what we&#X2019;ve done manually
+with <TT>dependent destruction</TT> :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Coq.Program.Equality.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma ex : forall n m:nat, Le (S n) m -</TT><TT>&gt;</TT><TT> P n m.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros n m H.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> dependent destruction H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : Le n m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   P n (S m)</I></TT><BR>
+</DIV><P>This gives essentially the same result as inversion. Now if the
+destructed hypothesis actually appeared in the goal, the tactic would
+still be able to invert it, contrary to <TT>dependent
+inversion</TT>. Consider the following example on vectors:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Coq.Program.Equality.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Set Implicit Arguments.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable A : Set.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive vector : nat -</TT><TT>&gt;</TT><TT> Type := </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | vnil : vector 0 </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | vcons : A -</TT><TT>&gt;</TT><TT> forall n, vector n -</TT><TT>&gt;</TT><TT> vector (S n).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal forall n, forall v : vector (S n), </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   exists v&#X2019; : vector n, exists a : A, v = vcons a v&#X2019;.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   intros n v.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   dependent destruction v.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  a : A</I></TT><BR>
+<TT><I>  v : vector n</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   exists v&#X2019; : vector n, exists a0 : A, vcons a v = vcons a0 v&#X2019;</I></TT><BR>
+</DIV><P>In this case, the <TT>v</TT> variable can be replaced in the goal by the
+generalized hypothesis only when it has a type of the form <TT>vector
+(S n)</TT>, that is only in the second case of the <TT>destruct</TT>. The
+first one is dismissed because <TT>S n &lt;&gt; 0</TT>.</P><H3 CLASS="subsection"><A NAME="htoc303">10.6.1</A>  A larger example</H3><P>Let&#X2019;s see how the technique works with <TT>induction</TT> on inductive
+predicates on a real example. We will develop an example application to the
+theory of simply-typed lambda-calculus formalized in a dependently-typed style:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive type : Type :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | base : type</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | arrow : type -</TT><TT>&gt;</TT><TT> type -</TT><TT>&gt;</TT><TT> type.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation " t --</TT><TT>&gt;</TT><TT> t&#X2019; " := (arrow t t&#X2019;) (at level 20, t&#X2019; at next level).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive ctx : Type :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | empty : ctx</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | snoc : ctx -</TT><TT>&gt;</TT><TT> type -</TT><TT>&gt;</TT><TT> ctx.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation " G , tau " := (snoc G tau) (at level 20, t at next level).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint conc (G D : ctx) : ctx :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match D with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     | empty =</TT><TT>&gt;</TT><TT> G</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     | snoc D&#X2019; x =</TT><TT>&gt;</TT><TT> snoc (conc G D&#X2019;) x</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Notation " G ; D " := (conc G D) (at level 20).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive term : ctx -</TT><TT>&gt;</TT><TT> type -</TT><TT>&gt;</TT><TT> Type :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | ax : forall G tau, term (G, tau) tau</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | weak : forall G tau, </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   term G tau -</TT><TT>&gt;</TT><TT> forall tau&#X2019;, term (G, tau&#X2019;) tau</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | abs : forall G tau tau&#X2019;, </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   term (G , tau) tau&#X2019; -</TT><TT>&gt;</TT><TT> term G (tau --</TT><TT>&gt;</TT><TT> tau&#X2019;)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> | app : forall G tau tau&#X2019;, </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   term G (tau --</TT><TT>&gt;</TT><TT> tau&#X2019;) -</TT><TT>&gt;</TT><TT> term G tau -</TT><TT>&gt;</TT><TT> term G tau&#X2019;.</TT><BR>
+</DIV><P>We have defined types and contexts which are snoc-lists of types. We
+also have a <TT>conc</TT> operation that concatenates two contexts.
+The <TT>term</TT> datatype represents in fact the possible typing
+derivations of the calculus, which are isomorphic to the well-typed
+terms, hence the name. A term is either an application of:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+the axiom rule to type a reference to the first variable in a context,
+</LI><LI CLASS="li-itemize">the weakening rule to type an object in a larger context
+</LI><LI CLASS="li-itemize">the abstraction or lambda rule to type a function
+</LI><LI CLASS="li-itemize">the application to type an application of a function to an argument
+</LI></UL><P>Once we have this datatype we want to do proofs on it, like weakening:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma weakening : forall G D tau, term (G ; D) tau -</TT><TT>&gt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall tau&#X2019;, term (G , tau&#X2019; ; D) tau.</TT><BR>
+</DIV><P>The problem here is that we can&#X2019;t just use <TT>induction</TT> on the typing
+derivation because it will forget about the <TT>G ; D</TT> constraint
+appearing in the instance. A solution would be to rewrite the goal as:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma weakening&#X2019; : forall G&#X2019; tau, term G&#X2019; tau -</TT><TT>&gt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall G D, (G ; D) = G&#X2019; -</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall tau&#X2019;, term (G, tau&#X2019; ; D) tau.</TT><BR>
+</DIV><P>With this proper separation of the index from the instance and the right
+induction loading (putting <TT>G</TT> and <TT>D</TT> after the inducted-on
+hypothesis), the proof will go through, but it is a very tedious
+process. One is also forced to make a wrapper lemma to get back the
+more natural statement. The <TT>dependent induction</TT> tactic aleviates this trouble by
+doing all of this plumbing of generalizing and substituting back automatically.
+Indeed we can simply write:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Coq.Program.Tactics.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma weakening : forall G D tau, term (G ; D) tau -</TT><TT>&gt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall tau&#X2019;, term (G , tau&#X2019; ; D) tau.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof with simpl in * ; simpl_depind ; auto.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   intros G D tau H. dependent induction H generalizing G D ; intros.</TT><BR>
+</DIV><P>This call to <TT>dependent induction</TT> has an additional arguments which is a list of
+variables appearing in the instance that should be generalized in the
+goal, so that they can vary in the induction hypotheses. By default, all
+variables appearing inside constructors (except in a parameter position)
+of the instantiated hypothesis will be generalized automatically but
+one can always give the list explicitely.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   Show.</TT><BR>
+<TT><I>4 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  G : ctx</I></TT><BR>
+<TT><I>  tau : type</I></TT><BR>
+<TT><I>  G0 : ctx</I></TT><BR>
+<TT><I>  D : ctx</I></TT><BR>
+<TT><I>  H : G, tau = G0; D</I></TT><BR>
+<TT><I>  tau&#X2019; : type</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   term ((G0, tau&#X2019;); D) tau</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) tau</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) (tau &#X2013;</I></TT><TT><I>&gt;</I></TT><TT><I> tau&#X2019;)</I></TT><BR>
+<TT><I>subgoal 4 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) tau&#X2019;</I></TT><BR>
+</DIV><P>The <TT>simpl_depind</TT> tactic includes an automatic tactic that tries
+to simplify equalities appearing at the beginning of induction
+hypotheses, generally using trivial applications of
+reflexiviy. In cases where the equality is not between constructor
+forms though, one must help the automation by giving
+some arguments, using the <TT>specialize</TT> tactic.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> destruct D... apply weak ; apply ax. apply ax.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> destruct D...</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>4 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  G : ctx</I></TT><BR>
+<TT><I>  tau : type</I></TT><BR>
+<TT><I>  H : term G tau</I></TT><BR>
+<TT><I>  tau&#X2019; : type</I></TT><BR>
+<TT><I>  IHterm : forall G0 D : ctx,</I></TT><BR>
+<TT><I>           G = G0; D -</I></TT><TT><I>&gt;</I></TT><TT><I> forall tau&#X2019; : type, term ((G0, tau&#X2019;); D) tau</I></TT><BR>
+<TT><I>  tau&#X2019;0 : type</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   term ((G, tau&#X2019;), tau&#X2019;0) tau</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> term (((G0, tau&#X2019;0); D), t) tau</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) (tau &#X2013;</I></TT><TT><I>&gt;</I></TT><TT><I> tau&#X2019;)</I></TT><BR>
+<TT><I>subgoal 4 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) tau&#X2019;</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   specialize (IHterm G empty).</TT><BR>
+<TT><I>4 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  G : ctx</I></TT><BR>
+<TT><I>  tau : type</I></TT><BR>
+<TT><I>  H : term G tau</I></TT><BR>
+<TT><I>  tau&#X2019; : type</I></TT><BR>
+<TT><I>  IHterm : G = G; empty -</I></TT><TT><I>&gt;</I></TT><TT><I> forall tau&#X2019; : type, term ((G, tau&#X2019;); empty) tau</I></TT><BR>
+<TT><I>  tau&#X2019;0 : type</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   term ((G, tau&#X2019;), tau&#X2019;0) tau</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> term (((G0, tau&#X2019;0); D), t) tau</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) (tau &#X2013;</I></TT><TT><I>&gt;</I></TT><TT><I> tau&#X2019;)</I></TT><BR>
+<TT><I>subgoal 4 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) tau&#X2019;</I></TT><BR>
+</DIV><P>Then the automation can find the needed equality <TT>G = G</TT> to narrow
+the induction hypothesis further. This concludes our example.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   simpl_depind.</TT><BR>
+<TT><I>4 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  G : ctx</I></TT><BR>
+<TT><I>  tau : type</I></TT><BR>
+<TT><I>  H : term G tau</I></TT><BR>
+<TT><I>  tau&#X2019; : type</I></TT><BR>
+<TT><I>  tau&#X2019;0 : type</I></TT><BR>
+<TT><I>  IHterm : forall tau&#X2019; : type, term ((G, tau&#X2019;); empty) tau</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   term ((G, tau&#X2019;), tau&#X2019;0) tau</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> term (((G0, tau&#X2019;0); D), t) tau</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) (tau &#X2013;</I></TT><TT><I>&gt;</I></TT><TT><I> tau&#X2019;)</I></TT><BR>
+<TT><I>subgoal 4 is:</I></TT><BR>
+<TT><I> term ((G0, tau&#X2019;0); D) tau&#X2019;</I></TT><BR>
+</DIV><P><BR>
+<B>See also: </B>The induction <A HREF="Reference-Manual011.html#elim">11</A>, case <A HREF="Reference-Manual011.html#case">9</A> and inversion <A HREF="Reference-Manual011.html#inversion">8.10</A> tactics.</P><H2 CLASS="section"><A NAME="toc73"></A><A NAME="htoc304">10.7</A>  <TT>autorewrite</TT><A NAME="autorewrite-example"></A></H2><P>Here are two examples of <TT>autorewrite</TT> use. The first one (<EM>Ackermann
+function</EM>) shows actually a quite basic use where there is no conditional
+rewriting. The second one (<EM>Mac Carthy function</EM>) involves conditional
+rewritings and shows how to deal with them using the optional tactic of the
+<TT>Hint Rewrite</TT> command.</P><P>
+<BR>
+<B>Example 1: </B><I>Ackermann function</I>
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Reset Initial.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Arith.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable Ack : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>            nat -</TT><TT>&gt;</TT><TT> nat -</TT><TT>&gt;</TT><TT> nat.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Ack0 : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         forall m:nat, Ack 0 m = S m.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Ack1 : forall n:nat, Ack (S n) 0 = Ack n 1.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Ack2 : forall n m:nat, Ack (S n) (S m) = Ack n (Ack (S n) m).</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Hint Rewrite Ack0 Ack1 Ack2 : base0.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma ResAck0 : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  Ack 3 2 = 29.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   Ack 3 2 = 29</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> autorewrite with base0 using try reflexivity.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><P>
+<BR>
+<B>Example 2: </B><I>Mac Carthy function</I>
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Omega.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable g :   </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>            nat -</TT><TT>&gt;</TT><TT> nat -</TT><TT>&gt;</TT><TT> nat.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom g0 : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         forall m:nat, g 0 m = m.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   g1 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     forall n m:nat,</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       (n </TT><TT>&gt;</TT><TT> 0) -</TT><TT>&gt;</TT><TT> (m </TT><TT>&gt;</TT><TT> 100) -</TT><TT>&gt;</TT><TT> g n m = g (pred n) (m - 10).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   g2 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     forall n m:nat,</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       (n </TT><TT>&gt;</TT><TT> 0) -</TT><TT>&gt;</TT><TT> (m </TT><TT>&lt;</TT><TT>= 100) -</TT><TT>&gt;</TT><TT> g n m = g (S n) (m + 11).</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Hint Rewrite g0 g1 g2 using omega : base1.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma Resg0 : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  g 1 110 = 100.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   g 1 110 = 100</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> autorewrite with base1 using reflexivity || simpl.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma Resg1 : g 1 95 = 91.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   g 1 95 = 91</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> autorewrite with base1 using reflexivity || simpl.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc74"></A><A NAME="htoc305">10.8</A>  <TT>quote</TT><A NAME="@default753"></A><A NAME="@tactic184"></A><TT>
+</TT><A NAME="quote-examples"></A></H2><P>The tactic <TT>quote</TT> allows to use Barendregt&#X2019;s so-called
+2-level approach without writing any ML code. Suppose you have a
+language <TT>L</TT> of 
+&#X2019;abstract terms&#X2019; and a type <TT>A</TT> of &#X2019;concrete terms&#X2019; 
+and a function <TT>f : L -&gt; A</TT>. If <TT>L</TT> is a simple
+inductive datatype and <TT>f</TT> a simple fixpoint, <TT>quote f</TT>
+will replace the head of current goal by a convertible term of the form 
+<TT>(f t)</TT>. <TT>L</TT> must have a constructor of type: <TT>A
+-&gt; L</TT>. </P><P>Here is an example:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Quote.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Parameters A B C : Prop.</TT><BR>
+<TT><I>A is assumed</I></TT><BR>
+<TT><I>B is assumed</I></TT><BR>
+<TT><I>C is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive formula : Type :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula (* binary constructor *)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not : formula -</TT><TT>&gt;</TT><TT> formula (* unary constructor *)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true : formula (* 0-ary constructor *)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_const : Prop -</TT><TT>&gt;</TT><TT> formula (* contructor for constants *).</TT><BR>
+<TT><I>formula is defined</I></TT><BR>
+<TT><I>formula_rect is defined</I></TT><BR>
+<TT><I>formula_ind is defined</I></TT><BR>
+<TT><I>formula_rec is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint interp_f (f:</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>                    formula) : Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match f with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and f1 f2 =</TT><TT>&gt;</TT><TT> interp_f f1 /</TT><TT>\</TT><TT> interp_f f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or f1 f2 =</TT><TT>&gt;</TT><TT> interp_f f1 </TT><TT>\</TT><TT>/ interp_f f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not f1 =</TT><TT>&gt;</TT><TT> </TT><TT>~</TT><TT> interp_f f1</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true =</TT><TT>&gt;</TT><TT> True</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_const c =</TT><TT>&gt;</TT><TT> c</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>interp_f is recursively defined (decreasing on 1st argument)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal A /</TT><TT>\</TT><TT> (A </TT><TT>\</TT><TT>/ True) /</TT><TT>\</TT><TT> </TT><TT>~</TT><TT> B /</TT><TT>\</TT><TT> (A </TT><TT>&lt;</TT><TT>-</TT><TT>&gt;</TT><TT> A).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> (A </I></TT><TT><I>\</I></TT><TT><I>/ True) /</I></TT><TT><I>\</I></TT><TT><I> </I></TT><TT><I>~</I></TT><TT><I> B /</I></TT><TT><I>\</I></TT><TT><I> (A </I></TT><TT><I>&lt;</I></TT><TT><I>-</I></TT><TT><I>&gt;</I></TT><TT><I> A)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> quote interp_f.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   interp_f</I></TT><BR>
+<TT><I>     (f_and (f_const A)</I></TT><BR>
+<TT><I>        (f_and (f_or (f_const A) f_true)</I></TT><BR>
+<TT><I>           (f_and (f_not (f_const B)) (f_const (A </I></TT><TT><I>&lt;</I></TT><TT><I>-</I></TT><TT><I>&gt;</I></TT><TT><I> A)))))</I></TT><BR>
+</DIV><P>The algorithm to perform this inversion is: try to match the
+term with right-hand sides expression of <TT>f</TT>. If there is a
+match, apply the corresponding left-hand side and call yourself
+recursively on sub-terms. If there is no match, we are at a leaf:
+return the corresponding constructor (here <TT>f_const</TT>) applied
+to the term. </P><P><BR>
+<B>Error messages: </B></P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+<TT>quote: not a simple fixpoint</TT><A NAME="@error126"></A><BR>
+ Happens when <TT>quote</TT> is not able to perform inversion properly.
+</LI></OL><H3 CLASS="subsection"><A NAME="htoc306">10.8.1</A>  Introducing variables map</H3><P>The normal use of <TT>quote</TT> is to make proofs by reflection: one
+defines a function <TT>simplify : formula -&gt; formula</TT> and proves a 
+theorem <TT>simplify_ok: (f:formula)(interp_f (simplify f)) -&gt;
+(interp_f f)</TT>. Then, one can simplify formulas by doing:
+</P><PRE CLASS="verbatim">   quote interp_f.
+   apply simplify_ok.
+   compute.
+</PRE><P>But there is a problem with leafs: in the example above one cannot
+write a function that implements, for example, the logical simplifications 
+<I>A</I> &#X2227; <I>A</I> &#X2192; <I>A</I> or <I>A</I> &#X2227; ¬ <I>A</I> &#X2192; <TT>False</TT>. This is
+because the <FONT COLOR=purple>Prop</FONT> is impredicative.</P><P>It is better to use that type of formulas:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive formula : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not : formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true : formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_atom : index -</TT><TT>&gt;</TT><TT> formula.</TT><BR>
+<TT><I>formula is defined</I></TT><BR>
+<TT><I>formula_rect is defined</I></TT><BR>
+<TT><I>formula_ind is defined</I></TT><BR>
+<TT><I>formula_rec is defined</I></TT><BR>
+</DIV><P><TT>index</TT> is defined in module <TT>quote</TT>. Equality on that
+type is decidable so we are able to simplify <I>A</I> &#X2227; <I>A</I> into <I>A</I> at
+the abstract level. </P><P>When there are variables, there are bindings, and <TT>quote</TT>
+provides also a type <TT>(varmap A)</TT> of bindings from
+<TT>index</TT> to any set <TT>A</TT>, and a function
+<TT>varmap_find</TT> to search in such maps. The interpretation
+function has now another argument, a variables map:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint interp_f (vm:</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>                     varmap Prop) (f:formula) {struct f} : Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match f with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and f1 f2 =</TT><TT>&gt;</TT><TT> interp_f vm f1 /</TT><TT>\</TT><TT> interp_f vm f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or f1 f2 =</TT><TT>&gt;</TT><TT> interp_f vm f1 </TT><TT>\</TT><TT>/ interp_f vm f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not f1 =</TT><TT>&gt;</TT><TT> </TT><TT>~</TT><TT> interp_f vm f1</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true =</TT><TT>&gt;</TT><TT> True</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_atom i =</TT><TT>&gt;</TT><TT> varmap_find True i vm</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>interp_f is recursively defined (decreasing on 2nd argument)</I></TT><BR>
+</DIV><P><TT>quote</TT> handles this second case properly:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal A /</TT><TT>\</TT><TT> (B </TT><TT>\</TT><TT>/ A) /</TT><TT>\</TT><TT> (A </TT><TT>\</TT><TT>/ </TT><TT>~</TT><TT> B).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> (B </I></TT><TT><I>\</I></TT><TT><I>/ A) /</I></TT><TT><I>\</I></TT><TT><I> (A </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> B)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> quote interp_f.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   interp_f</I></TT><BR>
+<TT><I>     (Node_vm B (Node_vm A (Empty_vm Prop) (Empty_vm Prop)) (Empty_vm Prop))</I></TT><BR>
+<TT><I>     (f_and (f_atom (Left_idx End_idx))</I></TT><BR>
+<TT><I>        (f_and (f_or (f_atom End_idx) (f_atom (Left_idx End_idx)))</I></TT><BR>
+<TT><I>           (f_or (f_atom (Left_idx End_idx)) (f_not (f_atom End_idx)))))</I></TT><BR>
+</DIV><P>It builds <TT>vm</TT> and <TT>t</TT> such that <TT>(f vm t)</TT> is
+convertible with the conclusion of current goal.</P><H3 CLASS="subsection"><A NAME="htoc307">10.8.2</A>  Combining variables and constants</H3><P>One can have both variables and constants in abstracts terms; that is
+the case, for example, for the <TT>ring</TT> tactic (chapter
+<A HREF="Reference-Manual029.html#ring">23</A>). Then one must provide to <TT>quote</TT> a list of
+<EM>constructors of constants</EM>. For example, if the list is
+<TT>[O S]</TT> then closed natural numbers will be considered as
+constants and other terms as variables. </P><P>Example: </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive formula : Type :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or : formula -</TT><TT>&gt;</TT><TT> formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not : formula -</TT><TT>&gt;</TT><TT> formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true : formula</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_const : Prop -</TT><TT>&gt;</TT><TT> formula (* constructor for constants *)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_atom : index -</TT><TT>&gt;</TT><TT> formula.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Fixpoint interp_f</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  (vm:            (* constructor for variables *)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   varmap Prop) (f:formula) {struct f} : Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match f with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_and f1 f2 =</TT><TT>&gt;</TT><TT> interp_f vm f1 /</TT><TT>\</TT><TT> interp_f vm f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_or f1 f2 =</TT><TT>&gt;</TT><TT> interp_f vm f1 </TT><TT>\</TT><TT>/ interp_f vm f2</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_not f1 =</TT><TT>&gt;</TT><TT> </TT><TT>~</TT><TT> interp_f vm f1</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_true =</TT><TT>&gt;</TT><TT> True</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_const c =</TT><TT>&gt;</TT><TT> c</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | f_atom i =</TT><TT>&gt;</TT><TT> varmap_find True i vm</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Goal </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> A /</TT><TT>\</TT><TT> (A </TT><TT>\</TT><TT>/ True) /</TT><TT>\</TT><TT> </TT><TT>~</TT><TT> B /</TT><TT>\</TT><TT> (C </TT><TT>&lt;</TT><TT>-</TT><TT>&gt;</TT><TT> C).</TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> quote interp_f [ A B ].</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   interp_f (Node_vm (C </I></TT><TT><I>&lt;</I></TT><TT><I>-</I></TT><TT><I>&gt;</I></TT><TT><I> C) (Empty_vm Prop) (Empty_vm Prop))</I></TT><BR>
+<TT><I>     (f_and (f_const A)</I></TT><BR>
+<TT><I>        (f_and (f_or (f_const A) f_true)</I></TT><BR>
+<TT><I>           (f_and (f_not (f_const B)) (f_atom End_idx))))</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Undo.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> (A </I></TT><TT><I>\</I></TT><TT><I>/ True) /</I></TT><TT><I>\</I></TT><TT><I> </I></TT><TT><I>~</I></TT><TT><I> B /</I></TT><TT><I>\</I></TT><TT><I> (C </I></TT><TT><I>&lt;</I></TT><TT><I>-</I></TT><TT><I>&gt;</I></TT><TT><I> C)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   quote interp_f [ B C iff ].</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   interp_f (Node_vm A (Empty_vm Prop) (Empty_vm Prop))</I></TT><BR>
+<TT><I>     (f_and (f_atom End_idx)</I></TT><BR>
+<TT><I>        (f_and (f_or (f_atom End_idx) f_true)</I></TT><BR>
+<TT><I>           (f_and (f_not (f_const B)) (f_const (C </I></TT><TT><I>&lt;</I></TT><TT><I>-</I></TT><TT><I>&gt;</I></TT><TT><I> C)))))</I></TT><BR>
+</DIV><P><BR>
+<B>Warning: </B>Since function inversion
+is undecidable in general case, don&#X2019;t expect miracles from it!</P><P><BR>
+<B>See also: </B>comments of source file <TT>tactics/contrib/polynom/quote.ml</TT></P><P><BR>
+<B>See also: </B>the <TT>ring</TT> tactic (Chapter <A HREF="Reference-Manual029.html#ring">23</A>)</P><H2 CLASS="section"><A NAME="toc75"></A><A NAME="htoc308">10.9</A>  Using the tactical language</H2><H3 CLASS="subsection"><A NAME="htoc309">10.9.1</A>  About the cardinality of the set of natural numbers</H3><P>A first example which shows how to use the pattern matching over the proof
+contexts is the proof that natural numbers have more than two elements. The
+proof of such a lemma can be done as follows:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma card_nat :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  </TT><TT>~</TT><TT> (exists x : nat, exists y : nat, forall z:nat, x = z </TT><TT>\</TT><TT>/ y = z).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> red; intros (x, (y, Hy)).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> elim (Hy 0); elim (Hy 1); elim (Hy 2); intros;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  | [_:(?a = ?b),_:(?a = ?c) |- _ ] =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      cut (b = c); [ discriminate | apply trans_equal with a; auto ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  end.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+</DIV><P>We can notice that all the (very similar) cases coming from the three
+eliminations (with three distinct natural numbers) are successfully solved by
+a <TT>match goal</TT> structure and, in particular, with only one pattern (use
+of non-linear matching).</P><H3 CLASS="subsection"><A NAME="htoc310">10.9.2</A>  Permutation on closed lists</H3><P>Another more complex example is the problem of permutation on closed lists. The
+aim is to show that a closed list is a permutation of another one.</P><P>First, we define the permutation predicate as shown in table <A HREF="#permutpred">10.1</A>.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Section Sort.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variable A : Set.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive permut : list A -</TT><TT>&gt;</TT><TT> list A -</TT><TT>&gt;</TT><TT> Prop :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | permut_refl   : forall l, permut l l</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | permut_cons   :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       forall a l0 l1, permut l0 l1 -</TT><TT>&gt;</TT><TT> permut (a :: l0) (a :: l1)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | permut_append : forall a l, permut (a :: l) (l ++ a :: nil)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | permut_trans  :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       forall l0 l1 l2, permut l0 l1 -</TT><TT>&gt;</TT><TT> permut l1 l2 -</TT><TT>&gt;</TT><TT> permut l0 l2.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> End Sort.</TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.1: Definition of the permutation predicate</TD></TR>
+</TABLE></DIV>
+<A NAME="permutpred"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>A more complex example is the problem of permutation on closed lists.
+The aim is to show that a closed list is a permutation of another one.
+First, we define the permutation predicate as shown on
+Figure <A HREF="#permutpred">10.1</A>.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac Permut n :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- (permut _ ?l ?l) =</TT><TT>&gt;</TT><TT> apply permut_refl</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- (permut _ (?a :: ?l1) (?a :: ?l2)) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       let newn := eval compute in (length l1) in</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       (apply permut_cons; Permut newn)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- (permut ?A (?a :: ?l1) ?l2) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       match eval compute in n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | 1 =</TT><TT>&gt;</TT><TT> fail</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           let l1&#X2019; := constr:(l1 ++ a :: nil) in</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           (apply (permut_trans A (a :: l1) l1&#X2019; l2);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>             [ apply permut_append | compute; Permut (pred n) ])</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>Permut is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac PermutProve :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- (permut _ ?l1 ?l2) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       match eval compute in (length l1 = length l2) with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | (?n = ?n) =</TT><TT>&gt;</TT><TT> Permut n</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>PermutProve is defined</I></TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.2: Permutation tactic</TD></TR>
+</TABLE></DIV>
+<A NAME="permutltac"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>Next, we can write naturally the tactic and the result can be seen on
+Figure <A HREF="#permutltac">10.2</A>. We can notice that we use two toplevel
+definitions <TT>PermutProve</TT> and <TT>Permut</TT>. The function to be
+called is <TT>PermutProve</TT> which computes the lengths of the two
+lists and calls <TT>Permut</TT> with the length if the two lists have the
+same length. <TT>Permut</TT> works as expected. If the two lists are
+equal, it concludes. Otherwise, if the lists have identical first
+elements, it applies <TT>Permut</TT> on the tail of the lists. Finally,
+if the lists have different first elements, it puts the first element
+of one of the lists (here the second one which appears in the <TT>permut</TT> predicate) at the end if that is possible, i.e., if the new
+first element has been at this place previously. To verify that all
+rotations have been done for a list, we use the length of the list as
+an argument for <TT>Permut</TT> and this length is decremented for each
+rotation down to, but not including, 1 because for a list of length
+<I>n</I>, we can make exactly <I>n</I>&#X2212;1 rotations to generate at most <I>n</I>
+distinct lists. Here, it must be noticed that we use the natural
+numbers of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> for the rotation counter. On Figure <A HREF="Reference-Manual012.html#ltac">9.1</A>, we
+can see that it is possible to use usual natural numbers but they are
+only used as arguments for primitive tactics and they cannot be
+handled, in particular, we cannot make computations with them. So, a
+natural choice is to use <SPAN STYLE="font-variant:small-caps">Coq</SPAN> data structures so that <SPAN STYLE="font-variant:small-caps">Coq</SPAN> makes
+the computations (reductions) by <TT>eval compute in</TT> and we can get
+the terms back by <TT>match</TT>.</P><P>With <TT>PermutProve</TT>, we can now prove lemmas as 
+follows:
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma permut_ex1 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   permut nat (1 :: 2 :: 3 :: nil) (3 :: 2 :: 1 :: nil).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof. PermutProve. Qed.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma permut_ex2 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   permut nat</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     (0 :: 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: nil)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     (0 :: 2 :: 4 :: 6 :: 8 :: 9 :: 7 :: 5 :: 3 :: 1 :: nil).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof. PermutProve. Qed.</TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc311">10.9.3</A>  Deciding intuitionistic propositional logic</H3><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac Axioms :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- True =</TT><TT>&gt;</TT><TT> trivial</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | _:False |- _  =</TT><TT>&gt;</TT><TT> elimtype False; assumption</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | _:?A |- ?A  =</TT><TT>&gt;</TT><TT> auto</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>Axioms is defined</I></TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.3: Deciding intuitionistic propositions (1)</TD></TR>
+</TABLE></DIV>
+<A NAME="tautoltaca"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac DSimplif :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   repeat</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    (intros;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(</TT><TT>~</TT><TT> _) |- _ =</TT><TT>&gt;</TT><TT> red in id</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(_ /</TT><TT>\</TT><TT> _) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          elim id; do 2 intro; clear id</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(_ </TT><TT>\</TT><TT>/ _) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          elim id; intro; clear id</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(?A /</TT><TT>\</TT><TT> ?B -</TT><TT>&gt;</TT><TT> ?C) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          cut (A -</TT><TT>&gt;</TT><TT> B -</TT><TT>&gt;</TT><TT> C);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           [ intro | intros; apply id; split; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(?A </TT><TT>\</TT><TT>/ ?B -</TT><TT>&gt;</TT><TT> ?C) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          cut (B -</TT><TT>&gt;</TT><TT> C);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           [ cut (A -</TT><TT>&gt;</TT><TT> C);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              [ intros; clear id</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              | intro; apply id; left; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           | intro; apply id; right; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id0:(?A -</TT><TT>&gt;</TT><TT> ?B),id1:?A |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          cut B; [ intro; clear id0 | apply id0; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | |- (_ /</TT><TT>\</TT><TT> _) =</TT><TT>&gt;</TT><TT> split</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | |- (</TT><TT>~</TT><TT> _) =</TT><TT>&gt;</TT><TT> red</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      end).</TT><BR>
+<TT><I>DSimplif is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac TautoProp :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   DSimplif;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    Axioms ||</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:((?A -</TT><TT>&gt;</TT><TT> ?B) -</TT><TT>&gt;</TT><TT> ?C) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           cut (B -</TT><TT>&gt;</TT><TT> C);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           [ intro; cut (A -</TT><TT>&gt;</TT><TT> B);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              [ intro; cut C;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>                 [ intro; clear id | apply id; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              | clear id ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           | intro; apply id; intro; assumption ]; TautoProp</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | id:(</TT><TT>~</TT><TT> ?A -</TT><TT>&gt;</TT><TT> ?B) |- _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>          cut (False -</TT><TT>&gt;</TT><TT> B);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           [ intro; cut (A -</TT><TT>&gt;</TT><TT> False);</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              [ intro; cut B;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>                 [ intro; clear id | apply id; assumption ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>              | clear id ]</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           | intro; apply id; red; intro; assumption ]; TautoProp</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      | |- (_ </TT><TT>\</TT><TT>/ _) =</TT><TT>&gt;</TT><TT> (left; TautoProp) || (right; TautoProp)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>      end.</TT><BR>
+<TT><I>TautoProp is defined</I></TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.4: Deciding intuitionistic propositions (2)</TD></TR>
+</TABLE></DIV>
+<A NAME="tautoltacb"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>The pattern matching on goals allows a complete and so a powerful
+backtracking when returning tactic values. An interesting application
+is the problem of deciding intuitionistic propositional logic.
+Considering the contraction-free sequent calculi <TT>LJT*</TT> of
+Roy Dyckhoff ([<A HREF="biblio.html#Dyc92">54</A>]), it is quite natural to code such a tactic
+using the tactic language as shown on Figures <A HREF="#tautoltaca">10.3</A>
+and <A HREF="#tautoltacb">10.4</A>. The tactic <TT>Axioms</TT> tries to conclude using
+usual axioms. The tactic <TT>DSimplif</TT> applies all the reversible
+rules of Dyckhoff&#X2019;s system. Finally, the tactic <TT>TautoProp</TT> (the
+main tactic to be called) simplifies with <TT>DSimplif</TT>, tries to
+conclude with <TT>Axioms</TT> and tries several paths using the
+backtracking rules (one of the four Dyckhoff&#X2019;s rules for the left
+implication to get rid of the contraction and the right or).</P><P>For example, with <TT>TautoProp</TT>, we can prove tautologies like
+those:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma tauto_ex1 : forall A B:Prop, A /</TT><TT>\</TT><TT> B -</TT><TT>&gt;</TT><TT> A </TT><TT>\</TT><TT>/ B.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof. TautoProp. Qed.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma tauto_ex2 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>    forall A B:Prop, (</TT><TT>~</TT><TT> </TT><TT>~</TT><TT> B -</TT><TT>&gt;</TT><TT> B) -</TT><TT>&gt;</TT><TT> (A -</TT><TT>&gt;</TT><TT> B) -</TT><TT>&gt;</TT><TT> </TT><TT>~</TT><TT> </TT><TT>~</TT><TT> A -</TT><TT>&gt;</TT><TT> B.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof. TautoProp. Qed.</TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc312">10.9.4</A>  Deciding type isomorphisms</H3><P>A more tricky problem is to decide equalities between types and modulo
+isomorphisms. Here, we choose to use the isomorphisms of the simply typed
+&#X3BB;-calculus with Cartesian product and <I>unit</I> type (see, for example,
+[<A HREF="biblio.html#RC95">43</A>]). The axioms of this &#X3BB;-calculus are given by
+table <A HREF="#isosax">10.5</A>.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Open Scope type_scope.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Section Iso_axioms.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Variables A B C : Set.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Com : A * B = B * A.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Ass : A * (B * C) = A * B * C.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Cur : (A * B -</TT><TT>&gt;</TT><TT> C) = (A -</TT><TT>&gt;</TT><TT> B -</TT><TT>&gt;</TT><TT> C).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Dis : (A -</TT><TT>&gt;</TT><TT> B * C) = (A -</TT><TT>&gt;</TT><TT> B) * (A -</TT><TT>&gt;</TT><TT> C).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom P_unit : A * unit = A.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom AR_unit : (A -</TT><TT>&gt;</TT><TT> unit) = unit.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom AL_unit : (unit -</TT><TT>&gt;</TT><TT> A) = A.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma Cons : B = C -</TT><TT>&gt;</TT><TT> A * B = A * C.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intro Heq; rewrite Heq; apply refl_equal.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> End Iso_axioms.</TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.5: Type isomorphism axioms</TD></TR>
+</TABLE></DIV>
+<A NAME="isosax"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>A more tricky problem is to decide equalities between types and modulo
+isomorphisms. Here, we choose to use the isomorphisms of the simply typed
+&#X3BB;-calculus with Cartesian product and <I>unit</I> type (see, for example,
+[<A HREF="biblio.html#RC95">43</A>]). The axioms of this &#X3BB;-calculus are given on
+Figure <A HREF="#isosax">10.5</A>.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac DSimplif trm :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match trm with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A * ?B * ?C) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite </TT><TT>&lt;</TT><TT>- (Ass A B C); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A * ?B -</TT><TT>&gt;</TT><TT> ?C) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (Cur A B C); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A -</TT><TT>&gt;</TT><TT> ?B * ?C) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (Dis A B C); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A * unit) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (P_unit A); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (unit * ?B) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (Com unit B); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A -</TT><TT>&gt;</TT><TT> unit) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (AR_unit A); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (unit -</TT><TT>&gt;</TT><TT> ?B) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       rewrite (AL_unit B); try MainSimplif</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A * ?B) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       (DSimplif A; try MainSimplif) || (DSimplif B; try MainSimplif)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (?A -</TT><TT>&gt;</TT><TT> ?B) =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       (DSimplif A; try MainSimplif) || (DSimplif B; try MainSimplif)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  with MainSimplif :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | |- (?A = ?B) =</TT><TT>&gt;</TT><TT> try DSimplif A; try DSimplif B</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>DSimplif is defined</I></TT><BR>
+<TT><I>MainSimplif is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac Length trm :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match trm with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | (_ * ?B) =</TT><TT>&gt;</TT><TT> let succ := Length B in constr:(S succ)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | _ =</TT><TT>&gt;</TT><TT> constr:1</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>Length is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac assoc := repeat rewrite </TT><TT>&lt;</TT><TT>- Ass.</TT><BR>
+<TT><I>assoc is defined</I></TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.6: Type isomorphism tactic (1)</TD></TR>
+</TABLE></DIV>
+<A NAME="isosltac1"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+
+<DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac DoCompare n :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | [ |- (?A = ?A) ] =</TT><TT>&gt;</TT><TT> apply refl_equal</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | [ |- (?A * ?B = ?A * ?C) ] =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       apply Cons; let newn := Length B in</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>                   DoCompare newn</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | [ |- (?A * ?B = ?C) ] =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       match eval compute in n with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | 1 =</TT><TT>&gt;</TT><TT> fail</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | _ =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>           pattern (A * B) at 1; rewrite Com; assoc; DoCompare (pred n)</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>DoCompare is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac CompareStruct :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   match goal with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | [ |- (?A = ?B) ] =</TT><TT>&gt;</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       let l1 := Length A</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       with l2 := Length B in</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       match eval compute in (l1 = l2) with</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       | (?n = ?n) =</TT><TT>&gt;</TT><TT> DoCompare n</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>       end</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end.</TT><BR>
+<TT><I>CompareStruct is defined</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Ltac IsoProve := MainSimplif; CompareStruct.</TT><BR>
+<TT><I>IsoProve is defined</I></TT><BR>
+</DIV>
+
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 10.7: Type isomorphism tactic (2)</TD></TR>
+</TABLE></DIV>
+<A NAME="isosltac2"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>The tactic to judge equalities modulo this axiomatization can be written as
+shown on Figures <A HREF="#isosltac1">10.6</A> and <A HREF="#isosltac2">10.7</A>. The algorithm is quite
+simple. Types are reduced using axioms that can be oriented (this done by <TT>MainSimplif</TT>). The normal forms are sequences of Cartesian
+products without Cartesian product in the left component. These normal forms
+are then compared modulo permutation of the components (this is done by <TT>CompareStruct</TT>). The main tactic to be called and realizing this algorithm is
+<TT>IsoProve</TT>.</P><P>Here are examples of what can be solved by <TT>IsoProve</TT>.
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma isos_ex1 : </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall A B:Set, A * unit * B = B * (unit * A).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; IsoProve.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> </TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Lemma isos_ex2 :</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   forall A B C:Set,</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     (A * unit -</TT><TT>&gt;</TT><TT> B * (C * unit)) =</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     (A * unit -</TT><TT>&gt;</TT><TT> (C -</TT><TT>&gt;</TT><TT> unit) * C) * (unit -</TT><TT>&gt;</TT><TT> A -</TT><TT>&gt;</TT><TT> B).</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Proof.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> intros; IsoProve.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+</DIV>
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

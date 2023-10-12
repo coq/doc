@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 5  The Module System</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec221" class="chapter">Chapter 5  The Module System</h1>
+<ul>
+<li><a href="Reference-Manual007.html#sec222">5.1  Modules and module types</a>
+</li><li><a href="Reference-Manual007.html#sec229">5.2  Typing Modules</a>
+</li></ul>
+<p>The module system extends the Calculus of Inductive Constructions
+providing a convenient way to structure large developments as well as
+a mean of massive abstraction.
+</p>
+<h2 id="sec222" class="section">5.1  Modules and module types</h2>
+<h5 id="sec223" class="paragraph">Access path.</h5>
+<p> It is denoted by <span style="font-style:italic">p</span>, it can be either a module 
+variable <span style="font-style:italic">X</span> or, if <span style="font-style:italic">p</span>′ is an access path and <span style="font-style:italic">id</span> an identifier, then
+<span style="font-style:italic">p</span>′.<span style="font-style:italic">id</span> is an access path.</p>
+<h5 id="sec224" class="paragraph">Structure element.</h5>
+<p> It is denoted by <span style="font-style:italic">e</span> and is either a
+definition of a constant, an assumption, a definition of an inductive,
+a definition of a module, an alias of module or a module type abbreviation.</p>
+<h5 id="sec225" class="paragraph">Structure expression.</h5>
+<p> It is denoted by <span style="font-style:italic">S</span> and can be:
+</p><ul class="itemize"><li class="li-itemize">
+an access path <span style="font-style:italic">p</span>
+</li><li class="li-itemize">a plain structure <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span> <span style="font-family:monospace">;</span> … <span style="font-family:monospace">;</span> <span style="font-style:italic">e</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</li><li class="li-itemize">a functor <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>) <span style="font-style:italic">S</span>′, where <span style="font-style:italic">X</span> is a module variable,
+<span style="font-style:italic">S</span> and <span style="font-style:italic">S</span>′ are structure expression
+</li><li class="li-itemize">an application <span style="font-style:italic">S</span> <span style="font-style:italic">p</span>, where <span style="font-style:italic">S</span> is a structure expression and <span style="font-style:italic">p</span> 
+an access path 
+</li><li class="li-itemize">a refined structure <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">p</span> := <span style="font-style:italic">p</span>′ or <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">p</span> := <span style="font-style:italic">t</span>:<span style="font-style:italic">T</span> where <span style="font-style:italic">S</span>
+is a structure expression, <span style="font-style:italic">p</span> and <span style="font-style:italic">p</span>′ are access paths, <span style="font-style:italic">t</span> is a term 
+and <span style="font-style:italic">T</span> is the type of <span style="font-style:italic">t</span>.
+</li></ul>
+<h5 id="sec226" class="paragraph">Module definition,</h5>
+<p> is written <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span> <span style="font-style:oblique">[</span>:=<span style="font-style:italic">S</span>′<span style="font-style:oblique">]</span>) and
+consists of a module variable <span style="font-style:italic">X</span>, a module type
+<span style="font-style:italic">S</span> which can be any structure expression and optionally a module implementation <span style="font-style:italic">S</span>′ 
+which can be any structure expression except a refined structure.</p>
+<h5 id="sec227" class="paragraph">Module alias,</h5>
+<p> is written <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>) and
+consists of a module variable <span style="font-style:italic">X</span> and a module path <span style="font-style:italic">p</span>. </p>
+<h5 id="sec228" class="paragraph">Module type abbreviation,</h5>
+<p> is written <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span>), where
+<span style="font-style:italic">Y</span> is an identifier and <span style="font-style:italic">S</span> is any structure expression .</p>
+<h2 id="sec229" class="section">5.2  Typing Modules</h2>
+<p>In order to introduce the typing system we first slightly extend
+the syntactic class of terms and environments given in
+section <a href="Reference-Manual006.html#sec159">4.1</a>. The environments, apart from definitions of
+constants and inductive types now also hold any other structure elements.
+Terms, apart from variables, constants and complex terms, 
+include also access paths.</p><p>We also need additional typing judgments: 
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">S</span>), denoting that a structure <span style="font-style:italic">S</span> is well-formed, </li><li class="li-itemize"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span>, denoting that the module pointed by <span style="font-style:italic">p</span> has type <span style="font-style:italic">S</span> in
+environment <span style="font-style:italic">E</span>.</li><li class="li-itemize"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>, denoting that a structure <span style="font-style:italic">S</span> is evaluated to 
+a structure <span style="text-decoration:overline"><span style="font-style:italic">S</span></span> in weak head normal form.</li><li class="li-itemize"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> &lt;: <span style="font-style:italic">S</span><sub>2</sub>, denoting that a structure <span style="font-style:italic">S</span><sub>1</sub> is a subtype of a
+structure <span style="font-style:italic">S</span><sub>2</sub>.</li><li class="li-itemize"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">e</span><sub>1</sub> &lt;: <span style="font-style:italic">e</span><sub>2</sub>, denoting that a structure element
+<span style="font-style:italic">e</span><sub>1</sub> is more precise that a structure element <span style="font-style:italic">e</span><sub>2</sub>.
+</li></ul><p>
+The rules for forming structures are the following:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">WF-STR</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>;<span style="font-style:italic">E</span>′)[]
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">E</span>′ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WF-FUN</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>)[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(</td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span>′</td></tr>
+</table></td><td class="dcell">)
+</td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>) <span style="font-style:italic">S</span>′)
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+Evaluation of structures to weak head normal form:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">WEVAL-APP</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>) <span style="font-style:italic">S</span><sub>2</sub>     <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">1</span></sub></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><table class="display"><tr style="vertical-align:middle"><td class="dcell">    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span><sub>3</sub>     <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>3</sub> &lt;: </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>1</sub></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> <span style="font-style:italic">p</span> —→ <span style="font-style:italic">S</span><sub>2</sub>{<span style="font-style:italic">p</span>/<span style="font-style:italic">X</span>,<span style="font-style:italic">t</span><sub>1</sub>/<span style="font-style:italic">p</span><sub>1</sub>.<span style="font-style:italic">c</span><sub>1</sub>,…,<span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>/<span style="font-style:italic">p</span><sub><span style="font-style:italic">n</span></sub>.<span style="font-style:italic">c</span><sub><span style="font-style:italic">n</span></sub>}
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+In the last rule, {<span style="font-style:italic">t</span><sub>1</sub>/<span style="font-style:italic">p</span><sub>1</sub>.<span style="font-style:italic">c</span><sub>1</sub>,…,<span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>/<span style="font-style:italic">p</span><sub><span style="font-style:italic">n</span></sub>.<span style="font-style:italic">c</span><sub><span style="font-style:italic">n</span></sub>} is the resulting
+substitution from the inlining mechanism. We substitute in <span style="font-style:italic">S</span> the
+inlined fields <span style="font-style:italic">p</span><sub><span style="font-style:italic">i</span></sub>.<span style="font-style:italic">c</span><sub><span style="font-style:italic">i</span></sub> form <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>) by the corresponding delta-reduced term <span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub> in <span style="font-style:italic">p</span>.
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">WEVAL-WITH-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>     <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">1</span></sub></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><table class="display"><tr style="vertical-align:middle"><td class="dcell">    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span><sub>2</sub>     <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span><sub>2</sub> &lt;: </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>1</sub></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">x</span> := <span style="font-style:italic">p</span> —→</td></tr>
+<tr><td style="text-align:center;white-space:nowrap" > 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>{<span style="font-style:italic">p</span>/<span style="font-style:italic">X</span>}
+;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub>{<span style="font-style:italic">p</span>/<span style="font-style:italic">X</span>} <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-WITH-MOD-REC</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span><sub>1</sub>:<span style="font-style:italic">S</span><sub>1</sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">p</span> := <span style="font-style:italic">p</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">2</span></sub>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">X</span><sub>1</sub>.<span style="font-style:italic">p</span> := <span style="font-style:italic">p</span><sub>1</sub> —→</td></tr>
+<tr><td style="text-align:center;white-space:nowrap" > 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">2</span></sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>{<span style="font-style:italic">p</span><sub>1</sub>/<span style="font-style:italic">X</span><sub>1</sub>.<span style="font-style:italic">p</span>}
+;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub>{<span style="font-style:italic">p</span><sub>1</sub>/<span style="font-style:italic">X</span><sub>1</sub>.<span style="font-style:italic">p</span>} <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-WITH-DEF</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>1</sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span>) &lt;: <span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>1</sub>)
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">c</span> := <span style="font-style:italic">t</span>:<span style="font-style:italic">T</span> —→</td></tr>
+<tr><td style="text-align:center;white-space:nowrap" > 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-WITH-DEF-REC</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span><sub>1</sub>:<span style="font-style:italic">S</span><sub>1</sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">p</span> := <span style="font-style:italic">p</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">2</span></sub>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">with</span></span> <span style="font-style:italic">X</span><sub>1</sub>.<span style="font-style:italic">p</span> := <span style="font-style:italic">t</span>:<span style="font-style:italic">T</span> —→</td></tr>
+<tr><td style="text-align:center;white-space:nowrap" > 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="text-decoration:overline"><span style="font-style:italic">S</span></span><sub><span style="text-decoration:overline">2</span></sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-PATH-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>; <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span> <span style="font-style:oblique">[</span>:=<span style="font-style:italic">S</span><sub>1</sub><span style="font-style:oblique">]</span>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">X</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]      <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span> <span style="font-style:oblique">[</span>:=<span style="font-style:italic">S</span><sub>1</sub><span style="font-style:oblique">]</span>)∈ <span style="font-style:italic">E</span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">X</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-PATH-ALIAS</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span><sub>1</sub>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">p</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">X</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >      <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]       <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span><sub>1</sub>)∈ <span style="font-style:italic">E</span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >      <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span><sub>1</sub> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">X</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-PATH-TYPE</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> —→ 
+<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span>);<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span>+2</sub>;…
+;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">Y</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WEVAL-PATH-TYPE</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >    <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]       <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span>)∈ <span style="font-style:italic">E</span></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >    <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">Y</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+Rules for typing module:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">MT-EVAL</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> —→ <span style="text-decoration:overline"><span style="font-style:italic">S</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">MT-STR</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span>/<span style="font-style:italic">p</span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+The last rule, called strengthening is used to make all module fields
+manifestly equal to themselves. The notation <span style="font-style:italic">S</span>/<span style="font-style:italic">p</span> has the following
+meaning:
+</p><ul class="itemize"><li class="li-itemize">
+if <span style="font-style:italic">S</span>—→<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span> then
+<span style="font-style:italic">S</span>/<span style="font-style:italic">p</span>=<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>/<span style="font-style:italic">p</span>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub>/<span style="font-style:italic">p</span> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span> where <span style="font-style:italic">e</span>/<span style="font-style:italic">p</span> is defined as
+follows:
+<ul class="itemize"><li class="li-itemize">
+<span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span>)/<span style="font-style:italic">p</span><sup><a id="text13" href="#note13">1</a></sup>  =  <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span>)
+</li><li class="li-itemize"><span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">U</span>)/<span style="font-style:italic">p</span>  =  <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">p</span>.<span style="font-style:italic">c</span>:<span style="font-style:italic">U</span>)
+</li><li class="li-itemize"><span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>)/<span style="font-style:italic">p</span>  =  <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>.<span style="font-style:italic">X</span>)
+</li><li class="li-itemize"><span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>′)/<span style="font-style:italic">p</span>  =  <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>′)
+</li><li class="li-itemize"><span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> )/<span style="font-style:italic">p</span>  =  <span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table>
+</li><li class="li-itemize"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span>′</sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )/<span style="font-style:italic">p</span></td></tr>
+</table>  =  <span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span>′</sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table>
+</li></ul>
+</li><li class="li-itemize">if <span style="font-style:italic">S</span>—→<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>′) <span style="font-style:italic">S</span>″ then <span style="font-style:italic">S</span>/<span style="font-style:italic">p</span>=<span style="font-style:italic">S</span>
+</li></ul><p>
+The notation <span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table><p> denotes an
+inductive definition that is definitionally equal to the inductive
+definition in the module denoted by the path <span style="font-style:italic">p</span>. All rules which have
+<span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> ) as premises are also valid for 
+<span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table><p>. We give the formation rule
+for <span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table><p> below as well as
+the equality rules on inductive types and constructors. <br>
+
+The module subtyping rules:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">MSUB-STR</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >      <span style="font-style:italic">E</span>;<span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub>[] ⊢ <span style="font-style:italic">e</span><sub>σ(<span style="font-style:italic">i</span>)</sub> &lt;: <span style="font-style:italic">e</span>′<sub><span style="font-style:italic">i</span></sub>
+  for  <span style="font-style:italic">i</span>=1..<span style="font-style:italic">m</span> </td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >      σ : {1… <span style="font-style:italic">m</span>} → {1… <span style="font-style:italic">n</span>}   injective
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span> &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span>′<sub>1</sub>;…;<span style="font-style:italic">e</span>′<sub><span style="font-style:italic">m</span></sub> <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">MSUB-FUN</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>[] ⊢ </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>1</sub>′</td></tr>
+</table></td><td class="dcell"> &lt;: </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>1</sub></td></tr>
+</table></td><td class="dcell">          <span style="font-style:italic">E</span>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>′)[] ⊢ </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>2</sub></td></tr>
+</table></td><td class="dcell"> &lt;: </td><td class="dcell"><table style="border:0;border-spacing:1;border-collapse:separate;" class="cellpadding0"><tr><td class="hbar"></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">S</span><sub>2</sub>′</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>) <span style="font-style:italic">S</span><sub>2</sub> &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Functor</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>′) <span style="font-style:italic">S</span><sub>2</sub>′
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+Structure element subtyping rules:
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">ASSUM-ASSUM</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">T</span><sub>1</sub> ≤<sub>βδιζη</sub> <span style="font-style:italic">T</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">DEF-ASSUM</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">T</span><sub>1</sub> ≤<sub>βδιζη</sub> <span style="font-style:italic">T</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">ASSUM-DEF</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">T</span><sub>1</sub> ≤<sub>βδιζη</sub> <span style="font-style:italic">T</span><sub>2</sub>        <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">c</span> =<sub>βδιζη</sub> <span style="font-style:italic">t</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span><sub>2</sub>:<span style="font-style:italic">T</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">DEF-DEF</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">T</span><sub>1</sub> ≤<sub>βδιζη</sub> <span style="font-style:italic">T</span><sub>2</sub>        <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">t</span><sub>1</sub> =<sub>βδιζη</sub> <span style="font-style:italic">t</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span><sub>2</sub>:<span style="font-style:italic">T</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">IND-IND</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ Γ<sub><span style="font-style:italic">P</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">P</span></sub>′        <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>] ⊢ Γ<sub><span style="font-style:italic">C</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">C</span></sub>′        <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>;Γ<sub><span style="font-style:italic">C</span></sub>] ⊢ Γ<sub><span style="font-style:italic">I</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">I</span></sub>′</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> ) &lt;: <span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>′](Γ<sub><span style="font-style:italic">C</span></sub>′:=Γ<sub><span style="font-style:italic">I</span></sub>′ )
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">INDP-IND</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ Γ<sub><span style="font-style:italic">P</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">P</span></sub>′        <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>] ⊢ Γ<sub><span style="font-style:italic">C</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">C</span></sub>′        <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>;Γ<sub><span style="font-style:italic">C</span></sub>] ⊢ Γ<sub><span style="font-style:italic">I</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">I</span></sub>′</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>[] ⊢ </td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table></td><td class="dcell"> &lt;: <span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>′](Γ<sub><span style="font-style:italic">C</span></sub>′:=Γ<sub><span style="font-style:italic">I</span></sub>′ )
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">INDP-INDP</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ Γ<sub><span style="font-style:italic">P</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">P</span></sub>′      <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>] ⊢ Γ<sub><span style="font-style:italic">C</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">C</span></sub>′      <span style="font-style:italic">E</span>[Γ<sub><span style="font-style:italic">P</span></sub>;Γ<sub><span style="font-style:italic">C</span></sub>] ⊢ Γ<sub><span style="font-style:italic">I</span></sub> =<sub>βδιζη</sub> Γ<sub><span style="font-style:italic">I</span></sub>′      <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> =<sub>βδιζη</sub> <span style="font-style:italic">p</span>′
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>[] ⊢ </td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table></td><td class="dcell"> &lt;: </td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span>′</sub>()[Γ<sub><span style="font-style:italic">P</span></sub>′](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>′:=Γ<sub><span style="font-style:italic">I</span></sub>′
+ )</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">MOD-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> &lt;: <span style="font-style:italic">S</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">ALIAS-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span><sub>1</sub>        <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> &lt;: <span style="font-style:italic">S</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>) &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">MOD-ALIAS</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span><sub>2</sub>        
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> &lt;: <span style="font-style:italic">S</span><sub>2</sub>        <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">X</span> =<sub>βδιζη</sub> <span style="font-style:italic">p</span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">ALIAS-ALIAS</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span><sub>1</sub> =<sub>βδιζη</sub> <span style="font-style:italic">p</span><sub>2</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">MODTYPE-MODTYPE</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>1</sub> &lt;: <span style="font-style:italic">S</span><sub>2</sub>        <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>2</sub> &lt;: <span style="font-style:italic">S</span><sub>1</sub>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span><sub>1</sub>) &lt;: <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+New environment formation rules
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">WF-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]        <span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">S</span>)
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span>))[]
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WF-MOD</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >  <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">S</span><sub>2</sub> &lt;: <span style="font-style:italic">S</span><sub>1</sub></td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >  <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]     <span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">S</span><sub>1</sub>)     <span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">S</span><sub>2</sub>)
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>;<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Mod</span></span>(<span style="font-style:italic">X</span>:<span style="font-style:italic">S</span><sub>1</sub> <span style="font-style:oblique">[</span>:=<span style="font-style:italic">S</span><sub>2</sub><span style="font-style:oblique">]</span>))[]
+</td></tr>
+</table></td></tr>
+</table></dd><dt class="dt-description"><span style="font-weight:bold">WF-ALIAS</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]           <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-style:italic">S</span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>,<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModA</span></span>(<span style="font-style:italic">X</span>==<span style="font-style:italic">p</span>))[]
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WF-MODTYPE</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>)[]           <span style="font-style:italic">E</span>[] ⊢ <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">S</span>)
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>,<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">ModType</span></span>(<span style="font-style:italic">Y</span>:=<span style="font-style:italic">S</span>))[]
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">WF-IND</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:center;white-space:nowrap" >      <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>;<span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> ))[]</td></tr>
+<tr><td style="text-align:center;white-space:nowrap" >      <span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>:<span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">n</span></sub>;<span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>′](Γ<sub><span style="font-style:italic">C</span></sub>′:=Γ<sub><span style="font-style:italic">I</span></sub>′ );… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span> : </td></tr>
+<tr><td style="text-align:center;white-space:nowrap" ><span style="font-style:italic">E</span>[] ⊢ <span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>′](Γ<sub><span style="font-style:italic">C</span></sub>′:=Γ<sub><span style="font-style:italic">I</span></sub>′ ) &lt;: <span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> )
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell"><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">W</span></span><span style="color:red"><span style="font-style:italic">F</span></span>(<span style="font-style:italic">E</span>;</td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span></sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table></td><td class="dcell">)[]
+</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table>
+</dd></dl><p>
+Component access rules
+</p><dl class="description"><dt class="dt-description">
+<span style="font-weight:bold">ACC-TYPE</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Assum</span>()(<span style="font-style:italic">c</span>:<span style="font-style:italic">T</span>);… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">c</span> : <span style="font-style:italic">T</span>
+</td></tr>
+</table></td></tr>
+</table>
+<br>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">T</span>);… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">c</span> : <span style="font-style:italic">T</span>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">ACC-DELTA</span></dt><dd class="dd-description">
+Notice that the following rule extends the delta rule defined in
+section <a href="Reference-Manual006.html#sec174">4.3</a>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Def</span>()(<span style="font-style:italic">c</span>:=<span style="font-style:italic">t</span>:<span style="font-style:italic">U</span>);… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">c</span> ▷<sub>δ</sub> <span style="font-style:italic">t</span>
+</td></tr>
+</table></td></tr>
+</table>
+<br>
+In the rules below we assume Γ<sub><span style="font-style:italic">P</span></sub> is [<span style="font-style:italic">p</span><sub>1</sub>:<span style="font-style:italic">P</span><sub>1</sub>;…;<span style="font-style:italic">p</span><sub><span style="font-style:italic">r</span></sub>:<span style="font-style:italic">P</span><sub><span style="font-style:italic">r</span></sub>],
+Γ<sub><span style="font-style:italic">I</span></sub> is [<span style="font-style:italic">I</span><sub>1</sub>:<span style="font-style:italic">A</span><sub>1</sub>;…;<span style="font-style:italic">I</span><sub><span style="font-style:italic">k</span></sub>:<span style="font-style:italic">A</span><sub><span style="font-style:italic">k</span></sub>], and Γ<sub><span style="font-style:italic">C</span></sub> is
+[<span style="font-style:italic">c</span><sub>1</sub>:<span style="font-style:italic">C</span><sub>1</sub>;…;<span style="font-style:italic">c</span><sub><span style="font-style:italic">n</span></sub>:<span style="font-style:italic">C</span><sub><span style="font-style:italic">n</span></sub>]
+</dd><dt class="dt-description"><span style="font-weight:bold">ACC-IND</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> );… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">I</span><sub><span style="font-style:italic">j</span></sub> : (<span style="font-style:italic">p</span><sub>1</sub>:<span style="font-style:italic">P</span><sub>1</sub>)…(<span style="font-style:italic">p</span><sub><span style="font-style:italic">r</span></sub>:<span style="font-style:italic">P</span><sub><span style="font-style:italic">r</span></sub>)<span style="font-style:italic">A</span><sub><span style="font-style:italic">j</span></sub>
+</td></tr>
+</table></td></tr>
+</table>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;<span style="font-family:sans-serif">Ind</span>()[Γ<sub><span style="font-style:italic">P</span></sub>](Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub> );… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">c</span><sub><span style="font-style:italic">m</span></sub> : (<span style="font-style:italic">p</span><sub>1</sub>:<span style="font-style:italic">P</span><sub>1</sub>)…(<span style="font-style:italic">p</span><sub><span style="font-style:italic">r</span></sub>:<span style="font-style:italic">P</span><sub><span style="font-style:italic">r</span></sub>)<span style="font-style:italic">C</span><sub><span style="font-style:italic">m</span></sub><span style="font-style:italic">I</span><sub><span style="font-style:italic">j</span></sub>(<span style="font-style:italic">I</span><sub><span style="font-style:italic">j</span></sub> <span style="font-style:italic">p</span><sub>1</sub>…
+<span style="font-style:italic">p</span><sub><span style="font-style:italic">r</span></sub>)<sub><span style="font-style:italic">j</span>=1… <span style="font-style:italic">k</span></sub>
+</td></tr>
+</table></td></tr>
+</table>
+</dd><dt class="dt-description"><span style="font-weight:bold">ACC-INDP</span></dt><dd class="dd-description">
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;</td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span>′</sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table></td><td class="dcell">;… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">I</span><sub><span style="font-style:italic">i</span></sub> ▷<sub>δ</sub> <span style="font-style:italic">p</span>′.<span style="font-style:italic">I</span><sub><span style="font-style:italic">i</span></sub>
+</td></tr>
+</table></td></tr>
+</table>
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><table class="display"><tr style="vertical-align:middle"><td class="dcell">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span> : <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">Struct</span></span> <span style="font-style:italic">e</span><sub>1</sub>;…;<span style="font-style:italic">e</span><sub><span style="font-style:italic">i</span></sub>;</td><td class="dcell"><span style="font-family:sans-serif">Ind</span><sub><span style="font-style:italic">p</span>′</sub>()[Γ<sub><span style="font-style:italic">P</span></sub>](<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Γ<sub><span style="font-style:italic">C</span></sub>:=Γ<sub><span style="font-style:italic">I</span></sub>
+ )</td></tr>
+</table></td><td class="dcell">;… <span style="font-family:sans-serif"> </span><span style="font-family:sans-serif"><span style="font-style:italic">End</span></span>
+</td></tr>
+</table></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center">
+<span style="font-style:italic">E</span>[] ⊢ <span style="font-style:italic">p</span>.<span style="font-style:italic">c</span><sub><span style="font-style:italic">i</span></sub> ▷<sub>δ</sub> <span style="font-style:italic">p</span>′.<span style="font-style:italic">c</span><sub><span style="font-style:italic">i</span></sub>
+</td></tr>
+</table></td></tr>
+</table></dd></dl>
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note13" href="#text13">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Opaque definitions are processed as assumptions.</div>
+</dd></dl>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

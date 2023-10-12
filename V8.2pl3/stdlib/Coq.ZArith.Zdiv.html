@@ -1,0 +1,956 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Standard Library | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+
+</head>
+
+<body>
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<h1 class="libtitle">Library Coq.ZArith.Zdiv</h1>
+
+<div class="code">
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Euclidean Division
+
+<br/> <br/>
+    Defines first of function that allows Coq to normalize. 
+    Then only after proves the main required property.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <a class="idref" href="Coq.ZArith.ZArith_base.html#"><span class="id" type="library">ZArith_base</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="Coq.ZArith.Zbool.html#"><span class="id" type="library">Zbool</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.2pl2/stdlib/Coq.omega.Omega.html#"><span class="id" type="library">Omega</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.2pl2/stdlib/Coq.setoid_ring.ZArithRing.html#"><span class="id" type="library">ZArithRing</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="Coq.ZArith.Zcomplements.html#"><span class="id" type="library">Zcomplements</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <a class="idref" href="Coq.Setoids.Setoid.html#"><span class="id" type="library">Setoid</span></a>.<br/>
+<span class="id" type="keyword">Open</span> <span class="id" type="keyword">Local</span> <span class="id" type="keyword">Scope</span> <span class="id" type="var">Z_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab238"></a><h1 class="section">Definitions of Euclidian operations</h1>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Euclidean division of a positive by a integer 
+    (that is supposed to be positive).
+
+<br/> <br/>
+    Total function than returns an arbitrary value when
+    divisor is not positive
+
+<br/> <br/>
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Euclidean division of integers.
+
+<br/> <br/>
+    Total function than returns (0,0) when dividing by 0. 
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+
+<br/> <br/>
+  The pseudo-code is:
+
+<br/> <br/>
+  if b = 0 : (0,0)
+
+<br/> <br/>
+  if b &lt;&gt; 0 and a = 0 : (0,0)
+
+<br/> <br/>
+  if b &gt; 0 and a &lt; 0 : let (q,r) = div_eucl_pos (-a) b in 
+                       if r = 0 then (-q,0) else (-(q+1),b-r)
+
+<br/> <br/>
+  if b &lt; 0 and a &lt; 0 : let (q,r) = div_eucl (-a) (-b) in (q,-r)
+
+<br/> <br/>
+  if b &lt; 0 and a &gt; 0 : let (q,r) = div_eucl a (-b) in 
+                       if r = 0 then (-q,0) else (-(q+1),b+r)
+
+<br/> <br/>
+  In other word, when b is non-zero, q is chosen to be the greatest integer 
+  smaller or equal to a/b. And sgn(r)=sgn(b) and |r| &lt; |b| (at least when 
+  r is not null). 
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Zdiv_eucl"><span class="id" type="definition">Zdiv_eucl</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z) : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> * <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">a</span>, <span class="id" type="var">b</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a>, <span class="id" type="var">_</span> =&gt; (0, 0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">_</span>, <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; (0, 0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">a'</span>, <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">_</span> =&gt; <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">a'</span>, <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">r</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; (- <span class="id" type="var">q</span>, 0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">_</span> =&gt; (- (<span class="id" type="var">q</span> + 1), <span class="id" type="var">b</span> - <span class="id" type="var">r</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">a'</span>, <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">b'</span> =&gt; <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a'</span> (<a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">b'</span>) <span class="id" type="keyword">in</span> (<span class="id" type="var">q</span>, - <span class="id" type="var">r</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">a'</span>, <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">b'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a'</span> (<a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">b'</span>) <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">r</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; (- <span class="id" type="var">q</span>, 0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">_</span> =&gt; (- (<span class="id" type="var">q</span> + 1), <span class="id" type="var">b</span> + <span class="id" type="var">r</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Division and modulo are projections of <span class="inlinecode"><span class="id" type="var">Zdiv_eucl</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Zdiv"><span class="id" type="definition">Zdiv</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z) : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> := <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">_</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl"><span class="id" type="definition">Zdiv_eucl</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span> <span class="id" type="var">q</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Zmod"><span class="id" type="definition">Zmod</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z) : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> := <span class="id" type="keyword">let</span> (<span class="id" type="var">_</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl"><span class="id" type="definition">Zdiv_eucl</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span> <span class="id" type="var">r</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Syntax 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Infix</span> "/" := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv"><span class="id" type="definition">Zdiv</span></a> : <span class="id" type="var">Z_scope</span>.<br/>
+<span class="id" type="keyword">Infix</span> "mod" := <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod"><span class="id" type="definition">Zmod</span></a> (<span class="id" type="tactic">at</span> <span class="id" type="var">level</span> 40, <span class="id" type="var">no</span> <span class="id" type="var">associativity</span>) : <span class="id" type="var">Z_scope</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab239"></a><h1 class="section">Main division theorem</h1>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+First a lemma for two positive arguments 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_mod_POS"><span class="id" type="lemma">Z_div_mod_POS</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span>:Z,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">b</span> &gt; 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>:positive,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span> <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">a</span> = <span class="id" type="var">b</span> * <span class="id" type="var">q</span> + <span class="id" type="var">r</span> /\ 0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Then the usual situation of a positive <span class="inlinecode"><span class="id" type="var">b</span></span> and no restriction on <span class="inlinecode"><span class="id" type="var">a</span></span> 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Z_div_mod"><span class="id" type="lemma">Z_div_mod</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl"><span class="id" type="definition">Zdiv_eucl</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span> <span class="id" type="var">a</span> = <span class="id" type="var">b</span> * <span class="id" type="var">q</span> + <span class="id" type="var">r</span> /\ 0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For stating the fully general result, let's give a short name 
+    to the condition on the remainder. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span> :=  0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span> \/ <span class="id" type="var">b</span> &lt; <span class="id" type="var">r</span> &lt;= 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Another equivalent formulation: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Remainder_alt"><span class="id" type="definition">Remainder_alt</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span> :=  <a class="idref" href="Coq.ZArith.BinInt.html#Zabs"><span class="id" type="definition">Zabs</span></a> <span class="id" type="var">r</span> &lt; <a class="idref" href="Coq.ZArith.BinInt.html#Zabs"><span class="id" type="definition">Zabs</span></a> <span class="id" type="var">b</span> /\ <a class="idref" href="Coq.ZArith.BinInt.html#Zsgn"><span class="id" type="definition">Zsgn</span></a> <span class="id" type="var">r</span> &lt;&gt; - <a class="idref" href="Coq.ZArith.BinInt.html#Zsgn"><span class="id" type="definition">Zsgn</span></a> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Remainder_equiv"><span class="id" type="lemma">Remainder_equiv</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">r</span> <span class="id" type="var">b</span>, <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span> &lt;-&gt; <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder_alt"><span class="id" type="definition">Remainder_alt</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Hint</span> <span class="id" type="keyword">Unfold</span> <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now comes the fully general result about Euclidean division. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Z_div_mod_full"><span class="id" type="lemma">Z_div_mod_full</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl"><span class="id" type="definition">Zdiv_eucl</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span> <span class="id" type="var">a</span> = <span class="id" type="var">b</span> * <span class="id" type="var">q</span> + <span class="id" type="var">r</span> /\ <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The same results as before, stated separately in terms of Zdiv and Zmod 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_remainder"><span class="id" type="lemma">Z_mod_remainder</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span>&lt;&gt;0 -&gt; <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>) <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_lt"><span class="id" type="lemma">Z_mod_lt</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; 0 &lt;= <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt; <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_neg"><span class="id" type="lemma">Z_mod_neg</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &lt; 0 -&gt; <span class="id" type="var">b</span> &lt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;= 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_mod_eq_full"><span class="id" type="lemma">Z_div_mod_eq_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b) + (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_mod_eq"><span class="id" type="lemma">Z_div_mod_eq</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b) + (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_eq_full"><span class="id" type="lemma">Zmod_eq_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span>&lt;&gt;0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = <span class="id" type="var">a</span> - (<span class="id" type="var">a</span>/b)*b.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_eq"><span class="id" type="lemma">Zmod_eq</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span>&gt;0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = <span class="id" type="var">a</span> - (<span class="id" type="var">a</span>/b)*b.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Existence theorem 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_eucl_exist"><span class="id" type="lemma">Zdiv_eucl_exist</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">b</span>:Z)(Hb:b&gt;0)(<span class="id" type="var">a</span>:Z),<br/>
+&nbsp;{<span class="id" type="var">qr</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> * <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> | <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <span class="id" type="var">qr</span> <span class="id" type="keyword">in</span> <span class="id" type="var">a</span> = <span class="id" type="var">b</span> * <span class="id" type="var">q</span> + <span class="id" type="var">r</span> /\ 0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span>}.<br/>
+
+<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_exist"><span class="id" type="lemma">Zdiv_eucl_exist</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness theorems 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_mod_unique"><span class="id" type="lemma">Zdiv_mod_unique</span></a> :<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span> <span class="id" type="var">q1</span> <span class="id" type="var">q2</span> <span class="id" type="var">r1</span> <span class="id" type="var">r2</span>:Z,<br/>
+&nbsp;&nbsp;0 &lt;= <span class="id" type="var">r1</span> &lt; <a class="idref" href="Coq.ZArith.BinInt.html#Zabs"><span class="id" type="definition">Zabs</span></a> <span class="id" type="var">b</span> -&gt; 0 &lt;= <span class="id" type="var">r2</span> &lt; <a class="idref" href="Coq.ZArith.BinInt.html#Zabs"><span class="id" type="definition">Zabs</span></a> <span class="id" type="var">b</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" type="var">b</span>*q1+r1 = <span class="id" type="var">b</span>*q2+r2 -&gt; <span class="id" type="var">q1</span>=q2 /\ <span class="id" type="var">r1</span>=r2.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_mod_unique_2"><span class="id" type="lemma">Zdiv_mod_unique_2</span></a> :<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span> <span class="id" type="var">q1</span> <span class="id" type="var">q2</span> <span class="id" type="var">r1</span> <span class="id" type="var">r2</span>:Z,<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r1</span> <span class="id" type="var">b</span> -&gt; <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r2</span> <span class="id" type="var">b</span> -&gt; <br/>
+&nbsp;&nbsp;<span class="id" type="var">b</span>*q1+r1 = <span class="id" type="var">b</span>*q2+r2 -&gt; <span class="id" type="var">q1</span>=q2 /\ <span class="id" type="var">r1</span>=r2.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_unique_full"><span class="id" type="lemma">Zdiv_unique_full</span></a>:<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>, <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span> -&gt; <br/>
+&nbsp;&nbsp;&nbsp;<span class="id" type="var">a</span> = <span class="id" type="var">b</span>*q + <span class="id" type="var">r</span> -&gt; <span class="id" type="var">q</span> = <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_unique"><span class="id" type="lemma">Zdiv_unique</span></a>:<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>, 0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span> -&gt; <br/>
+&nbsp;&nbsp;&nbsp;<span class="id" type="var">a</span> = <span class="id" type="var">b</span>*q + <span class="id" type="var">r</span> -&gt; <span class="id" type="var">q</span> = <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_unique_full"><span class="id" type="lemma">Zmod_unique_full</span></a>:<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>, <a class="idref" href="Coq.ZArith.Zdiv.html#Remainder"><span class="id" type="definition">Remainder</span></a> <span class="id" type="var">r</span> <span class="id" type="var">b</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" type="var">a</span> = <span class="id" type="var">b</span>*q + <span class="id" type="var">r</span> -&gt;  <span class="id" type="var">r</span> = <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_unique"><span class="id" type="lemma">Zmod_unique</span></a>:<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>, 0 &lt;= <span class="id" type="var">r</span> &lt; <span class="id" type="var">b</span> -&gt;<br/>
+&nbsp;&nbsp;<span class="id" type="var">a</span> = <span class="id" type="var">b</span>*q + <span class="id" type="var">r</span> -&gt; <span class="id" type="var">r</span> = <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab240"></a><h1 class="section">Basic values of divisions and modulo.</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_0_l"><span class="id" type="lemma">Zmod_0_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, 0 <span class="id" type="var">mod</span> <span class="id" type="var">a</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_0_r"><span class="id" type="lemma">Zmod_0_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> 0 = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_0_l"><span class="id" type="lemma">Zdiv_0_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, 0/a = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_0_r"><span class="id" type="lemma">Zdiv_0_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span>/0 = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_1_r"><span class="id" type="lemma">Zmod_1_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> 1 = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_1_r"><span class="id" type="lemma">Zdiv_1_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span>/1 = <span class="id" type="var">a</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Hint</span> <span class="id" type="keyword">Resolve</span> <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_0_l"><span class="id" type="lemma">Zmod_0_l</span></a> <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_0_r"><span class="id" type="lemma">Zmod_0_r</span></a> <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_0_l"><span class="id" type="lemma">Zdiv_0_l</span></a> <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_0_r"><span class="id" type="lemma">Zdiv_0_r</span></a> <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_1_r"><span class="id" type="lemma">Zdiv_1_r</span></a> <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_1_r"><span class="id" type="lemma">Zmod_1_r</span></a> <br/>
+&nbsp;: <span class="id" type="var">zarith</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_1_l"><span class="id" type="lemma">Zdiv_1_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, 1 &lt; <span class="id" type="var">a</span> -&gt; 1/a = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_1_l"><span class="id" type="lemma">Zmod_1_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, 1 &lt; <span class="id" type="var">a</span> -&gt;  1 <span class="id" type="var">mod</span> <span class="id" type="var">a</span> = 1.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_same_full"><span class="id" type="lemma">Z_div_same_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>:Z, <span class="id" type="var">a</span>&lt;&gt;0 -&gt; <span class="id" type="var">a</span>/a = 1.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_same_full"><span class="id" type="lemma">Z_mod_same_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">a</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_mult"><span class="id" type="lemma">Z_mod_mult</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, (<span class="id" type="var">a</span>*b) <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_mult_full"><span class="id" type="lemma">Z_div_mult_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; (<span class="id" type="var">a</span>*b)/b = <span class="id" type="var">a</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab241"></a><h1 class="section">Order results about Zmod and Zdiv</h1>
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_pos"><span class="id" type="lemma">Z_div_pos</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <span class="id" type="var">b</span> &gt; 0 -&gt; 0 &lt;= <span class="id" type="var">a</span> -&gt; 0 &lt;= <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_ge0"><span class="id" type="lemma">Z_div_ge0</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">a</span> &gt;= 0 -&gt; <span class="id" type="var">a</span>/b &gt;=0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+As soon as the divisor is greater or equal than 2, 
+    the division is strictly decreasing. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_lt"><span class="id" type="lemma">Z_div_lt</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt;= 2 -&gt; <span class="id" type="var">a</span> &gt; 0 -&gt; <span class="id" type="var">a</span>/b &lt; <span class="id" type="var">a</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A division of a small number by a bigger one yields zero. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_small"><span class="id" type="lemma">Zdiv_small</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, 0 &lt;= <span class="id" type="var">a</span> &lt; <span class="id" type="var">b</span> -&gt; <span class="id" type="var">a</span>/b = 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Same situation, in term of modulo: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_small"><span class="id" type="lemma">Zmod_small</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">n</span>, 0 &lt;= <span class="id" type="var">a</span> &lt; <span class="id" type="var">n</span> -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = <span class="id" type="var">a</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">Zge</span></span> is compatible with a positive division. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_ge"><span class="id" type="lemma">Z_div_ge</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <span class="id" type="var">c</span> &gt; 0 -&gt; <span class="id" type="var">a</span> &gt;= <span class="id" type="var">b</span> -&gt; <span class="id" type="var">a</span>/c &gt;= <span class="id" type="var">b</span>/c.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Same, with <span class="inlinecode"><span class="id" type="var">Zle</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_le"><span class="id" type="lemma">Z_div_le</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <span class="id" type="var">c</span> &gt; 0 -&gt; <span class="id" type="var">a</span> &lt;= <span class="id" type="var">b</span> -&gt; <span class="id" type="var">a</span>/c &lt;= <span class="id" type="var">b</span>/c.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+With our choice of division, rounding of (a/b) is always done toward bottom: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mult_div_ge"><span class="id" type="lemma">Z_mult_div_ge</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">b</span>*(a/b) &lt;= <span class="id" type="var">a</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mult_div_ge_neg"><span class="id" type="lemma">Z_mult_div_ge_neg</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &lt; 0 -&gt; <span class="id" type="var">b</span>*(a/b) &gt;= <span class="id" type="var">a</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The previous inequalities are exact iff the modulo is zero. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_exact_full_1"><span class="id" type="lemma">Z_div_exact_full_1</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b) -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_exact_full_2"><span class="id" type="lemma">Z_div_exact_full_2</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A modulo cannot grow beyond its starting point. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_le"><span class="id" type="lemma">Zmod_le</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, 0 &lt; <span class="id" type="var">b</span> -&gt; 0 &lt;= <span class="id" type="var">a</span> -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;= <span class="id" type="var">a</span>.<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+Some additionnal inequalities about Zdiv. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_le_upper_bound"><span class="id" type="lemma">Zdiv_le_upper_bound</span></a>: <br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span>, 0 &lt;= <span class="id" type="var">a</span> -&gt; 0 &lt; <span class="id" type="var">b</span> -&gt; <span class="id" type="var">a</span> &lt;= <span class="id" type="var">q</span>*b -&gt; <span class="id" type="var">a</span>/b &lt;= <span class="id" type="var">q</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_lt_upper_bound"><span class="id" type="lemma">Zdiv_lt_upper_bound</span></a>: <br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span>, 0 &lt;= <span class="id" type="var">a</span> -&gt; 0 &lt; <span class="id" type="var">b</span> -&gt; <span class="id" type="var">a</span> &lt; <span class="id" type="var">q</span>*b -&gt; <span class="id" type="var">a</span>/b &lt; <span class="id" type="var">q</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_le_lower_bound"><span class="id" type="lemma">Zdiv_le_lower_bound</span></a>: <br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">q</span>, 0 &lt;= <span class="id" type="var">a</span> -&gt; 0 &lt; <span class="id" type="var">b</span> -&gt; <span class="id" type="var">q</span>*b &lt;= <span class="id" type="var">a</span> -&gt; <span class="id" type="var">q</span> &lt;= <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A division of respect opposite monotonicity for the divisor 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_le_compat_l"><span class="id" type="lemma">Zdiv_le_compat_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">p</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>, 0 &lt;= <span class="id" type="var">p</span> -&gt; 0 &lt; <span class="id" type="var">q</span> &lt; <span class="id" type="var">r</span> -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">p</span> / <span class="id" type="var">r</span> &lt;= <span class="id" type="var">p</span> / <span class="id" type="var">q</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_sgn"><span class="id" type="lemma">Zdiv_sgn</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <br/>
+&nbsp;&nbsp;0 &lt;= <a class="idref" href="Coq.ZArith.BinInt.html#Zsgn"><span class="id" type="definition">Zsgn</span></a> (<span class="id" type="var">a</span>/b) * <a class="idref" href="Coq.ZArith.BinInt.html#Zsgn"><span class="id" type="definition">Zsgn</span></a> <span class="id" type="var">a</span> * <a class="idref" href="Coq.ZArith.BinInt.html#Zsgn"><span class="id" type="definition">Zsgn</span></a> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab242"></a><h1 class="section">Relations between usual operations and Zmod and Zdiv</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_plus_full"><span class="id" type="lemma">Z_mod_plus_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, (<span class="id" type="var">a</span> + <span class="id" type="var">b</span> * <span class="id" type="var">c</span>) <span class="id" type="var">mod</span> <span class="id" type="var">c</span> = <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">c</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_plus_full"><span class="id" type="lemma">Z_div_plus_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <span class="id" type="var">c</span> &lt;&gt; 0 -&gt; (<span class="id" type="var">a</span> + <span class="id" type="var">b</span> * <span class="id" type="var">c</span>) / <span class="id" type="var">c</span> = <span class="id" type="var">a</span> / <span class="id" type="var">c</span> + <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Z_div_plus_full_l"><span class="id" type="lemma">Z_div_plus_full_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a>, <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; (<span class="id" type="var">a</span> * <span class="id" type="var">b</span> + <span class="id" type="var">c</span>) / <span class="id" type="var">b</span> = <span class="id" type="var">a</span> + <span class="id" type="var">c</span> / <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">Zopp</span></span> and <span class="inlinecode"><span class="id" type="var">Zdiv</span></span>, <span class="inlinecode"><span class="id" type="var">Zmod</span></span>.
+    Due to the choice of convention for our Euclidean division, 
+    some of the relations about <span class="inlinecode"><span class="id" type="var">Zopp</span></span> and divisions are rather complex. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_opp_opp"><span class="id" type="lemma">Zdiv_opp_opp</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, (-a)/(-b) = <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_opp_opp"><span class="id" type="lemma">Zmod_opp_opp</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, (-a) <span class="id" type="var">mod</span> (-b) = - (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_zero_opp_full"><span class="id" type="lemma">Z_mod_zero_opp_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; (-a) <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_nz_opp_full"><span class="id" type="lemma">Z_mod_nz_opp_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <br/>
+&nbsp;(-a) <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = <span class="id" type="var">b</span> - (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_zero_opp_r"><span class="id" type="lemma">Z_mod_zero_opp_r</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> (-b) = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_nz_opp_r"><span class="id" type="lemma">Z_mod_nz_opp_r</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <br/>
+&nbsp;<span class="id" type="var">a</span> <span class="id" type="var">mod</span> (-b) = (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>) - <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_zero_opp_full"><span class="id" type="lemma">Z_div_zero_opp_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; (-a)/b = -(a/b).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_nz_opp_full"><span class="id" type="lemma">Z_div_nz_opp_full</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <br/>
+&nbsp;(-a)/b = -(a/b)-1.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_zero_opp_r"><span class="id" type="lemma">Z_div_zero_opp_r</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; <span class="id" type="var">a</span>/(-b) = -(a/b).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_nz_opp_r"><span class="id" type="lemma">Z_div_nz_opp_r</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> &lt;&gt; 0 -&gt; <br/>
+&nbsp;<span class="id" type="var">a</span>/(-b) = -(a/b)-1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Cancellations. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_mult_cancel_r"><span class="id" type="lemma">Zdiv_mult_cancel_r</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <br/>
+&nbsp;<span class="id" type="var">c</span> &lt;&gt; 0 -&gt; (<span class="id" type="var">a</span>*c)/(b*c) = <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_mult_cancel_l"><span class="id" type="lemma">Zdiv_mult_cancel_l</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <br/>
+&nbsp;<span class="id" type="var">c</span>&lt;&gt;0 -&gt; (<span class="id" type="var">c</span>*a)/(c*b) = <span class="id" type="var">a</span>/b.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmult_mod_distr_l"><span class="id" type="lemma">Zmult_mod_distr_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>, <br/>
+&nbsp;&nbsp;(<span class="id" type="var">c</span>*a) <span class="id" type="var">mod</span> (<span class="id" type="var">c</span>*b) = <span class="id" type="var">c</span> * (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmult_mod_distr_r"><span class="id" type="lemma">Zmult_mod_distr_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>, <br/>
+&nbsp;&nbsp;(<span class="id" type="var">a</span>*c) <span class="id" type="var">mod</span> (<span class="id" type="var">b</span>*c) = (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span>) * <span class="id" type="var">c</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Operations modulo. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_mod"><span class="id" type="lemma">Zmod_mod</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">n</span>, (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmult_mod"><span class="id" type="lemma">Zmult_mod</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>,<br/>
+&nbsp;(<span class="id" type="var">a</span> * <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = ((<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) * (<span class="id" type="var">b</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>)) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zplus_mod"><span class="id" type="lemma">Zplus_mod</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>,<br/>
+&nbsp;(<span class="id" type="var">a</span> + <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> + <span class="id" type="var">b</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zminus_mod"><span class="id" type="lemma">Zminus_mod</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>,<br/>
+&nbsp;(<span class="id" type="var">a</span> - <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> - <span class="id" type="var">b</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zplus_mod_idemp_l"><span class="id" type="lemma">Zplus_mod_idemp_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> + <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> + <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zplus_mod_idemp_r"><span class="id" type="lemma">Zplus_mod_idemp_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">b</span> + <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">b</span> + <span class="id" type="var">a</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zminus_mod_idemp_l"><span class="id" type="lemma">Zminus_mod_idemp_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> - <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> - <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zminus_mod_idemp_r"><span class="id" type="lemma">Zminus_mod_idemp_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">a</span> - <span class="id" type="var">b</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> - <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmult_mod_idemp_l"><span class="id" type="lemma">Zmult_mod_idemp_l</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span> * <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">a</span> * <span class="id" type="var">b</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmult_mod_idemp_r"><span class="id" type="lemma">Zmult_mod_idemp_r</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">n</span>, (<span class="id" type="var">b</span> * (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">n</span>)) <span class="id" type="var">mod</span> <span class="id" type="var">n</span> = (<span class="id" type="var">b</span> * <span class="id" type="var">a</span>) <span class="id" type="var">mod</span> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+For a specific number N, equality modulo N is hence a nice setoid
+   equivalence, compatible with <span class="inlinecode">+</span>, <span class="inlinecode">-</span> and <span class="inlinecode">*</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> := (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">N</span> = <span class="id" type="var">b</span> <span class="id" type="var">mod</span> <span class="id" type="var">N</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eqm_refl"><span class="id" type="lemma">eqm_refl</span></a> <span class="id" type="var">N</span> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">a</span> <span class="id" type="var">a</span>.<br/>
+ 
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eqm_sym"><span class="id" type="lemma">eqm_sym</span></a> <span class="id" type="var">N</span> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">a</span> <span class="id" type="var">b</span> -&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">b</span> <span class="id" type="var">a</span>.<br/>
+ 
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eqm_trans"><span class="id" type="lemma">eqm_trans</span></a> <span class="id" type="var">N</span> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>,<br/>
+&nbsp;&nbsp;(<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">a</span> <span class="id" type="var">b</span> -&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">b</span> <span class="id" type="var">c</span> -&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="var">a</span> <span class="id" type="var">c</span>.<br/>
+ 
+<br/>
+<span class="id" type="keyword">Add</span> <span class="id" type="var">Parametric</span> <span class="id" type="var">Relation</span> <span class="id" type="var">N</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="tactic">reflexivity</span> <span class="id" type="var">proved</span> <span class="id" type="tactic">by</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm_refl"><span class="id" type="lemma">eqm_refl</span></a> <span class="id" type="var">N</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="tactic">symmetry</span> <span class="id" type="var">proved</span> <span class="id" type="tactic">by</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm_sym"><span class="id" type="lemma">eqm_sym</span></a> <span class="id" type="var">N</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="tactic">transitivity</span> <span class="id" type="var">proved</span> <span class="id" type="tactic">by</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm_trans"><span class="id" type="lemma">eqm_trans</span></a> <span class="id" type="var">N</span>) <span class="id" type="keyword">as</span> <span class="id" type="var">eqm_setoid</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Add</span> <span class="id" type="var">Parametric</span> <span class="id" type="var">Morphism</span> <span class="id" type="var">N</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Zplus"><span class="id" type="definition">Zplus</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">with</span> <span class="id" type="var">signature</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="keyword">as</span> <span class="id" type="var">Zplus_eqm</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Add</span> <span class="id" type="var">Parametric</span> <span class="id" type="var">Morphism</span> <span class="id" type="var">N</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Zminus"><span class="id" type="definition">Zminus</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">with</span> <span class="id" type="var">signature</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="keyword">as</span> <span class="id" type="var">Zminus_eqm</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Add</span> <span class="id" type="var">Parametric</span> <span class="id" type="var">Morphism</span> <span class="id" type="var">N</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Zmult"><span class="id" type="definition">Zmult</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">with</span> <span class="id" type="var">signature</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="keyword">as</span> <span class="id" type="var">Zmult_eqm</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Add</span> <span class="id" type="var">Parametric</span> <span class="id" type="var">Morphism</span> <span class="id" type="var">N</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Zopp"><span class="id" type="definition">Zopp</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">with</span> <span class="id" type="var">signature</span> (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) ==&gt; (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) <span class="id" type="keyword">as</span> <span class="id" type="var">Zopp_eqm</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_eqm"><span class="id" type="lemma">Zmod_eqm</span></a> <span class="id" type="var">N</span> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, (<a class="idref" href="Coq.ZArith.Zdiv.html#eqm"><span class="id" type="definition">eqm</span></a> <span class="id" type="var">N</span>) (<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">N</span>) <span class="id" type="var">a</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zdiv_Zdiv"><span class="id" type="lemma">Zdiv_Zdiv</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>, 0&lt;=b -&gt; 0&lt;=c -&gt; (<span class="id" type="var">a</span>/b)/c = <span class="id" type="var">a</span>/(b*c).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Unfortunately, the previous result isn't always true on negative numbers.
+    For instance: 3/(-2)/(-2) = 1 &lt;&gt; 0 = 3 / (-2*-2) 
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+A last inequality: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_mult_le"><span class="id" type="lemma">Zdiv_mult_le</span></a>:<br/>
+&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>, 0&lt;=a -&gt; 0&lt;=b -&gt; 0&lt;=c -&gt; <span class="id" type="var">c</span>*(a/b) &lt;= (<span class="id" type="var">c</span>*a)/b.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Zmod is related to divisibility (see more in Znumtheory) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Zmod_divides"><span class="id" type="lemma">Zmod_divides</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <span class="id" type="var">b</span>&lt;&gt;0 -&gt; <br/>
+&nbsp;(<span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 &lt;-&gt; <span class="id" type="var">exists</span> <span class="id" type="var">c</span>, <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*c).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab243"></a><h1 class="section">Compatibility</h1>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Weaker results kept only for compatibility 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_same"><span class="id" type="lemma">Z_mod_same</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span> &gt; 0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">a</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_same"><span class="id" type="lemma">Z_div_same</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>, <span class="id" type="var">a</span> &gt; 0 -&gt; <span class="id" type="var">a</span>/a = 1.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_plus"><span class="id" type="lemma">Z_div_plus</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <span class="id" type="var">c</span> &gt; 0 -&gt; (<span class="id" type="var">a</span> + <span class="id" type="var">b</span> * <span class="id" type="var">c</span>) / <span class="id" type="var">c</span> = <span class="id" type="var">a</span> / <span class="id" type="var">c</span> + <span class="id" type="var">b</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_mult"><span class="id" type="lemma">Z_div_mult</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; (<span class="id" type="var">a</span>*b)/b = <span class="id" type="var">a</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_plus"><span class="id" type="lemma">Z_mod_plus</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span> <span class="id" type="var">c</span>:Z, <span class="id" type="var">c</span> &gt; 0 -&gt; (<span class="id" type="var">a</span> + <span class="id" type="var">b</span> * <span class="id" type="var">c</span>) <span class="id" type="var">mod</span> <span class="id" type="var">c</span> = <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">c</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_exact_1"><span class="id" type="lemma">Z_div_exact_1</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b) -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_div_exact_2"><span class="id" type="lemma">Z_div_exact_2</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; <span class="id" type="var">a</span> = <span class="id" type="var">b</span>*(a/b).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Z_mod_zero_opp"><span class="id" type="lemma">Z_mod_zero_opp</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>:Z, <span class="id" type="var">b</span> &gt; 0 -&gt; <span class="id" type="var">a</span> <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0 -&gt; (-a) <span class="id" type="var">mod</span> <span class="id" type="var">b</span> = 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab244"></a><h1 class="section">A direct way to compute Zmod</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> (<span class="id" type="var">a</span> : <a class="idref" href="Coq.NArith.BinPos.html#positive"><span class="id" type="inductive">positive</span></a>) (<span class="id" type="var">b</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a>) {<span class="id" type="keyword">struct</span> <span class="id" type="var">a</span>} : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a>  :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">a</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.NArith.BinPos.html#xI"><span class="id" type="constructor">xI</span></a> <span class="id" type="var">a'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r</span> := <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r'</span> := (2 * <span class="id" type="var">r</span> + 1) <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">if</span> <a class="idref" href="Coq.ZArith.Zbool.html#Zgt_bool"><span class="id" type="definition">Zgt_bool</span></a> <span class="id" type="var">b</span> <span class="id" type="var">r'</span> <span class="id" type="keyword">then</span> <span class="id" type="var">r'</span> <span class="id" type="keyword">else</span> (<span class="id" type="var">r'</span> - <span class="id" type="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.NArith.BinPos.html#xO"><span class="id" type="constructor">xO</span></a> <span class="id" type="var">a'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r</span> := <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r'</span> := (2 * <span class="id" type="var">r</span>) <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">if</span> <a class="idref" href="Coq.ZArith.Zbool.html#Zgt_bool"><span class="id" type="definition">Zgt_bool</span></a> <span class="id" type="var">b</span> <span class="id" type="var">r'</span> <span class="id" type="keyword">then</span> <span class="id" type="var">r'</span> <span class="id" type="keyword">else</span> (<span class="id" type="var">r'</span> - <span class="id" type="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.NArith.BinPos.html#xH"><span class="id" type="constructor">xH</span></a> =&gt; <span class="id" type="keyword">if</span> <a class="idref" href="Coq.ZArith.Zbool.html#Zge_bool"><span class="id" type="definition">Zge_bool</span></a> <span class="id" type="var">b</span> 2 <span class="id" type="keyword">then</span> 1 <span class="id" type="keyword">else</span> 0<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Zmod'"><span class="id" type="definition">Zmod'</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">a</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; 0<br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">a'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">b</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">_</span> =&gt; <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">b'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r</span> := <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> (<a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">b'</span>) <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">r</span>  <span class="id" type="keyword">with</span> <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt;  0 |  <span class="id" type="var">_</span>  =&gt;   <span class="id" type="var">b</span> + <span class="id" type="var">r</span> <span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">a'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">b</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt; 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">r</span> := <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> <span class="id" type="var">b</span> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">r</span> <span class="id" type="keyword">with</span> <a class="idref" href="Coq.ZArith.BinInt.html#Z0"><span class="id" type="constructor">Z0</span></a> =&gt;  0 | <span class="id" type="var">_</span>  =&gt;  <span class="id" type="var">b</span> - <span class="id" type="var">r</span> <span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.ZArith.BinInt.html#Zneg"><span class="id" type="constructor">Zneg</span></a> <span class="id" type="var">b'</span> =&gt; - (<a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a'</span> (<a class="idref" href="Coq.ZArith.BinInt.html#Zpos"><span class="id" type="constructor">Zpos</span></a> <span class="id" type="var">b'</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod_POS_correct"><span class="id" type="lemma">Zmod_POS_correct</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod_POS"><span class="id" type="definition">Zmod_POS</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> = (<a class="idref" href="Coq.Init.Datatypes.html#snd"><span class="id" type="definition">snd</span></a> (<a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_POS"><span class="id" type="definition">Zdiv_eucl_POS</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span>)).<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zmod'_correct"><span class="id" type="lemma">Zmod'_correct</span></a>: <span class="id" type="keyword">forall</span> <span class="id" type="var">a</span> <span class="id" type="var">b</span>, <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod'"><span class="id" type="definition">Zmod'</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span> = <a class="idref" href="Coq.ZArith.Zdiv.html#Zmod"><span class="id" type="definition">Zmod</span></a> <span class="id" type="var">a</span> <span class="id" type="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Another convention is possible for division by negative numbers:
+<a name="lab245"></a><h1 class="section">quotient is always the biggest integer smaller than or equal to a/b</h1>
+
+<a name="lab246"></a><h1 class="section">remainder is hence always positive or null.</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <a name="Zdiv_eucl_extended"><span class="id" type="lemma">Zdiv_eucl_extended</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span>:Z,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">b</span> &lt;&gt; 0 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">a</span>:Z,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" type="var">qr</span> : <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> * <a class="idref" href="Coq.ZArith.BinInt.html#Z"><span class="id" type="inductive">Z</span></a> | <span class="id" type="keyword">let</span> (<span class="id" type="var">q</span>, <span class="id" type="var">r</span>) := <span class="id" type="var">qr</span> <span class="id" type="keyword">in</span> <span class="id" type="var">a</span> = <span class="id" type="var">b</span> * <span class="id" type="var">q</span> + <span class="id" type="var">r</span> /\ 0 &lt;= <span class="id" type="var">r</span> &lt; <a class="idref" href="Coq.ZArith.BinInt.html#Zabs"><span class="id" type="definition">Zabs</span></a> <span class="id" type="var">b</span>}.<br/>
+
+<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.ZArith.Zdiv.html#Zdiv_eucl_extended"><span class="id" type="lemma">Zdiv_eucl_extended</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A third convention: Ocaml.
+
+<br/> <br/>
+     See files ZOdiv_def.v and ZOdiv.v.
+
+<br/> <br/>
+     Ocaml uses Round-Toward-Zero division: (-a)/b = a/(-b) = -(a/b).
+     Hence (-a) mod b = - (a mod b)
+           a mod (-b) = a mod b
+     And: |r| &lt; |b| and sgn(r) = sgn(a)  (notice the a here instead of b). 
+
+</div>
+<div class="code">
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf">Standard Library
+  <ul class="menu">
+  <li><a href="index.html">Table of contents</a></li>
+  <li><a href="genindex.html">Index</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 12  Syntax extensions and interpretation scopes</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="Addoc-syntax" class="chapter">Chapter 12  Syntax extensions and interpretation scopes</h1>
+<ul>
+<li><a href="Reference-Manual014.html#Notation">12.1  Notations</a>
+</li><li><a href="Reference-Manual014.html#scopes">12.2  Interpretation scopes</a>
+</li><li><a href="Reference-Manual014.html#Abbreviations">12.3  Abbreviations</a>
+</li><li><a href="Reference-Manual014.html#sec578">12.4  Tactic Notations
+</a>
+</li></ul>
+<p>In this chapter, we introduce advanced commands to modify the way
+<span style="font-variant:small-caps">Coq</span> parses and prints objects, i.e. the translations between the
+concrete and internal representations of terms and commands. The main
+commands are <span style="font-family:monospace">Notation</span> and <span style="font-family:monospace">Infix</span> which are described in
+section <a href="#Notation">12.1</a>. It also happens that the same symbolic
+notation is expected in different contexts. To achieve this form of
+overloading, <span style="font-variant:small-caps">Coq</span> offers a notion of interpretation scope. This is
+described in Section <a href="#scopes">12.2</a>.</p><p><br>
+<span style="font-weight:bold">Remark: </span>The commands <span style="font-family:monospace">Grammar</span>, <span style="font-family:monospace">Syntax</span> and <span style="font-family:monospace">Distfix</span> which
+were present for a while in <span style="font-variant:small-caps">Coq</span> are no longer available from <span style="font-variant:small-caps">Coq</span>
+version 8.0. The underlying AST structure is also no longer available.
+The functionalities of the command <span style="font-family:monospace">Syntactic Definition</span> are
+still available, see Section <a href="#Abbreviations">12.3</a>.</p><h2 id="Notation" class="section">12.1  Notations
+<a id="hevea_default869"></a><a id="hevea_command214"></a></h2>
+<h3 id="sec534" class="subsection">12.1.1  Basic notations</h3>
+<p>A <em>notation</em> is a symbolic abbreviation denoting some term
+or term pattern.</p><p>A typical notation is the use of the infix symbol <code>/\</code> to denote
+the logical conjunction (<span style="font-family:monospace">and</span>). Such a notation is declared
+by</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "A /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B" := (and A B).</span></span><span style="font-size:small"><br>
+</span></div><p>The expression <span style="font-family:monospace">(and A B)</span> is the abbreviated term and the
+string <code>"A /\ B"</code> (called a <em>notation</em>) tells how it is 
+symbolically written.</p><p>A notation is always surrounded by double quotes (excepted when the
+abbreviation is a single identifier, see <a href="#Abbreviations">12.3</a>). The
+notation is composed of <em>tokens</em> separated by spaces. Identifiers
+in the string (such as <span style="font-family:monospace">A</span> and <span style="font-family:monospace">B</span>) are the <em>parameters</em> of the notation. They must occur at least once each in the
+denoted term. The other elements of the string (such as <code>/\</code>) are
+the <em>symbols</em>.</p><p>An identifier can be used as a symbol but it must be surrounded by
+simple quotes to avoid the confusion with a parameter. Similarly,
+every symbol of at least 3 characters and starting with a simple quote
+must be quoted (then it starts by two single quotes). Here is an example.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">IF</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c1 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c2 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">else</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c3" := (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else c1 c2 c3).</span></span><span style="font-size:small"><br>
+</span></div><p>A notation binds a syntactic expression to a term. Unless the parser
+and pretty-printer of <span style="font-variant:small-caps">Coq</span> already know how to deal with the
+syntactic expression (see <a href="#ReservedNotation">12.1.7</a>), explicit precedences and
+associativity rules have to be given.</p><h3 id="sec535" class="subsection">12.1.2  Precedences and associativity<a id="hevea_default870"></a>
+<a id="hevea_default871"></a></h3>
+<p>Mixing different symbolic notations in a same text may cause serious
+parsing ambiguity. To deal with the ambiguity of notations, <span style="font-variant:small-caps">Coq</span>
+uses precedence levels ranging from 0 to 100 (plus one extra level
+numbered 200) and associativity rules.</p><p>Consider for example the new notation</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "A </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ B" := (or A B).</span></span><span style="font-size:small"><br>
+</span></div><p>Clearly, an expression such as <span style="font-family:monospace">forall A:Prop, True </span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> A </span><code><span style="font-family:monospace">\/</span></code><span style="font-family:monospace">
+A </span><code><span style="font-family:monospace">\/</span></code><span style="font-family:monospace"> False</span> is ambiguous. To tell the <span style="font-variant:small-caps">Coq</span> parser how to
+interpret the expression, a priority between the symbols <code>/\</code> and
+<code>\/</code> has to be given. Assume for instance that we want conjunction
+to bind more than disjunction. This is expressed by assigning a
+precedence level to each notation, knowing that a lower level binds
+more than a higher level. Hence the level for disjunction must be
+higher than the level for conjunction.</p><p>Since connectives are the less tight articulation points of a text, it
+is reasonable to choose levels not so far from the higher level which
+is 100, for example 85 for disjunction and 80 for
+conjunction<sup><a id="text16" href="#note16">1</a></sup>.</p><p>Similarly, an associativity is needed to decide whether <span style="font-family:monospace">True </span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace">
+False </span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> False</span> defaults to <span style="font-family:monospace">True </span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> (False
+</span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> False)</span> (right associativity) or to <span style="font-family:monospace">(True
+</span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> False) </span><code><span style="font-family:monospace">/\</span></code><span style="font-family:monospace"> False</span> (left associativity). We may
+even consider that the expression is not well-formed and that
+parentheses are mandatory (this is a “no associativity”)<sup><a id="text17" href="#note17">2</a></sup>.
+We don’t know of a special convention of the associativity of
+disjunction and conjunction, let’s apply for instance a right
+associativity (which is the choice of <span style="font-variant:small-caps">Coq</span>).</p><p>Precedence levels and associativity rules of notations have to be
+given between parentheses in a list of modifiers that the
+<span style="font-family:monospace">Notation</span> command understands. Here is how the previous
+examples refine.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "A /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B" := (and A B) (at level 80, right associativity).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "A </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ B" := (or A B)  (at level 85, right associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>By default, a notation is considered non associative, but the
+precedence level is mandatory (except for special cases whose level is
+canonical). The level is either a number or the mention <span style="font-family:monospace">next
+level</span> whose meaning is obvious. The list of levels already assigned
+is on Figure <a href="Reference-Manual005.html#init-notations">3.1</a>.</p>
+<h3 id="sec536" class="subsection">12.1.3  Complex notations</h3>
+<p>Notations can be made from arbitrarily complex symbols. One can for
+instance define prefix notations.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">~</span></span><span style="font-size:small"><span style="font-family:monospace"> x" := (not x) (at level 75, right associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>One can also define notations for incomplete terms, with the hole
+expected to be inferred at typing time.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "x = y" := (@eq </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> x y) (at level 70, no associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>One can define <em>closed</em> notations whose both sides are symbols. In
+this case, the default precedence level for inner subexpression is 200.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "( x , y )" := (@pair </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> x y) (at level 0).</span></span><span style="font-size:small"><br>
+</span></div><p>One can also define notations for binders.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "{ x : A  |  P }" := (sig A (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> P)) (at level 0).</span></span><span style="font-size:small"><br>
+</span></div><p>In the last case though, there is a conflict with the notation for
+type casts. This last notation, as shown by the command <span style="font-family:monospace">Print Grammar
+constr</span> is at level 100. To avoid <code>x : A</code> being parsed as a type cast,
+it is necessary to put <span style="font-family:monospace">x</span> at a level below 100, typically 99. Hence, a
+correct definition is </p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "{ x : A  |  P }" := (sig A (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> P)) (at level 0, x at level 99).</span></span><span style="font-size:small"><br>
+</span></div><p>See the next section for more about factorization.</p>
+<h3 id="sec537" class="subsection">12.1.4  Simple factorization rules</h3>
+<p><span style="font-variant:small-caps">Coq</span> extensible parsing is performed by Camlp5 which is essentially a
+LL1 parser. Hence, some care has to be taken not to hide already
+existing rules by new rules. Some simple left factorization work has
+to be done. Here is an example.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y"     := (lt x y) (at level 70).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> z" := (x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> z) (at level 70).</span></span><span style="font-size:small"><br>
+</span></div><p>In order to factorize the left part of the rules, the subexpression
+referred by <span style="font-family:monospace">y</span> has to be at the same level in both rules. However
+the default behavior puts <span style="font-family:monospace">y</span> at the next level below 70
+in the first rule (no associativity is the default), and at the level
+200 in the second rule (level 200 is the default for inner expressions).
+To fix this, we need to force the parsing level of <span style="font-family:monospace">y</span>,
+as follows.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y"     := (lt x y) (at level 70).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> z" := (x </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> y /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> z) (at level 70, y at next level).</span></span><span style="font-size:small"><br>
+</span></div><p>For the sake of factorization with <span style="font-variant:small-caps">Coq</span> predefined rules, simple
+rules have to be observed for notations starting with a symbol:
+e.g. rules starting with “{” or “(” should be put at level 0. The
+list of <span style="font-variant:small-caps">Coq</span> predefined notations can be found in Chapter <a href="Reference-Manual005.html#Theories">3</a>.</p><p>The command to display the current state of the <span style="font-variant:small-caps">Coq</span> term parser is
+<a id="hevea_default872"></a><a id="hevea_command215"></a></p><blockquote class="quote">
+<span style="font-family:monospace">Print Grammar constr.
+</span></blockquote><p><br>
+<span style="font-weight:bold">Variant: </span></p><p><a id="hevea_default873"></a><a id="hevea_command216"></a>
+<span style="font-family:monospace">Print Grammar pattern.</span><br>
+
+This displays the state of the subparser of patterns (the parser
+used in the grammar of the <span style="font-family:monospace">match</span> <span style="font-family:monospace">with</span> constructions).</p>
+<h3 id="sec538" class="subsection">12.1.5  Displaying symbolic notations</h3>
+<p>The command <span style="font-family:monospace">Notation</span> has an effect both on the <span style="font-variant:small-caps">Coq</span> parser and
+on the <span style="font-variant:small-caps">Coq</span> printer. For example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (and True True).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">True /</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">\</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+</span></div><p>However, printing, especially pretty-printing, requires
+more care than parsing. We may want specific indentations,
+line breaks, alignment if on several lines, etc. </p><p>The default printing of notations is very rudimentary. For printing a
+notation, a <em>formatting box</em> is opened in such a way that if the
+notation and its arguments cannot fit on a single line, a line break
+is inserted before the symbols of the notation and the arguments on
+the next lines are aligned with the argument on the first line.</p><p>A first, simple control that a user can have on the printing of a
+notation is the insertion of spaces at some places of the
+notation. This is performed by adding extra spaces between the symbols
+and parameters: each extra space (other than the single space needed
+to separate the components) is interpreted as a space to be inserted
+by the printer. Here is an example showing how to add spaces around
+the bar of the notation.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "{{ x : A  |  P }}" := (sig (fun x : A =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> P))</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (at level 0, x at level 99).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (sig (fun x : nat =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x=x)).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">{{x : nat | x = x}}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Set</span></span></span><span style="font-size:small"><br>
+</span></div><p>The second, more powerful control on printing is by using the <span style="font-family:monospace">format</span> modifier. Here is an example</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">If</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c1 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c2 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">else</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> c3" := (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else c1 c2 c3)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      (at level 200, right associativity, format</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">[v   </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">If</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">  c1 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">/</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">[</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">  c2  </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">]</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">/</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">[</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">else</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">  c3 </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">]</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">]</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">").</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Identifier </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">If</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> now a keyword</span></span></span><span style="font-size:small"><br>
+</span></div><p>A <em>format</em> is an extension of the string denoting the notation with
+the possible following elements delimited by single quotes:</p><ul class="itemize"><li class="li-itemize">
+extra spaces are translated into simple spaces
+</li><li class="li-itemize">tokens of the form <code>'/  '</code> are translated into breaking point,
+in case a line break occurs, an indentation of the number of spaces
+after the “<code>/</code>” is applied (2 spaces in the given example)
+</li><li class="li-itemize">token of the form <code>'//'</code> force writing on a new line
+</li><li class="li-itemize">well-bracketed pairs of tokens of the form <code>'[    '</code> and <code>']'</code>
+are translated into printing boxes; in case a line break occurs,
+an extra indentation of the number of spaces given after the “<code>[</code>”
+is applied (4 spaces in the example)
+</li><li class="li-itemize">well-bracketed pairs of tokens of the form <code>'[hv   '</code> and <code>']'</code>
+are translated into horizontal-orelse-vertical printing boxes; 
+if the content of the box does not fit on a single line, then every breaking
+point forces a newline and an extra indentation of the number of spaces
+given after the “<code>[</code>” is applied at the beginning of each newline
+(3 spaces in the example)
+</li><li class="li-itemize">well-bracketed pairs of tokens of the form <code>'[v '</code> and
+<code>']'</code> are translated into vertical printing boxes; every
+breaking point forces a newline, even if the line is large enough to
+display the whole content of the box, and an extra indentation of the
+number of spaces given after the “<code>[</code>” is applied at the beginning
+of each newline
+</li></ul><p>Thus, for the previous example, we get
+</p><p>Notations do not survive the end of sections. No typing of the denoted
+expression is performed at definition time. Type-checking is done only
+at the time of use of the notation.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">       (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else True False True) </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">         (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else True False True)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">         (IF</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">then</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">else True False True)).   </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">If If True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">      then False </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">      else True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   then If True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">           then False </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">           else True </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   else If True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">           then False </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">           else True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Remark: </span>Sometimes, a notation is expected only for the parser.
+To do so, the option <em>only parsing</em> is allowed in the list of modifiers of
+<span style="font-family:monospace">Notation</span>.</p><p>Conversely, the <em>only printing</em> can be used to declare
+that a notation should only be used for printing and should not declare a
+parsing rule. In particular, such notations do not modify the parser.</p>
+<h3 id="sec539" class="subsection">12.1.6  The <span style="font-family:monospace">Infix</span> command
+<a id="hevea_default874"></a><a id="hevea_command217"></a></h3>
+<p>The <span style="font-family:monospace">Infix</span> command is a shortening for declaring notations of
+infix symbols. Its syntax is </p><blockquote class="quote">
+<span style="font-family:monospace">Infix "</span><span style="font-style:oblique">symbol</span><span style="font-family:monospace">" :=</span> <span style="font-style:oblique">qualid</span> <span style="font-family:monospace">(</span> <em>modifier</em> <span style="font-family:monospace">,</span> … <span style="font-family:monospace">,</span> <em>modifier</em> <span style="font-family:monospace">)</span>.
+</blockquote><p>and it is equivalent to</p><blockquote class="quote">
+<span style="font-family:monospace">Notation "x </span><span style="font-style:oblique">symbol</span><span style="font-family:monospace"> y" := (</span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> x y) (</span> <em>modifier</em> <span style="font-family:monospace">,</span> … <span style="font-family:monospace">,</span> <em>modifier</em> <span style="font-family:monospace">)</span>.
+</blockquote><p>where <span style="font-family:monospace">x</span> and <span style="font-family:monospace">y</span> are fresh names distinct from <span style="font-style:oblique">qualid</span>. Here is an example.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Infix "/</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">" := and (at level 80, right associativity).</span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="ReservedNotation" class="subsection">12.1.7  Reserving notations
+
+<a id="hevea_default875"></a><a id="hevea_command218"></a></h3>
+<p>A given notation may be used in different contexts. <span style="font-variant:small-caps">Coq</span> expects all
+uses of the notation to be defined at the same precedence and with the
+same associativity. To avoid giving the precedence and associativity
+every time, it is possible to declare a parsing rule in advance
+without giving its interpretation. Here is an example from the initial
+state of <span style="font-variant:small-caps">Coq</span>.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Reserved Notation "x = y" (at level 70, no associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>Reserving a notation is also useful for simultaneously defining an
+inductive type or a recursive constant and a notation for it.</p><p><br>
+<span style="font-weight:bold">Remark: </span>The notations mentioned on Figure <a href="Reference-Manual005.html#init-notations">3.1</a> are
+reserved. Hence their precedence and associativity cannot be changed.</p>
+<h3 id="sec541" class="subsection">12.1.8  Simultaneous definition of terms and notations
+<a id="hevea_default876"></a><a id="hevea_command219"></a>
+<a id="hevea_default877"></a><a id="hevea_command220"></a>
+<a id="hevea_default878"></a><a id="hevea_command221"></a></h3>
+<p>Thanks to reserved notations, the inductive, co-inductive, recursive
+and corecursive definitions can benefit of customized notations. To do
+this, insert a <span style="font-family:monospace">where</span> notation clause after the definition of the
+(co)inductive type or (co)recursive term (or after the definition of
+each of them in case of mutual definitions). The exact syntax is given
+on Figure <a href="#notation-syntax">12.1</a>. Here are examples:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive and (A B:Prop) : Prop := conj : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> B -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> A /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      where "A /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B" := (and A B).</span></span><span style="font-size:small"><br>
+</span></div><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fixpoint plus (n m:nat) {struct n} : nat :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | O =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> m</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S p =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (p+m)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      where "n + m" := (plus n m).</span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="sec542" class="subsection">12.1.9  Displaying informations about notations
+<a id="hevea_default879"></a><a id="hevea_option59"></a></h3>
+<p>To deactivate the printing of all notations, use the command
+</p><blockquote class="quote">
+<span style="font-family:monospace">Unset Printing Notations.
+</span></blockquote><p>
+To reactivate it, use the command
+</p><blockquote class="quote">
+<span style="font-family:monospace">Set Printing Notations.
+</span></blockquote><p>
+The default is to use notations for printing terms wherever possible.</p><p><br>
+<span style="font-weight:bold">See also: </span><span style="font-family:monospace">Set Printing All</span> in Section <a href="Reference-Manual004.html#SetPrintingAll">2.9</a>.</p>
+<h3 id="LocateSymbol" class="subsection">12.1.10  Locating notations
+<a id="hevea_default880"></a><a id="hevea_command222"></a>
+</h3>
+<p>To know to which notations a given symbol belongs to, use the command
+</p><blockquote class="quote">
+<span style="font-family:monospace">Locate </span><span style="font-style:oblique">symbol</span><span style="font-family:monospace">
+</span></blockquote><p>
+where symbol is any (composite) symbol surrounded by double quotes. To locate
+a particular notation, use a string where the variables of the
+notation are replaced by “_” and where possible single quotes
+inserted around identifiers or tokens starting with a single quote are
+dropped.</p><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Locate "exists".</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Notation            Scope     </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">"</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">exists</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x .. y , p" := ex (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> .. (ex (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> p)) ..)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      : type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      (default interpretation)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">"</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">exists</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> ! x .. y , p" := ex</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                             (unique</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                                (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                                 .. (ex (unique (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> p))) ..))</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      : type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      (default interpretation)</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Locate "exists </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> .. </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> , </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">".</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Notation            Scope     </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">"</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">exists</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x .. y , p" := ex (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> .. (ex (fun y =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> p)) ..)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      : type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                      (default interpretation)</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">See also: </span>Section <a href="Reference-Manual008.html#Locate">6.3.10</a>.</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<span style="font-size:small">
+</span><div class="center"><span style="font-size:small">
+</span><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">sentence</span></span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">::=</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-family:monospace">Local</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">Notation</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">:=</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">term</span></span><span style="font-size:small"> 
+</span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">modifiers</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small">:</span><span style="font-size:small"><span style="font-style:oblique">scope</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> .</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-family:monospace">Local</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">Infix</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">:=</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">qualid</span></span><span style="font-size:small"> 
+</span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">modifiers</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small">:</span><span style="font-size:small"><span style="font-style:oblique">scope</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> .</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-family:monospace">Local</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">Reserved Notation</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">modifiers</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> .</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Inductive</span></span><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-style:oblique">ind_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">ind_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"><span style="font-family:monospace">.</span></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">CoInductive</span></span><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-style:oblique">ind_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">ind_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"><span style="font-family:monospace">.</span></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Fixpoint</span></span><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-style:oblique">fix_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">fix_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">.</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">CoFixpoint</span></span><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-style:oblique">cofix_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">with</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">cofix_body</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">.</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">decl_notation</span></span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">::=</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small"><span style="font-family:monospace">where</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">:=</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">term</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small">:</span><span style="font-size:small"><span style="font-style:oblique">scope</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">and</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">and</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">:=</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">term</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">[</span></span><span style="font-size:small">:</span><span style="font-size:small"><span style="font-style:oblique">scope</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small"><span style="font-style:oblique">]</span></span><span style="font-size:small">.
+</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">modifiers</span></span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">::=</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">,</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">,</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">at level</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">natural</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">,</span></span><span style="font-size:small"> </span><span style="font-size:small">…</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">,</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">at next level</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">at level</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">natural</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">left associativity</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">right associativity</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">no associativity</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">ident</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">binder</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">closed binder</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">global</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">ident</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-family:monospace">bigint</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">only parsing</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">only printing</span></span><span style="font-size:small"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-size:small">&nbsp;</span></td><td style="text-align:center;white-space:nowrap" ><span style="font-size:small">|</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">format</span></span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-style:oblique">string</span></span><span style="font-size:small"> 
+</span></td></tr>
+</table><span style="font-size:small">
+</span></div><span style="font-size:small">
+</span>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 12.1: Syntax of the variants of <span style="font-family:monospace">Notation</span></td></tr>
+</table></div>
+<a id="notation-syntax"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote>
+<h3 id="sec544" class="subsection">12.1.11  Notations and simple binders</h3>
+<p>Notations can be defined for binders as in the example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "{ x : A  |  P  }" := (sig (fun x : A =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> P)) (at level 0).</span></span><span style="font-size:small"><br>
+</span></div><p>The binding variables in the left-hand-side that occur as a parameter
+of the notation naturally bind all their occurrences appearing in
+their respective scope after instantiation of the parameters of the
+notation.</p><p>Contrastingly, the binding variables that are not a parameter of the
+notation do not capture the variables of same name that
+could appear in their scope after instantiation of the
+notation. E.g., for the notation</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">exists</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">different</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> n" := (exists p:nat, p</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">n) (at level 200).</span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+the next command fails because <span style="font-family:monospace">p</span> does not bind in 
+the instance of <span style="font-family:monospace">n</span>.
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fail Check (exists</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">different p).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The command has indeed failed with message:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The reference p was not found in the current environment.</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Remark: </span>Binding variables must not necessarily be parsed using the
+<span style="font-family:monospace">ident</span> entry. For factorization purposes, they can be said to be
+parsed at another level (e.g. <span style="font-family:monospace">x</span> in <code>"{ x : A | P }"</code> must be
+parsed at level 99 to be factorized with the notation
+<code>"{ A } + { B }"</code> for which <span style="font-family:monospace">A</span> can be any term). 
+However, even if parsed as a term, this term must at the end be effectively 
+a single identifier.</p>
+<h3 id="sec545" class="subsection">12.1.12  Notations with recursive patterns</h3>
+<p>
+<a id="RecursiveNotations"></a></p><p>A mechanism is provided for declaring elementary notations with
+recursive patterns. The basic example is:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "[ x ; .. ; y ]" := (cons x .. (cons y nil) ..).</span></span><span style="font-size:small"><br>
+</span></div><p>On the right-hand side, an extra construction of the form <span style="font-family:monospace">..</span> <span style="font-style:italic">t</span>
+<span style="font-family:monospace">..</span> can be used. Notice that <span style="font-family:monospace">..</span> is part of the <span style="font-variant:small-caps">Coq</span>
+syntax and it must not be confused with the three-dots notation
+… used in this manual to denote a sequence of arbitrary size.</p><p>On the left-hand side, the part “<span style="font-style:italic">x</span> <span style="font-style:italic">s</span> <span style="font-family:monospace">..</span> <span style="font-style:italic">s</span> <span style="font-style:italic">y</span>” of the
+notation parses any number of time (but at least one time) a sequence
+of expressions separated by the sequence of tokens <span style="font-style:italic">s</span> (in the
+example, <span style="font-style:italic">s</span> is just “<span style="font-family:monospace">;</span>”).</p><p>In the right-hand side, the term enclosed within <span style="font-family:monospace">..</span> must be a
+pattern with two holes of the form φ([ ]<sub><span style="font-style:italic">E</span></sub>,[ ]<sub><span style="font-style:italic">I</span></sub>) where the first
+hole is occupied either by <span style="font-style:italic">x</span> or by <span style="font-style:italic">y</span> and the second hole is
+occupied by an arbitrary term <span style="font-style:italic">t</span> called the <span style="font-style:italic">terminating</span>
+expression of the recursive notation. The subterm <span style="font-family:monospace">..</span> φ(<span style="font-style:italic">x</span>,<span style="font-style:italic">t</span>)
+<span style="font-family:monospace">..</span> (or <span style="font-family:monospace">..</span> φ(<span style="font-style:italic">y</span>,<span style="font-style:italic">t</span>) <span style="font-family:monospace">..</span>) must itself occur at
+second position of the same pattern where the first hole is occupied
+by the other variable, <span style="font-style:italic">y</span> or <span style="font-style:italic">x</span>. Otherwise said, the right-hand side
+must contain a subterm of the form either φ(<span style="font-style:italic">x</span>,<span style="font-family:monospace">..</span>
+φ(<span style="font-style:italic">y</span>,<span style="font-style:italic">t</span>) <span style="font-family:monospace">..</span>) or φ(<span style="font-style:italic">y</span>,<span style="font-family:monospace">..</span> φ(<span style="font-style:italic">x</span>,<span style="font-style:italic">t</span>) <span style="font-family:monospace">..</span>).
+The pattern φ is the <em>iterator</em> of the recursive notation
+and, of course, the name <span style="font-style:italic">x</span> and <span style="font-style:italic">y</span> can be chosen arbitrarily.</p><p>The parsing phase produces a list of expressions which are used to
+fill in order the first hole of the iterating pattern which is
+repeatedly nested as many times as the length of the list, the second
+hole being the nesting point. In the innermost occurrence of the
+nested iterating pattern, the second hole is finally filled with the
+terminating expression.</p><p>In the example above, the iterator φ([ ]<sub><span style="font-style:italic">E</span></sub>,[ ]<sub><span style="font-style:italic">I</span></sub>) is <span style="font-family:monospace">cons
+</span>[ ]<sub><span style="font-style:italic">E</span></sub><span style="font-family:monospace"> </span>[ ]<sub><span style="font-style:italic">I</span></sub> and the terminating expression is <span style="font-family:monospace">nil</span>. Here are
+other examples:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "( x , y , .. , z )" := (pair .. (pair x y) .. z) (at level 0).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "[| t * ( x , y , .. , z ) ; ( a , b , .. , c )  * u |]" :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (pair (pair .. (pair (pair t x) (pair t y)) .. (pair t z))</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">              (pair .. (pair (pair a u) (pair b u)) .. (pair c u)))</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (t at level 39).</span></span><span style="font-size:small"><br>
+</span></div><p>Recursive patterns can occur several times on the right-hand side.
+Here is an example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "[</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> a , .. , b </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">]" :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (cons a .. (cons b nil) .., cons b .. (cons a nil) ..).</span></span><span style="font-size:small"><br>
+</span></div><p>Notations with recursive patterns can be reserved like standard
+notations, they can also be declared within interpretation scopes (see
+section <a href="#scopes">12.2</a>).</p>
+<h3 id="sec546" class="subsection">12.1.13  Notations with recursive patterns involving binders</h3>
+<p>Recursive notations can also be used with binders. The basic example is:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">exists</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> x .. y , p" := (ex (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> .. (ex (fun y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> p)) ..))</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (at level 200, x binder, y binder, right associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>The principle is the same as in Section <a href="#RecursiveNotations">12.1.12</a>
+except that in the iterator φ([ ]<sub><span style="font-style:italic">E</span></sub>,[ ]<sub><span style="font-style:italic">I</span></sub>), the first hole is a
+placeholder occurring at the position of the binding variable of a <span style="font-family:monospace">fun</span> or a <span style="font-family:monospace">forall</span>.</p><p>To specify that the part “<span style="font-style:italic">x</span> <span style="font-family:monospace">..</span> <span style="font-style:italic">y</span>” of the notation
+parses a sequence of binders, <span style="font-style:italic">x</span> and <span style="font-style:italic">y</span> must be marked as <span style="font-family:monospace">binder</span> in the list of modifiers of the notation. Then, the list of
+binders produced at the parsing phase are used to fill in the first
+hole of the iterating pattern which is repeatedly nested as many times
+as the number of binders generated. If ever the generalization
+operator <span style="font-family:monospace">‘</span> (see Section <a href="Reference-Manual004.html#implicit-generalization">2.7.19</a>) is used
+in the binding list, the added binders are taken into account too.</p><p>Binders parsing exist in two flavors. If <span style="font-style:italic">x</span> and <span style="font-style:italic">y</span> are marked as
+<span style="font-family:monospace">binder</span>, then a sequence such as <span style="font-family:monospace">a b c : T</span> will be accepted
+and interpreted as the sequence of binders <span style="font-family:monospace">(a:T) (b:T)
+(c:T)</span>. For instance, in the notation above, the syntax <span style="font-family:monospace">exists
+a b : nat, a = b</span> is provided.</p><p>The variables <span style="font-style:italic">x</span> and <span style="font-style:italic">y</span> can also be marked as <span style="font-family:monospace">closed binder</span> in
+which case only well-bracketed binders of the form <span style="font-family:monospace">(a b c:T)</span> or
+<span style="font-family:monospace">{a b c:T}</span> etc. are accepted.</p><p>With closed binders, the recursive sequence in the left-hand side can
+be of the general form <span style="font-style:italic">x</span> <span style="font-style:italic">s</span> <span style="font-family:monospace">..</span> <span style="font-style:italic">s</span> <span style="font-style:italic">y</span> where <span style="font-style:italic">s</span> is an
+arbitrary sequence of tokens. With open binders though, <span style="font-style:italic">s</span> has to be
+empty. Here is an example of recursive notation with closed binders:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">mylet</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> f x .. y :=  t </span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">in</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> u":=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (let f := fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> .. (fun y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> t) .. in u)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (at level 200, x closed binder, y closed binder, right associativity).</span></span><span style="font-size:small"><br>
+</span></div><p>A recursive pattern for binders can be used in position of a recursive
+pattern for terms. Here is an example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation "</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">FUNAPP</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> x .. y , f" :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> .. (fun y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> (.. (f x) ..) y ) ..)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        (at level 200, x binder, y binder, right associativity).</span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="sec547" class="subsection">12.1.14  Summary</h3>
+<h5 id="sec548" class="paragraph">Syntax of notations</h5>
+<p>The different syntactic variants of the command <span style="font-family:monospace">Notation</span> are
+given on Figure <a href="#notation-syntax">12.1</a>. The optional <span style="font-family:monospace">:</span><span style="font-style:oblique">scope</span> is
+described in the Section <a href="#scopes">12.2</a>.</p><p><br>
+<span style="font-weight:bold">Remark: </span>No typing of the denoted expression is performed at definition
+time. Type-checking is done only at the time of use of the notation.</p><p><br>
+<span style="font-weight:bold">Remark: </span>Many examples of <span style="font-family:monospace">Notation</span> may be found in the files
+composing the initial state of <span style="font-variant:small-caps">Coq</span> (see directory <span style="font-family:monospace">$COQLIB/theories/Init</span>).</p><p><br>
+<span style="font-weight:bold">Remark: </span>The notation <code>"{ x }"</code> has a special status in such a way
+that complex notations of the form <code>"x + { y }"</code> or
+<code>"x * { y }"</code> can be nested with correct precedences. Especially,
+every notation involving a pattern of the form <code>"{ x }"</code> is
+parsed as a notation where the pattern <code>"{ x }"</code> has been simply
+replaced by <code>"x"</code> and the curly brackets are parsed separately.
+E.g. <code>"y + { z }"</code> is not parsed as a term of the given form but
+as a term of the form <code>"y + z"</code> where <code>z</code> has been parsed
+using the rule parsing <code>"{ x }"</code>. Especially, level and
+precedences for a rule including patterns of the form <code>"{ x }"</code>
+are relative not to the textual notation but to the notation where the
+curly brackets have been removed (e.g. the level and the associativity
+given to some notation, say <code>"{ y } &amp; { z }"</code> in fact applies to
+the underlying <code>"{ x }"</code>-free rule which is <code>"y &amp; z"</code>).</p>
+<h5 id="sec549" class="paragraph">Persistence of notations</h5>
+<p>Notations do not survive the end of sections. They survive modules
+unless the command <span style="font-family:monospace">Local Notation</span> is used instead of <span style="font-family:monospace">Notation</span>.</p><h2 id="scopes" class="section">12.2  Interpretation scopes<a id="hevea_default881"></a>
+</h2>
+<p>An <em>interpretation scope</em> is a set of notations for terms with
+their interpretation. Interpretation scopes provides with a weak,
+purely syntactical form of notations overloading: a same notation, for
+instance the infix symbol <code>+</code> can be used to denote distinct
+definitions of an additive operator. Depending on which interpretation
+scopes is currently open, the interpretation is different.
+Interpretation scopes can include an interpretation for
+numerals and strings. However, this is only made possible at the
+<span style="font-variant:small-caps">Objective Caml</span> level.</p><p>See Figure <a href="#notation-syntax">12.1</a> for the syntax of notations including
+the possibility to declare them in a given scope. Here is a typical
+example which declares the notation for conjunction in the scope <span style="font-family:monospace">type_scope</span>.</p><pre class="verbatim">Notation "A /\ B" := (and A B) : type_scope.
+</pre><p><br>
+<span style="font-weight:bold">Remark: </span>A notation not defined in a scope is called a <em>lonely</em> notation.</p>
+<h3 id="sec551" class="subsection">12.2.1  Global interpretation rules for notations</h3>
+<p>At any time, the interpretation of a notation for term is done within
+a <em>stack</em> of interpretation scopes and lonely notations. In case a
+notation has several interpretations, the actual interpretation is the
+one defined by (or in) the more recently declared (or open) lonely
+notation (or interpretation scope) which defines this notation.
+Typically if a given notation is defined in some scope <span style="font-style:oblique">scope</span> but
+has also an interpretation not assigned to a scope, then, if <span style="font-style:oblique">scope</span>
+is open before the lonely interpretation is declared, then the lonely
+interpretation is used (and this is the case even if the
+interpretation of the notation in <span style="font-style:oblique">scope</span> is given after the lonely
+interpretation: otherwise said, only the order of lonely
+interpretations and opening of scopes matters, and not the declaration
+of interpretations within a scope).</p><p>The initial state of <span style="font-variant:small-caps">Coq</span> declares three interpretation scopes and
+no lonely notations. These scopes, in opening order, are <span style="font-family:monospace">core_scope</span>, <span style="font-family:monospace">type_scope</span> and <span style="font-family:monospace">nat_scope</span>.</p><p>The command to add a scope to the interpretation scope stack is
+<a id="hevea_default882"></a><a id="hevea_command223"></a>
+<a id="hevea_default883"></a><a id="hevea_command224"></a>
+</p><blockquote class="quote">
+<span style="font-family:monospace">Open Scope</span> <span style="font-style:oblique">scope</span>.
+</blockquote><p>
+It is also possible to remove a scope from the interpretation scope
+stack by using the command
+</p><blockquote class="quote">
+<span style="font-family:monospace">Close Scope</span> <span style="font-style:oblique">scope</span>.
+</blockquote><p>
+Notice that this command does not only cancel the last <span style="font-family:monospace">Open Scope
+</span><span style="font-style:oblique">scope</span> but all the invocation of it.</p><p><br>
+<span style="font-weight:bold">Remark: </span><span style="font-family:monospace">Open Scope</span> and <span style="font-family:monospace">Close Scope</span> do not survive the end of
+sections where they occur. When defined outside of a section, they are
+exported to the modules that import the module where they occur.</p><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate"><span style="font-family:monospace">Local Open Scope</span> <span style="font-style:oblique">scope</span>.</li><li class="li-enumerate"><span style="font-family:monospace">Local Close Scope</span> <span style="font-style:oblique">scope</span>.<p>These variants are not exported to the modules that import the module
+where they occur, even if outside a section.</p></li><li class="li-enumerate"><span style="font-family:monospace">Global Open Scope</span> <span style="font-style:oblique">scope</span>.</li><li class="li-enumerate"><span style="font-family:monospace">Global Close Scope</span> <span style="font-style:oblique">scope</span>.<p>These variants survive sections. They behave as if <span style="font-family:monospace">Global</span> were
+absent when not inside a section.</p></li></ol>
+<h3 id="sec552" class="subsection">12.2.2  Local interpretation rules for notations</h3>
+<p>In addition to the global rules of interpretation of notations, some
+ways to change the interpretation of subterms are available.</p>
+<h4 id="scopechange" class="subsubsection">Local opening of an interpretation scope 
+
+<a id="hevea_default884"></a>
+<a id="hevea_default885"></a><a id="hevea_command225"></a>
+<a id="hevea_default886"></a><a id="hevea_command226"></a></h4>
+<p>It is possible to locally extend the interpretation scope stack using
+the syntax (<span style="font-style:oblique">term</span>)%<span style="font-style:oblique">key</span> (or simply <span style="font-style:oblique">term</span>%<span style="font-style:oblique">key</span>
+for atomic terms), where <span style="font-style:oblique">key</span> is a special identifier called
+<em>delimiting key</em> and bound to a given scope.</p><p>In such a situation, the term <span style="font-style:oblique">term</span>, and all its subterms, are
+interpreted in the scope stack extended with the scope bound to
+<span style="font-style:oblique">key</span>.</p><p>To bind a delimiting key to a scope, use the command</p><blockquote class="quote">
+<span style="font-family:monospace">Delimit Scope</span> <span style="font-style:oblique">scope</span> <span style="font-family:monospace">with</span> <span style="font-style:oblique">ident</span> 
+</blockquote><p>To remove a delimiting key of a scope, use the command</p><blockquote class="quote">
+<span style="font-family:monospace">Undelimit Scope</span> <span style="font-style:oblique">scope</span>
+</blockquote>
+<h4 id="sec554" class="subsubsection">Binding arguments of a constant to an interpretation scope
+<a id="hevea_default887"></a><a id="hevea_command227"></a></h4>
+<p>It is possible to set in advance that some arguments of a given
+constant have to be interpreted in a given scope. The command is
+</p><blockquote class="quote">
+<span style="font-family:monospace">Arguments</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>  …  <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>
+</blockquote><p>
+where the list is a prefix of the list of the arguments of <span style="font-style:oblique">qualid</span> eventually
+annotated with their <span style="font-style:oblique">scope</span>. Grouping round parentheses can be used to
+decorate multiple arguments with the same scope. <span style="font-style:oblique">scope</span> can be either a scope
+name or its delimiting key. For example the following command puts the first two
+arguments of <span style="font-family:monospace">plus_fct</span> in the scope delimited by the key <span style="font-family:monospace">F</span> (<span style="font-family:monospace">Rfun_scope</span>) and the last argument in the scope delimited by the key <span style="font-family:monospace">R</span>
+(<span style="font-family:monospace">R_scope</span>).</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Arguments plus</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">fct (f1 f2)%F x%R.</span></span><span style="font-size:small"><br>
+</span></div><p>The <span style="font-family:monospace">Arguments</span> command accepts scopes decoration to all grouping
+parentheses. In the following example arguments <span style="font-family:monospace">A</span> and <span style="font-family:monospace">B</span> 
+are marked as maximally inserted implicit arguments and are
+put into the <span style="font-family:monospace">type_scope</span> scope.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Arguments respectful {A B}%type (R R</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">)%signature </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">.</span></span><span style="font-size:small"><br>
+</span></div><p>When interpreting a term, if some of the arguments of <span style="font-style:oblique">qualid</span> are
+built from a notation, then this notation is interpreted in the scope
+stack extended by the scope bound (if any) to this argument. The
+effect of the scope is limited to the argument itself. It does not propagate 
+to subterms but the subterms that, after interpretation of the
+notation, turn to be themselves arguments of a reference are
+interpreted accordingly to the arguments scopes bound to this reference.</p><p>Arguments scopes can be cleared with the following command:</p><blockquote class="quote">
+<span style="font-family:monospace">Arguments </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> : clear scopes</span>
+</blockquote><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Global Arguments</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>  …  <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span><p>This behaves like <span style="font-family:monospace">Arguments</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>  …  <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>
+but survives when a section is closed instead
+of stopping working at section closing. Without the <span style="font-family:monospace">Global</span> modifier,
+the effect of the command stops when the section it belongs to ends.</p></li><li class="li-enumerate"><span style="font-family:monospace">Local Arguments</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>  …  <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span><p>This behaves like <span style="font-family:monospace">Arguments</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>  …  <span style="font-style:oblique">name</span><span style="font-family:monospace">%</span><span style="font-style:oblique">scope</span>
+but does not survive modules and files.
+Without the <span style="font-family:monospace">Local</span> modifier, the effect of the command is
+visible from within other modules or files.</p></li></ol><p><br>
+<span style="font-weight:bold">See also: </span>The command to show the scopes bound to the arguments of a
+function is described in Section <a href="Reference-Manual008.html#About">2</a>.</p>
+<h4 id="sec555" class="subsubsection">Binding types of arguments to an interpretation scope</h4>
+<p>When an interpretation scope is naturally associated to a type
+(e.g. the scope of operations on the natural numbers), it may be
+convenient to bind it to this type. When a scope <span style="font-style:oblique">scope</span> is bound to
+a type <span style="font-style:oblique">type</span>, any new function defined later on gets its arguments
+of type <span style="font-style:oblique">type</span> interpreted by default in scope <span style="font-style:oblique">scope</span> (this default
+behavior can however be overwritten by explicitly using the command
+<span style="font-family:monospace">Arguments</span>).</p><p>Whether the argument of a function has some type <span style="font-style:oblique">type</span> is determined
+statically. For instance, if <span style="font-family:monospace">f</span> is a polymorphic function of type
+<span style="font-family:monospace">forall X:Type, X -&gt; X</span> and type <span style="font-family:monospace">t</span> is bound to a scope
+<span style="font-style:oblique">scope</span>, then <span style="font-family:monospace">a</span> of type <span style="font-family:monospace">t</span> in <span style="font-family:monospace">f t a</span> is not
+recognized as an argument to be interpreted in scope <span style="font-style:oblique">scope</span>.</p><p><a id="hevea_default888"></a><a id="hevea_command228"></a>
+<a id="bindscope"></a>
+More generally, any coercion <span style="font-style:oblique">class</span> (see Chapter <a href="Reference-Manual021.html#Coercions-full">18</a>) can be
+bound to an interpretation scope. The command to do it is
+</p><blockquote class="quote">
+<span style="font-family:monospace">Bind Scope</span> <span style="font-style:oblique">scope</span> <span style="font-family:monospace">with</span> <span style="font-style:oblique">class</span>
+</blockquote><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter U : Set.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U is declared</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Bind Scope U</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope with U.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter Uplus : U -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> U -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> U.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Uplus is declared</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter P : forall T:Set, T -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> U -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Prop.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">P is declared</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter f : forall T:Set, T -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> U.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">f is declared</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Infix "+" := Uplus : U</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Unset Printing Notations.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Open Scope nat</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">scope. (* Define + on the nat as the default for + *)</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (fun x y1 y2 z t =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> P </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> (x + t) ((f </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> (y1 + y2) + z))).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun (x y1 y2 : nat) (z : U) (t : nat) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">P nat (Nat.add x t) (Uplus (f nat (Nat.add y1 y2)) z)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : forall (</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : nat) (</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : nat) (</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : nat) (</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : U) (</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : nat), Prop</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Remark: </span>The scopes <span style="font-family:monospace">type_scope</span> and <span style="font-family:monospace">function_scope</span> also have a local effect on
+interpretation. See the next section.</p><p><br>
+<span style="font-weight:bold">See also: </span>The command to show the scopes bound to the arguments of a
+function is described in Section <a href="Reference-Manual008.html#About">2</a>.</p><h3 id="sec556" class="subsection">12.2.3  The <span style="font-family:monospace">type_scope</span> interpretation scope<a id="hevea_default889"></a></h3>
+<p>The scope <span style="font-family:monospace">type_scope</span> has a special status. It is a primitive
+interpretation scope which is temporarily activated each time a
+subterm of an expression is expected to be a type. It is delimited by
+the key <span style="font-family:monospace">type</span>, and bound to the coercion class <span style="font-family:monospace">Sortclass</span>. It is also
+used in certain situations where an expression is statically known to
+be a type, including the conclusion and the type of hypotheses within
+an <span style="font-family:monospace">Ltac</span> goal match (see Section <a href="Reference-Manual011.html#ltac-match-goal">9.2</a>)
+the statement of a theorem, the type of
+a definition, the type of a binder, the domain and codomain of
+implication, the codomain of products, and more generally any type
+argument of a declared or defined constant.</p><h3 id="sec557" class="subsection">12.2.4  The <span style="font-family:monospace">function_scope</span> interpretation scope<a id="hevea_default890"></a></h3>
+<p>The scope <span style="font-family:monospace">function_scope</span> also has a special status. 
+It is temporarily activated each time the argument of a global reference is
+recognized to be a <span style="font-family:monospace">Funclass instance</span>, i.e., of type <span style="font-family:monospace">forall x:A, B</span> or <span style="font-family:monospace">A -&gt; B</span>.</p>
+<h3 id="sec558" class="subsection">12.2.5  Interpretation scopes used in the standard library of <span style="font-variant:small-caps">Coq</span></h3>
+<p>We give an overview of the scopes used in the standard library of
+<span style="font-variant:small-caps">Coq</span>. For a complete list of notations in each scope, use the
+commands <span style="font-family:monospace">Print Scopes</span> or <span style="font-family:monospace">Print Scope </span><span style="font-style:oblique">scope</span>.</p>
+<h4 id="sec559" class="subsubsection"><span style="font-family:monospace">type_scope</span></h4>
+<p>This scope includes infix <span style="font-family:monospace">*</span> for product types and infix <span style="font-family:monospace">+</span> for
+sum types. It is delimited by key <span style="font-family:monospace">type</span>, and bound to the coercion class 
+<span style="font-family:monospace">Sortclass</span>, as described at <a href="#bindscope">12.2.2</a>.</p>
+<h4 id="sec560" class="subsubsection"><span style="font-family:monospace">nat_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">nat</span>. Positive numerals in this scope are mapped to their
+canonical representent built from <span style="font-family:monospace">O</span> and <span style="font-family:monospace">S</span>. The scope is
+delimited by key <span style="font-family:monospace">nat</span>, and bound to the type <span style="font-family:monospace">nat</span> (see <a href="#bindscope">12.2.2</a>).</p>
+<h4 id="sec561" class="subsubsection"><span style="font-family:monospace">N_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">N</span> (binary natural numbers). It is delimited by key <span style="font-family:monospace">N</span>
+and comes with an interpretation for numerals as closed term of type <span style="font-family:monospace">Z</span>.</p>
+<h4 id="sec562" class="subsubsection"><span style="font-family:monospace">Z_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">Z</span> (binary integer numbers). It is delimited by key <span style="font-family:monospace">Z</span> 
+and comes with an interpretation for numerals as closed term of type <span style="font-family:monospace">Z</span>.</p>
+<h4 id="sec563" class="subsubsection"><span style="font-family:monospace">positive_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">positive</span> (binary strictly positive numbers). It is
+delimited by key <span style="font-family:monospace">positive</span> and comes with an interpretation for
+numerals as closed term of type <span style="font-family:monospace">positive</span>.</p>
+<h4 id="sec564" class="subsubsection"><span style="font-family:monospace">Q_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">Q</span> (rational numbers defined as fractions of an integer and
+a strictly positive integer modulo the equality of the
+numerator-denominator cross-product). As for numerals, only 0 and
+1 have an interpretation in scope <span style="font-family:monospace">Q_scope</span> (their
+interpretations are 0/1 and 1/1 respectively).</p>
+<h4 id="sec565" class="subsubsection"><span style="font-family:monospace">Qc_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on the
+type <span style="font-family:monospace">Qc</span> of rational numbers defined as the type of irreducible
+fractions of an integer and a strictly positive integer.</p>
+<h4 id="sec566" class="subsubsection"><span style="font-family:monospace">real_scope</span></h4>
+<p>This scope includes the standard arithmetical operators and relations on
+type <span style="font-family:monospace">R</span> (axiomatic real numbers). It is delimited by key <span style="font-family:monospace">R</span>
+and comes with an interpretation for numerals as term of type <span style="font-family:monospace">R</span>. The interpretation is based on the binary decomposition. The
+numeral 2 is represented by 1+1. The interpretation φ(<span style="font-style:italic">n</span>) of an
+odd positive numerals greater <span style="font-style:italic">n</span> than 3 is <span style="font-family:monospace">1+(1+1)*</span>φ((<span style="font-style:italic">n</span>−1)/2).
+The interpretation φ(<span style="font-style:italic">n</span>) of an even positive numerals greater <span style="font-style:italic">n</span>
+than 4 is <span style="font-family:monospace">(1+1)*</span>φ(<span style="font-style:italic">n</span>/2). Negative numerals are represented as the
+opposite of the interpretation of their absolute value. E.g. the
+syntactic object <span style="font-family:monospace">-11</span> is interpreted as <span style="font-family:monospace">-(1+(1+1)*((1+1)*(1+(1+1))))</span> where the unit 1 and all the operations are
+those of <span style="font-family:monospace">R</span>.</p>
+<h4 id="sec567" class="subsubsection"><span style="font-family:monospace">bool_scope</span></h4>
+<p>This scope includes notations for the boolean operators. It is
+delimited by key <span style="font-family:monospace">bool</span>, and bound to the type <span style="font-family:monospace">bool</span> (see <a href="#bindscope">12.2.2</a>).</p>
+<h4 id="sec568" class="subsubsection"><span style="font-family:monospace">list_scope</span></h4>
+<p>This scope includes notations for the list operators. It is
+delimited by key <span style="font-family:monospace">list</span>, and bound to the type <span style="font-family:monospace">list</span> (see <a href="#bindscope">12.2.2</a>).</p>
+<h4 id="sec569" class="subsubsection"><span style="font-family:monospace">function_scope</span></h4>
+<p>This scope is delimited by the key <span style="font-family:monospace">function</span>, and bound to the coercion class <span style="font-family:monospace">Funclass</span>, 
+as described at <a href="#bindscope">12.2.2</a>.</p>
+<h4 id="sec570" class="subsubsection"><span style="font-family:monospace">core_scope</span></h4>
+<p>This scope includes the notation for pairs. It is delimited by key <span style="font-family:monospace">core</span>.</p>
+<h4 id="sec571" class="subsubsection"><span style="font-family:monospace">string_scope</span></h4>
+<p>This scope includes notation for strings as elements of the type <span style="font-family:monospace">string</span>. Special characters and escaping follow <span style="font-variant:small-caps">Coq</span> conventions
+on strings (see Section <a href="Reference-Manual003.html#strings">1.1</a>). Especially, there is no
+convention to visualize non printable characters of a string. The
+file <span style="font-family:monospace">String.v</span> shows an example that contains quotes, a newline
+and a beep (i.e. the ASCII character of code 7).</p>
+<h4 id="sec572" class="subsubsection"><span style="font-family:monospace">char_scope</span></h4>
+<p>This scope includes interpretation for all strings of the form
+<code>"</code><span style="font-style:italic">c</span><code>"</code> where <span style="font-style:italic">c</span> is an ASCII character, or of the form
+<code>"</code><span style="font-style:italic">nnn</span><code>"</code> where <span style="font-style:italic">nnn</span> is a three-digits number (possibly
+with leading 0’s), or of the form <code>""""</code>. Their respective
+denotations are the ASCII code of <span style="font-style:italic">c</span>, the decimal ASCII code <span style="font-style:italic">nnn</span>,
+or the ASCII code of the character <code>"</code> (i.e. the ASCII code
+34), all of them being represented in the type <span style="font-family:monospace">ascii</span>.</p>
+<h3 id="sec573" class="subsection">12.2.6  Displaying informations about scopes</h3>
+<h4 id="sec574" class="subsubsection"><span style="font-family:monospace">Print Visibility</span><a id="hevea_default891"></a><a id="hevea_command229"></a></h4>
+<p>This displays the current stack of notations in scopes and lonely
+notations that is used to interpret a notation. The top of the stack
+is displayed last. Notations in scopes whose interpretation is hidden
+by the same notation in a more recently open scope are not
+displayed. Hence each notation is displayed only once.</p><p><br>
+<span style="font-weight:bold">Variant: </span></p><p><span style="font-family:monospace">Print Visibility </span><span style="font-style:oblique">scope</span><br>
+
+This displays the current stack of notations in scopes and lonely
+notations assuming that <span style="font-style:oblique">scope</span> is pushed on top of the stack. This
+is useful to know how a subterm locally occurring in the scope of
+<span style="font-style:oblique">scope</span> is interpreted.</p>
+<h4 id="sec575" class="subsubsection"><span style="font-family:monospace">Print Scope </span><span style="font-style:oblique">scope</span><a id="hevea_default892"></a><a id="hevea_command230"></a></h4>
+<p>This displays all the notations defined in interpretation scope
+<span style="font-style:oblique">scope</span>. It also displays the delimiting key if any and the class to
+which the scope is bound, if any.</p>
+<h4 id="sec576" class="subsubsection"><span style="font-family:monospace">Print Scopes</span><a id="hevea_default893"></a><a id="hevea_command231"></a></h4>
+<p>This displays all the notations, delimiting keys and corresponding
+class of all the existing interpretation scopes.
+It also displays the lonely notations.</p><h2 id="Abbreviations" class="section">12.3  Abbreviations<a id="hevea_default894"></a>
+
+<a id="hevea_default895"></a><a id="hevea_command232"></a></h2>
+<p>An <em>abbreviation</em> is a name, possibly applied to arguments, that
+denotes a (presumably) more complex expression. Here are examples:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation Nlist := (list nat).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check 1 :: 2 :: 3 :: nil.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[1; 2; 3]</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Nlist</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation reflexive R := (forall x, R x x).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check forall A:Prop, A </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> A.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">reflexive iff</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check reflexive iff.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">reflexive iff</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+</span></div><p>An abbreviation expects no precedence nor associativity, since it
+follows the usual syntax of application. Abbreviations are used as
+much as possible by the <span style="font-variant:small-caps">Coq</span> printers unless the modifier
+<code>(only parsing)</code> is given.</p><p>Abbreviations are bound to an absolute name as an ordinary
+definition is, and they can be referred by qualified names too.</p><p>Abbreviations are syntactic in the sense that they are bound to
+expressions which are not typed at the time of the definition of the
+abbreviation but at the time it is used. Especially, abbreviations can
+be bound to terms with holes (i.e. with “_”). The general syntax
+for abbreviations is
+</p><blockquote class="quote">
+<span style="font-style:oblique">[</span><span style="font-family:monospace">Local</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">Notation</span> <span style="font-style:oblique">ident</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">ident</span> <span style="font-style:oblique">ident</span> … <span style="font-style:oblique">ident</span> <span style="font-style:oblique">ident</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">term</span> 
+<span style="font-style:oblique">[</span><span style="font-family:monospace">(only parsing)</span><span style="font-style:oblique">]</span> <code>.</code>
+</blockquote><p><br>
+<span style="font-weight:bold">Example: </span><span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition explicit</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">id (A:Set) (a:A) := a.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">explicit</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation id := (explicit</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">id </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (id 0).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>Abbreviations do not survive the end of sections. No typing of the denoted
+expression is performed at definition time. Type-checking is done only
+at the time of use of the abbreviation.</p>
+<h2 id="sec578" class="section">12.4  Tactic Notations
+<a id="hevea_default896"></a><a id="hevea_command233"></a></h2>
+<p>Tactic notations allow to customize the syntax of the tactics of the
+tactic language<sup><a id="text18" href="#note18">3</a></sup>. Tactic notations obey the following
+syntax
+<br>
+</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">sentence</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">[</span><span style="font-family:monospace">Local</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">Tactic Notation</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">tactic_level</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">prod_item</span>  …  <span style="font-style:oblique">prod_item</span><span style="font-style:oblique">]</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">:= </span><span style="font-style:oblique">tactic</span><span style="font-family:monospace"> .</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">prod_item</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">string</span> | <span style="font-style:oblique">tactic_argument_type</span><span style="font-family:monospace">(</span><span style="font-style:oblique">ident</span><span style="font-family:monospace">)</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tactic_level</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(at level</span> <span style="font-style:oblique">natural</span><span style="font-family:monospace">)</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tactic_argument_type</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ident</span> |
+<span style="font-family:monospace">simple_intropattern</span> |
+<span style="font-family:monospace">reference</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">hyp</span> |
+<span style="font-family:monospace">hyp_list</span> |
+<span style="font-family:monospace">ne_hyp_list</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">constr</span> | <span style="font-family:monospace">uconstr</span> |
+<span style="font-family:monospace">constr_list</span> |
+<span style="font-family:monospace">ne_constr_list</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">integer</span> |
+<span style="font-family:monospace">integer_list</span> |
+<span style="font-family:monospace">ne_integer_list</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">int_or_var</span> |
+<span style="font-family:monospace">int_or_var_list</span> |
+<span style="font-family:monospace">ne_int_or_var_list</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">tactic</span> | <span style="font-family:monospace">tactic</span><span style="font-style:italic">n</span>     (for 0≤ <span style="font-style:italic">n</span>≤ 5) </td></tr>
+</table><p>
+<br>
+</p><p>A tactic notation <span style="font-family:monospace">Tactic Notation </span><span style="font-style:oblique">tactic_level</span><span style="font-family:monospace">
+</span><span style="font-family:monospace"><span style="font-style:oblique">[</span></span><span style="font-style:oblique">prod_item</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">prod_item</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> := </span><span style="font-style:oblique">tactic</span> extends the parser and
+pretty-printer of tactics with a new rule made of the list of
+production items. It then evaluates into the tactic expression
+<span style="font-style:oblique">tactic</span>. For simple tactics, it is recommended to use a terminal
+symbol, i.e. a <span style="font-style:oblique">string</span>, for the first production item. The tactic
+level indicates the parsing precedence of the tactic notation. This
+information is particularly relevant for notations of tacticals.
+Levels 0 to 5 are available (default is 0). 
+To know the parsing precedences of the
+existing tacticals, use the command <span style="font-family:monospace">Print Grammar tactic.</span></p><p>Each type of tactic argument has a specific semantic regarding how it
+is parsed and how it is interpreted. The semantic is described in the
+following table. The last command gives examples of tactics which
+use the corresponding kind of argument.</p><p><br>
+</p><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Tactic argument type</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >parsed as</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interpreted as</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >as in tactic </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">ident</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >identifier</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a user-given name</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">intro</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">simple_intropattern</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >intro_pattern</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >an intro_pattern</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">intros</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">hyp</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >identifier</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >an hypothesis defined in context</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">clear</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">reference</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >qualified identifier</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a global reference of term</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">unfold</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">constr</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >term</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a term</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">exact</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">uconstr</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >term</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >an untyped term</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">refine</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">integer</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >integer</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >an integer</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">int_or_var</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >identifier or integer</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >an integer</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">do</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">tactic</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >tactic at level 5</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a tactic</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">tactic</span></span><span style="font-size:small"><span style="font-style:italic">n</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >tactic at level <span style="font-style:italic">n</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a tactic</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-style:oblique">entry</span></span><span style="font-family:monospace"><span style="font-size:small">_list</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >list of <span style="font-style:oblique">entry</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a list of how <span style="font-style:oblique">entry</span> is interpreted</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace"><span style="font-size:small">ne_</span></span><span style="font-size:small"><span style="font-style:oblique">entry</span></span><span style="font-family:monospace"><span style="font-size:small">_list</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >non-empty list of <span style="font-style:oblique">entry</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >a list of how <span style="font-style:oblique">entry</span> is interpreted</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td></tr>
+</table><p><br>
+<span style="font-weight:bold">Remark: </span>In order to be bound in tactic definitions, each syntactic entry
+for argument type must include the case of simple <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> identifier
+as part of what it parses. This is naturally the case for <span style="font-family:monospace">ident</span>,
+<span style="font-family:monospace">simple_intropattern</span>, <span style="font-family:monospace">reference</span>, <span style="font-family:monospace">constr</span>, ... but not
+for <span style="font-family:monospace">integer</span>. This is the reason for introducing a special entry
+<span style="font-family:monospace">int_or_var</span> which evaluates to integers only but which
+syntactically includes identifiers in order to be usable in tactic
+definitions.</p><p><br>
+<span style="font-weight:bold">Remark: </span>The <span style="font-style:oblique">entry</span><span style="font-family:monospace">_list</span> and <span style="font-family:monospace">ne_</span><span style="font-style:oblique">entry</span><span style="font-family:monospace">_list</span>
+entries can be used in primitive tactics or in other notations at
+places where a list of the underlying entry can be used: <span style="font-style:oblique">entry</span> is
+either <span style="font-family:monospace"><span style="font-size:small">constr</span></span>, <span style="font-family:monospace"><span style="font-size:small">hyp</span></span>, <span style="font-family:monospace"><span style="font-size:small">integer</span></span> or
+<span style="font-family:monospace"><span style="font-size:small">int_or_var</span></span>.</p><p>Tactic notations do not survive the end of sections. They survive
+modules unless the command <span style="font-family:monospace">Local Tactic Notation</span> is used instead
+of <span style="font-family:monospace">Tactic Notation</span>.</p>
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note16" href="#text16">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">which are the levels effectively chosen in the
+current implementation of <span style="font-variant:small-caps">Coq</span></div></dd><dt class="dt-thefootnotes"><a id="note17" href="#text17">2</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">
+<span style="font-variant:small-caps">Coq</span> accepts notations declared as no associative but the parser on
+which <span style="font-variant:small-caps">Coq</span> is built, namely <span style="font-variant:small-caps">Camlp4</span>, currently does not implement the
+no-associativity and replace it by a left associativity; hence it is
+the same for <span style="font-variant:small-caps">Coq</span>: no-associativity is in fact left associativity</div></dd><dt class="dt-thefootnotes"><a id="note18" href="#text18">3</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Tactic notations are just a simplification of
+the <span style="font-family:monospace">Grammar tactic simple_tactic</span> command that existed in
+versions prior to version 8.0.</div></dd></dl>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

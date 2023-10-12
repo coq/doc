@@ -1,0 +1,624 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+Extended pattern-matching
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual017.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual019.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc340">Chapter&nbsp;15</A>&nbsp;&nbsp;Extended pattern-matching</H1><FONT SIZE=5><B>Cristina Cornes</B></FONT> <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<A NAME="Mult-match-full"></A>
+<A NAME="@default680"></A>
+<A NAME="@default681"></A><BR>
+<BR>
+This section describes the full form of pattern-matching in <FONT COLOR=navy>Coq</FONT> terms.<BR>
+<BR>
+<A NAME="toc95"></A>
+<H2><A NAME="htoc341">15.1</A>&nbsp;&nbsp;Patterns</H2><A NAME="implementation"></A> The full syntax of <TT>match</TT> is presented in figures&nbsp;<A HREF="Reference-Manual003.html#term-syntax">1.1</A>
+and&nbsp;<A HREF="Reference-Manual003.html#term-syntax-aux">1.2</A>. Identifiers in patterns are either
+constructor names or variables. Any identifier that is not the
+constructor of an inductive or coinductive type is considered to be a
+variable. A variable name cannot occur more than once in a given
+pattern. It is recommended to start variable names by a lowercase
+letter.<BR>
+<BR>
+If a pattern has the form (<I>c</I>&nbsp;<B><I>x</I></B>) where <I>c</I> is a constructor
+symbol and <B><I>x</I></B> is a linear vector of variables, it is called
+<EM>simple</EM>: it is the kind of pattern recognized by the basic
+version of <TT>match</TT>. If a pattern is
+not simple we call it <EM>nested</EM>.<BR>
+<BR>
+A variable pattern matches any value, and the identifier is bound to
+that value. The pattern ``<TT>_</TT>'' (called ``don't care'' or
+``wildcard'' symbol) also matches any value, but does not bind anything. It
+may occur an arbitrary number of times in a pattern. Alias patterns
+written <TT>(</TT><I><FONT COLOR=maroon>pattern</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>identifier</FONT></I><TT>)</TT> are
+also accepted. This pattern matches the same values as <I><FONT COLOR=maroon>pattern</FONT></I>
+does and <I><FONT COLOR=maroon>identifier</FONT></I> is bound to the matched value. A list of
+patterns separated with commas 
+is also considered as a pattern and is called <EM>multiple
+pattern</EM>.<BR>
+<BR>
+Since extended <TT>match</TT> expressions are compiled into the primitive
+ones, the expressiveness of the theory remains the same. Once the
+stage of parsing has finished only simple patterns remain. An easy way
+to see the result of the expansion is by printing the term with
+<TT>Print</TT> if the term is a constant, or using the command
+<TT>Check</TT>.<BR>
+<BR>
+The extended <TT>match</TT> still accepts an optional <EM>elimination
+predicate</EM> given after the keyword <TT>return</TT>. Given a pattern
+matching expression, if all the right hand sides of <TT>=&gt;</TT> (<EM>rhs</EM> in short) have the same type, then this type can be sometimes
+synthesized, and so we can omit the <TT>return</TT> part. Otherwise 
+the predicate after <TT>return</TT> has to be provided, like for the basic
+<TT>match</TT>.<BR>
+<BR>
+Let us illustrate through examples the different aspects of extended
+pattern matching. Consider for example the function that computes the
+maximum of two natural numbers. We can write it in primitive syntax
+by:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;max&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;m}&nbsp;:&nbsp;nat&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;m</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n'&nbsp;=&gt;&nbsp;match&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;S&nbsp;n'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;m'&nbsp;=&gt;&nbsp;S&nbsp;(max&nbsp;n'&nbsp;m')</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>max&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+Using multiple patterns in the definition allows to write:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Reset&nbsp;max.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;max&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;m}&nbsp;:&nbsp;nat&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n,&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O,&nbsp;_&nbsp;=&gt;&nbsp;m</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n',&nbsp;O&nbsp;=&gt;&nbsp;S&nbsp;n'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n',&nbsp;S&nbsp;m'&nbsp;=&gt;&nbsp;S&nbsp;(max&nbsp;n'&nbsp;m')</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>max&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+which will be compiled into the previous form.<BR>
+<BR>
+The pattern-matching compilation strategy examines patterns from left
+to right. A <TT>match</TT> expression is generated <B>only</B> when
+there is at least one constructor in the column of patterns. E.g. the
+following example does not build a <TT>match</TT> expression.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(fun&nbsp;x:nat&nbsp;=&gt;&nbsp;match&nbsp;x&nbsp;return&nbsp;nat&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;y&nbsp;=&gt;&nbsp;y</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end).</TT><BR>
+<TT><I>fun&nbsp;x&nbsp;:&nbsp;nat&nbsp;=&gt;&nbsp;x</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;nat</I></TT><BR>
+</DIV>
+<BR>
+We can also use ``<TT>as</TT> patterns'' to associate a name to a
+sub-pattern:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Reset&nbsp;max.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;max&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;n}&nbsp;:&nbsp;nat&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n,&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O,&nbsp;_&nbsp;=&gt;&nbsp;m</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n'&nbsp;as&nbsp;p,&nbsp;O&nbsp;=&gt;&nbsp;p</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n',&nbsp;S&nbsp;m'&nbsp;=&gt;&nbsp;S&nbsp;(max&nbsp;n'&nbsp;m')</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>max&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+Here is now an example of nested patterns:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;even&nbsp;(n:nat)&nbsp;:&nbsp;bool&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;true</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;O&nbsp;=&gt;&nbsp;false</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;(S&nbsp;n')&nbsp;=&gt;&nbsp;even&nbsp;n'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>even&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+This is compiled into:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Print&nbsp;even.</TT><BR>
+<TT><I>even&nbsp;=&nbsp;</I></TT><BR>
+<TT><I>fix&nbsp;even&nbsp;(n&nbsp;:&nbsp;nat)&nbsp;:&nbsp;bool&nbsp;:=</I></TT><BR>
+<TT><I>&nbsp;&nbsp;match&nbsp;n&nbsp;with</I></TT><BR>
+<TT><I>&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;true</I></TT><BR>
+<TT><I>&nbsp;&nbsp;|&nbsp;S&nbsp;n0&nbsp;=&gt;&nbsp;match&nbsp;n0&nbsp;with</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;false</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n'&nbsp;=&gt;&nbsp;even&nbsp;n'</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</I></TT><BR>
+<TT><I>&nbsp;&nbsp;end</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;bool</I></TT><BR>
+<TT><I>Argument&nbsp;scope&nbsp;is&nbsp;[nat_scope]</I></TT><BR>
+</DIV>
+<BR>
+In the previous examples patterns do not conflict with, but
+sometimes it is comfortable to write patterns that admit a non
+trivial superposition. Consider
+the boolean function <TT>lef</TT> that given two natural numbers
+yields <TT>true</TT> if the first one is less or equal than the second
+one and <TT>false</TT> otherwise. We can write it as follows:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;lef&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;m}&nbsp;:&nbsp;bool&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n,&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O,&nbsp;x&nbsp;=&gt;&nbsp;true</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;x,&nbsp;O&nbsp;=&gt;&nbsp;false</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n,&nbsp;S&nbsp;m&nbsp;=&gt;&nbsp;lef&nbsp;n&nbsp;m</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>lef&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+Note that the first and the second multiple pattern superpose because
+the couple of values <TT>O O</TT> matches both. Thus, what is the result
+of the function on those values? To eliminate ambiguity we use the
+<EM>textual priority rule</EM>: we consider patterns ordered from top to
+bottom, then a value is matched by the pattern at the <I>ith</I> row if and
+only if it is not matched by some pattern of a previous row. Thus in the
+example,
+<TT>O O</TT> is matched by the first pattern, and so <TT>(lef O O)</TT>
+yields <TT>true</TT>.<BR>
+<BR>
+Another way to write this function is:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Reset&nbsp;lef.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;lef&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;m}&nbsp;:&nbsp;bool&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n,&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O,&nbsp;x&nbsp;=&gt;&nbsp;true</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n,&nbsp;S&nbsp;m&nbsp;=&gt;&nbsp;lef&nbsp;n&nbsp;m</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;_,&nbsp;_&nbsp;=&gt;&nbsp;false</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>lef&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+Here the last pattern superposes with the first two. Because
+of the priority rule, the last pattern 
+will be used only for values that do not match neither the first nor
+the second one. <BR>
+<BR>
+Terms with useless patterns are not accepted by the
+system. Here is an example:
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(fun&nbsp;x:nat&nbsp;=&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;match&nbsp;x&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;true</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;_&nbsp;=&gt;&nbsp;false</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;x&nbsp;=&gt;&nbsp;true</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end).</TT><BR>
+<TT><I>Coq&nbsp;&lt;&nbsp;Coq&nbsp;&lt;&nbsp;Toplevel&nbsp;input,&nbsp;characters&nbsp;1248-1257</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;x&nbsp;=&gt;&nbsp;true</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^^^^^^^^</I></TT><BR>
+<TT><I>Error:&nbsp;This&nbsp;clause&nbsp;is&nbsp;redundant</I></TT><BR>
+</DIV>
+<BR>
+<A NAME="toc96"></A>
+<H2><A NAME="htoc342">15.2</A>&nbsp;&nbsp;About patterns of parametric types</H2>
+When matching objects of a parametric type, constructors in patterns
+<EM>do not expect</EM> the parameter arguments. Their value is deduced
+during expansion.<BR>
+<BR>
+Consider for example the polymorphic lists:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;List&nbsp;(A:Set)&nbsp;:&nbsp;Set&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;:&nbsp;List&nbsp;A</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;:&nbsp;A&nbsp;-&gt;&nbsp;List&nbsp;A&nbsp;-&gt;&nbsp;List&nbsp;A.</TT><BR>
+<TT><I>List&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>List_rect&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>List_ind&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>List_rec&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+We can check the function <EM>tail</EM>:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Check</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;(fun&nbsp;l:List&nbsp;nat&nbsp;=&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;=&gt;&nbsp;nil&nbsp;nat</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;_&nbsp;l'&nbsp;=&gt;&nbsp;l'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end).</TT><BR>
+<TT><I>fun&nbsp;l&nbsp;:&nbsp;List&nbsp;nat&nbsp;=&gt;&nbsp;match&nbsp;l&nbsp;with</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;=&gt;&nbsp;nil&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;_&nbsp;l'&nbsp;=&gt;&nbsp;l'</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;List&nbsp;nat&nbsp;-&gt;&nbsp;List&nbsp;nat</I></TT><BR>
+</DIV>
+<BR>
+When we use parameters in patterns there is an error message:
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Check</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;(fun&nbsp;l:List&nbsp;nat&nbsp;=&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;A&nbsp;=&gt;&nbsp;nil&nbsp;nat</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;A&nbsp;_&nbsp;l'&nbsp;=&gt;&nbsp;l'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end).</TT><BR>
+<TT><I>Coq&nbsp;&lt;&nbsp;Coq&nbsp;&lt;&nbsp;Toplevel&nbsp;input,&nbsp;characters&nbsp;1700-1711</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;A&nbsp;_&nbsp;l'&nbsp;=&gt;&nbsp;l'</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^^^^^^^^^^</I></TT><BR>
+<TT><I>Error:&nbsp;The&nbsp;constructor&nbsp;cons&nbsp;expects&nbsp;2&nbsp;arguments.</I></TT><BR>
+</DIV>
+<BR>
+<A NAME="toc97"></A>
+<H2><A NAME="htoc343">15.3</A>&nbsp;&nbsp;Matching objects of dependent types</H2>
+The previous examples illustrate pattern matching on objects of
+non-dependent types, but we can also 
+use the expansion strategy to destructure objects of dependent type.
+Consider the type <TT>listn</TT> of lists of a certain length:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;listn&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Set&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;niln&nbsp;:&nbsp;listn&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;consn&nbsp;:&nbsp;forall&nbsp;n:nat,&nbsp;nat&nbsp;-&gt;&nbsp;listn&nbsp;n&nbsp;-&gt;&nbsp;listn&nbsp;(S&nbsp;n).</TT><BR>
+<TT><I>listn&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>listn_rect&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>listn_ind&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>listn_rec&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+
+<H3><A NAME="htoc344">15.3.1</A>&nbsp;&nbsp;Understanding dependencies in patterns</H3>
+We can define the function <TT>length</TT> over <TT>listn</TT> by:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Definition&nbsp;length&nbsp;(n:nat)&nbsp;(l:listn&nbsp;n)&nbsp;:=&nbsp;n.</TT><BR>
+<TT><I>length&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+Just for illustrating pattern matching, 
+we can define it by case analysis:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Reset&nbsp;length.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Definition&nbsp;length&nbsp;(n:nat)&nbsp;(l:listn&nbsp;n)&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;niln&nbsp;=&gt;&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;consn&nbsp;n&nbsp;_&nbsp;_&nbsp;=&gt;&nbsp;S&nbsp;n</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>length&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+We can understand the meaning of this definition using the
+same notions of usual pattern matching.<BR>
+<BR>
+
+<H3><A NAME="htoc345">15.3.2</A>&nbsp;&nbsp;When the elimination predicate must be provided</H3>
+The examples given so far do not need an explicit elimination predicate
+ because all the rhs have the same type and the
+strategy succeeds to synthesize it.
+Unfortunately when dealing with dependent patterns it often happens
+that we need to write cases where the type of the rhs are 
+different instances of the elimination predicate.
+The function <TT>concat</TT> for <TT>listn</TT>
+is an example where the branches have different type
+and we need to provide the elimination predicate:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;concat&nbsp;(n:nat)&nbsp;(l:listn&nbsp;n)&nbsp;(m:nat)&nbsp;(l':listn&nbsp;m)&nbsp;{struct&nbsp;l}&nbsp;:</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;in&nbsp;listn&nbsp;n&nbsp;return&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;niln&nbsp;=&gt;&nbsp;l'</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;consn&nbsp;n'&nbsp;a&nbsp;y&nbsp;=&gt;&nbsp;consn&nbsp;(n'&nbsp;+&nbsp;m)&nbsp;a&nbsp;(concat&nbsp;n'&nbsp;y&nbsp;m&nbsp;l')</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>concat&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+
+The elimination predicate is <TT>fun (n:nat) (l:listn n) =&gt; listn&nbsp;(n+m)</TT>.
+In general if <I>m</I> has type (<I>I</I>&nbsp;<I>q</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>q</I><SUB><FONT SIZE=2><I>r</I></FONT></SUB>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>t</I><SUB><FONT SIZE=2><I>s</I></FONT></SUB>) where 
+<I>q</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>q</I><SUB><FONT SIZE=2><I>r</I></FONT></SUB> are parameters, the elimination predicate should be of
+the form&nbsp;:
+<TT>fun <I>y</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...<I>y</I></TT><SUB><TT><FONT SIZE=2><I>s</I></FONT></TT></SUB><TT> <I>x</I>:(<I>I</I>&nbsp;<I>q</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...<I>q</I></TT><SUB><TT><FONT SIZE=2><I>r</I></FONT></TT></SUB><TT>&nbsp;<I>y</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...<I>y</I></TT><SUB><TT><FONT SIZE=2><I>s</I></FONT></TT></SUB><TT>) =&gt; P</TT>. <BR>
+<BR>
+In the concrete syntax, it should be written&nbsp;:
+<DIV ALIGN=center> <FONT COLOR=purple>match</FONT>&nbsp;<I>m</I>&nbsp;<FONT COLOR=purple>as</FONT>&nbsp;<I>x</I>&nbsp;<FONT COLOR=purple>in</FONT>&nbsp;(<I>I</I>&nbsp;_... _&nbsp;<I>y</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>y</I><SUB><FONT SIZE=2><I>s</I></FONT></SUB>)&nbsp;<FONT COLOR=purple>return</FONT>&nbsp;<I>Q</I>&nbsp;<FONT COLOR=purple>with</FONT>&nbsp;...&nbsp;<FONT COLOR=purple>end</FONT></DIV><BR>
+The variables which appear in the <FONT COLOR=purple>in</FONT> and <FONT COLOR=purple>as</FONT> clause are new
+and bounded in the property <I>Q</I> in the <FONT COLOR=purple>return</FONT> clause. The
+parameters of the inductive definitions should not be mentioned and
+are replaced by <FONT COLOR=purple>_</FONT>.<BR>
+<BR>
+Recall that a list of patterns is also a pattern. So, when
+we destructure several terms at the same time and the branches have
+different type we need to provide
+the elimination predicate for this multiple pattern. 
+It is done using the same scheme, each term may be associated to an
+<FONT COLOR=purple>as</FONT> and <FONT COLOR=purple>in</FONT> clause in order to introduce a dependent product.<BR>
+<BR>
+For example, an equivalent definition for <TT>concat</TT> (even though the matching on the second term is trivial) would have
+been:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Reset&nbsp;concat.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;concat&nbsp;(n:nat)&nbsp;(l:listn&nbsp;n)&nbsp;(m:nat)&nbsp;(l':listn&nbsp;m)&nbsp;{struct&nbsp;l}&nbsp;:</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;in&nbsp;listn&nbsp;n,&nbsp;l'&nbsp;return&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;niln,&nbsp;x&nbsp;=&gt;&nbsp;x</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;consn&nbsp;n'&nbsp;a&nbsp;y,&nbsp;x&nbsp;=&gt;&nbsp;consn&nbsp;(n'&nbsp;+&nbsp;m)&nbsp;a&nbsp;(concat&nbsp;n'&nbsp;y&nbsp;m&nbsp;x)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>concat&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+When the arity of the predicate (i.e. number of abstractions) is not
+correct Coq raises an error message. For example:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;concat</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;(n:nat)&nbsp;(l:listn&nbsp;n)&nbsp;(m:nat)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;(l':listn&nbsp;m)&nbsp;{struct&nbsp;l}&nbsp;:&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l,&nbsp;l'&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;niln,&nbsp;x&nbsp;=&gt;&nbsp;x</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;consn&nbsp;n'&nbsp;a&nbsp;y,&nbsp;x&nbsp;=&gt;&nbsp;consn&nbsp;(n'&nbsp;+&nbsp;m)&nbsp;a&nbsp;(concat&nbsp;n'&nbsp;y&nbsp;m&nbsp;x)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>Coq&nbsp;&lt;&nbsp;Coq&nbsp;&lt;&nbsp;Coq&nbsp;&lt;&nbsp;Toplevel&nbsp;input,&nbsp;characters&nbsp;3232-3233</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;|&nbsp;niln,&nbsp;x&nbsp;=&gt;&nbsp;x</I></TT><BR>
+<TT><I>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^</I></TT><BR>
+<TT><I>Error:</I></TT><BR>
+<TT><I>In&nbsp;environment</I></TT><BR>
+<TT><I>concat&nbsp;:&nbsp;forall&nbsp;n&nbsp;:&nbsp;nat,</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listn&nbsp;n&nbsp;-&gt;&nbsp;forall&nbsp;m&nbsp;:&nbsp;nat,&nbsp;listn&nbsp;m&nbsp;-&gt;&nbsp;listn&nbsp;(n&nbsp;+&nbsp;m)</I></TT><BR>
+<TT><I>n&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>l&nbsp;:&nbsp;listn&nbsp;n</I></TT><BR>
+<TT><I>m&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>l'&nbsp;:&nbsp;listn&nbsp;m</I></TT><BR>
+<TT><I>The&nbsp;term&nbsp;"l'"&nbsp;has&nbsp;type&nbsp;"listn&nbsp;m"&nbsp;while&nbsp;it&nbsp;is&nbsp;expected&nbsp;to&nbsp;have&nbsp;type</I></TT><BR>
+<TT><I>&nbsp;"listn&nbsp;(?31&nbsp;+&nbsp;?32)"</I></TT><BR>
+</DIV>
+<BR>
+<A NAME="toc98"></A>
+<H2><A NAME="htoc346">15.4</A>&nbsp;&nbsp;Using pattern matching to write proofs</H2>
+In all the previous examples the elimination predicate does not depend
+on the object(s) matched. But it may depend and the typical case 
+is when we write a proof by induction or a function that yields an
+object of dependent type. An example of proof using <TT>match</TT> in
+given in section <A HREF="Reference-Manual012.html#refine-example">10.1</A><BR>
+<BR>
+For example, we can write 
+the function <TT>buildlist</TT> that given a natural number
+<I>n</I> builds a list of length <I>n</I> containing zeros as follows:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;buildlist&nbsp;(n:nat)&nbsp;:&nbsp;listn&nbsp;n&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n&nbsp;return&nbsp;listn&nbsp;n&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;niln</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n&nbsp;=&gt;&nbsp;consn&nbsp;n&nbsp;0&nbsp;(buildlist&nbsp;n)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>buildlist&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+We can also use multiple patterns. 
+Consider the following definition of the predicate less-equal
+<TT>Le</TT>:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;LE&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;nat&nbsp;-&gt;&nbsp;Prop&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;LEO&nbsp;:&nbsp;forall&nbsp;n:nat,&nbsp;LE&nbsp;0&nbsp;n</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;LES&nbsp;:&nbsp;forall&nbsp;n&nbsp;m:nat,&nbsp;LE&nbsp;n&nbsp;m&nbsp;-&gt;&nbsp;LE&nbsp;(S&nbsp;n)&nbsp;(S&nbsp;m).</TT><BR>
+<TT><I>LE&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>LE_ind&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+We can use multiple patterns to write the proof of the lemma
+ <TT>(n,m:nat) (LE n m)</TT><CODE>\/</CODE><TT>(LE m n)</TT>:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;dec&nbsp;(n&nbsp;m:nat)&nbsp;{struct&nbsp;n}&nbsp;:&nbsp;LE&nbsp;n&nbsp;m&nbsp;\/&nbsp;LE&nbsp;m&nbsp;n&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;n,&nbsp;m&nbsp;return&nbsp;LE&nbsp;n&nbsp;m&nbsp;\/&nbsp;LE&nbsp;m&nbsp;n&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;O,&nbsp;x&nbsp;=&gt;&nbsp;or_introl&nbsp;(LE&nbsp;x&nbsp;0)&nbsp;(LEO&nbsp;x)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;x,&nbsp;O&nbsp;=&gt;&nbsp;or_intror&nbsp;(LE&nbsp;x&nbsp;0)&nbsp;(LEO&nbsp;x)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;n&nbsp;as&nbsp;n',&nbsp;S&nbsp;m&nbsp;as&nbsp;m'&nbsp;=&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;match&nbsp;dec&nbsp;n&nbsp;m&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;or_introl&nbsp;h&nbsp;=&gt;&nbsp;or_introl&nbsp;(LE&nbsp;m'&nbsp;n')&nbsp;(LES&nbsp;n&nbsp;m&nbsp;h)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;or_intror&nbsp;h&nbsp;=&gt;&nbsp;or_intror&nbsp;(LE&nbsp;n'&nbsp;m')&nbsp;(LES&nbsp;m&nbsp;n&nbsp;h)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>dec&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+
+In the example of <TT>dec</TT>,
+the first <TT>match</TT> is dependent while 
+the second is not.<BR>
+<BR>
+The user can also use <TT>match</TT> in combination with the tactic
+<TT>refine</TT> (see section <A HREF="Reference-Manual010.html#refine">8.2.2</A>) to build incomplete proofs
+beginning with a <TT>match</TT> construction.<BR>
+<BR>
+<A NAME="toc99"></A>
+<H2><A NAME="htoc347">15.5</A>&nbsp;&nbsp;Pattern-matching on inductive objects involving local
+definitions</H2>
+If local definitions occur in the type of a constructor, then there
+are two ways to match on this constructor. Either the local
+definitions are skipped and matching is done only on the true arguments
+of the constructors, or the bindings for local definitions can also
+be caught in the matching.<BR>
+<BR>
+Example.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;list&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Set&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;:&nbsp;list&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;:&nbsp;forall&nbsp;n:nat,&nbsp;let&nbsp;m&nbsp;:=&nbsp;(2&nbsp;*&nbsp;n)&nbsp;in&nbsp;list&nbsp;m&nbsp;-&gt;&nbsp;list&nbsp;(S&nbsp;(S&nbsp;m)).</TT><BR>
+</DIV>
+<BR>
+In the next example, the local definition is not caught.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;length&nbsp;n&nbsp;(l:list&nbsp;n)&nbsp;{struct&nbsp;l}&nbsp;:&nbsp;nat&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;=&gt;&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;n&nbsp;l0&nbsp;=&gt;&nbsp;S&nbsp;(length&nbsp;(2&nbsp;*&nbsp;n)&nbsp;l0)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>length&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+But in this example, it is.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Fixpoint&nbsp;length'&nbsp;n&nbsp;(l:list&nbsp;n)&nbsp;{struct&nbsp;l}&nbsp;:&nbsp;nat&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;match&nbsp;l&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;=&gt;&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;_&nbsp;m&nbsp;l0&nbsp;=&gt;&nbsp;S&nbsp;(length'&nbsp;m&nbsp;l0)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;end.</TT><BR>
+<TT><I>length'&nbsp;is&nbsp;recursively&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+<BR>
+<B>Remark: </B>for a given matching clause, either none of the local
+definitions or all of them can be caught.<BR>
+<BR>
+<A NAME="toc100"></A>
+<H2><A NAME="htoc348">15.6</A>&nbsp;&nbsp;Pattern-matching and coercions</H2>
+If a mismatch occurs between the expected type of a pattern and its
+actual type, a coercion made from constructors is sought. If such a
+coercion can be found, it is automatically inserted around the
+pattern.<BR>
+<BR>
+Example:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;I&nbsp;:&nbsp;Set&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;C1&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;I</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;C2&nbsp;:&nbsp;I&nbsp;-&gt;&nbsp;I.</TT><BR>
+<TT><I>I&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>I_rect&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>I_ind&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>I_rec&nbsp;is&nbsp;defined</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;C1&nbsp;:&nbsp;nat&nbsp;&gt;-&gt;&nbsp;I.</TT><BR>
+<TT><I>C1&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(fun&nbsp;x&nbsp;=&gt;&nbsp;match&nbsp;x&nbsp;with</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;C2&nbsp;O&nbsp;=&gt;&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;_&nbsp;=&gt;&nbsp;0</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end).</TT><BR>
+<TT><I>fun&nbsp;x&nbsp;:&nbsp;I&nbsp;=&gt;</I></TT><BR>
+<TT><I>match&nbsp;x&nbsp;with</I></TT><BR>
+<TT><I>|&nbsp;C1&nbsp;_&nbsp;=&gt;&nbsp;0</I></TT><BR>
+<TT><I>|&nbsp;C2&nbsp;i&nbsp;=&gt;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;match&nbsp;i&nbsp;with</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;C1&nbsp;n&nbsp;=&gt;&nbsp;match&nbsp;n&nbsp;with</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;O&nbsp;=&gt;&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;S&nbsp;_&nbsp;=&gt;&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;C2&nbsp;_&nbsp;=&gt;&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;end</I></TT><BR>
+<TT><I>end</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;I&nbsp;-&gt;&nbsp;nat</I></TT><BR>
+</DIV>
+<BR>
+<A NAME="toc101"></A>
+<H2><A NAME="htoc349">15.7</A>&nbsp;&nbsp;When does the expansion strategy fail ?</H2><A NAME="limitations"></A>
+The strategy works very like in ML languages when treating
+patterns of non-dependent type. 
+But there are new cases of failure that are due to the presence of 
+dependencies. <BR>
+<BR>
+The error messages of the current implementation may be sometimes
+confusing. When the tactic fails because patterns are somehow
+incorrect then error messages refer to the initial expression. But the
+strategy may succeed to build an expression whose sub-expressions are
+well typed when the whole expression is not. In this situation the
+message makes reference to the expanded expression. We encourage
+users, when they have patterns with the same outer constructor in
+different equations, to name the variable patterns in the same
+positions with the same name. 
+E.g. to write <TT>(cons n O x) =&gt; e1</TT> 
+and <TT>(cons n _ x) =&gt; e2</TT> instead of
+<TT>(cons n O x) =&gt; e1</TT> and 
+<TT>(cons n' _ x') =&gt; e2</TT>. 
+This helps to maintain certain name correspondence between the
+generated expression and the original.<BR>
+<BR>
+Here is a summary of the error messages corresponding to each situation:<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>The constructor </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>expects </TT> <I><FONT COLOR=maroon>num</FONT></I> <TT>arguments</TT><BR>
+<BR>
+<TT>The variable </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>is bound several times
+ in pattern </TT> <I><FONT COLOR=maroon>term</FONT></I><BR>
+<BR>
+<TT>Found a constructor of inductive type</TT> <I><FONT COLOR=maroon>term</FONT></I>
+ <TT>while a constructor of</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>is expected</TT><BR>
+<BR>
+Patterns are incorrect (because constructors are not applied to
+ the correct number of the arguments, because they are not linear or
+ they are wrongly typed)<BR>
+<BR>
+<LI><TT>Non exhaustive pattern-matching</TT><A NAME="@error111"></A><BR>
+<BR>
+the pattern matching is not exhaustive<BR>
+<BR>
+<LI><TT>The elimination predicate </TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>should be
+ of arity </TT> <I><FONT COLOR=maroon>num</FONT></I> <TT>(for non dependent case) or </TT> <I><FONT COLOR=maroon>num</FONT></I> <TT>(for dependent case)</TT><BR>
+<BR>
+The elimination predicate provided to <TT>match</TT> has not the
+ expected arity<BR>
+<BR>
+<LI><TT>Unable to infer a match predicate<BR>
+Either there is a type incompatiblity or the problem involves<BR>
+dependencies</TT><BR>
+<BR>
+There is a type mismatch between the different branches<BR>
+<BR>
+Then the user should provide an elimination predicate.</OL>
+<HR>
+<A HREF="Reference-Manual017.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual019.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

@@ -1,0 +1,441 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="Reference-Manual.css">
+<TITLE>User defined equalities and relations</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual025.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="biblio.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+<HR>
+<H1 CLASS="chapter"><A NAME="htoc437">Chapter 21</A>  User defined equalities and relations</H1><P>
+<FONT SIZE=5><B>Claudio Sacerdoti Coen</B></FONT><SUP><A NAME="text27" HREF="#note27"><FONT SIZE=5><B>1</B></FONT></A></SUP> <BR>
+<BR>
+
+<A NAME="setoid_replace"></A>
+<A NAME="@default813"></A><A NAME="@tactic169"></A></P><P>This chapter presents the extension of several equality related tactics to
+work over user-defined structures (called setoids) that are equipped with
+ad-hoc equivalence relations meant to behave as equalities.
+Actually, the tactics have also been generalized to relations weaker then
+equivalences (e.g. rewriting systems).</P><P>The work generalizes, and is partially based on, a previous implementation of
+the <TT>setoid_replace</TT> tactic by Clément Renard.</P><H2 CLASS="section"><A NAME="toc140"></A><A NAME="htoc438">21.1</A>  Relations and morphisms</H2><P>A parametric <EM>relation</EM> <TT>R</TT> is any term of type
+<TT>forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>) &#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>), relation </TT><TT><I>A</I></TT>. The
+expression <I>A</I>, which depends on <I>x</I><SUB>1</SUB> &#X2026;<I>x</I><SUB><I>n</I></SUB>, is called the
+<EM>carrier</EM> of the relation and <TT>R</TT> is
+said to be a relation over <TT>A</TT>; the list <I>x</I><SUB>1</SUB>,&#X2026;,<I>x</I><SUB><I>n</I></SUB>
+is the (possibly empty) list of parameters of the relation.</P><DIV CLASS="theorem"><B>Example 1</B> <B>(Parametric relation)</B>  <EM>
+It is possible to implement finite sets of elements of type </EM><EM><TT>A</TT></EM><EM>
+as unordered list of elements of type </EM><EM><TT>A</TT></EM><EM>. The function
+</EM><EM><TT>set_eq: forall (A: Type), relation (list A)</TT></EM><EM> satisfied by two lists
+with the same elements is a parametric relation over </EM><EM><TT>(list A)</TT></EM><EM> with
+one parameter </EM><EM><TT>A</TT></EM><EM>. The type of </EM><EM><TT>set_eq</TT></EM><EM> is convertible with
+</EM><EM><TT>forall (A: Type), list A -&gt; list A -&gt; Prop</TT></EM><EM>.
+</EM></DIV><P>An <EM>instance</EM> of a parametric relation <TT>R</TT> with <I>n</I> parameters
+is any term <TT>(R </TT><TT><I>t</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>t</I></TT><SUB><TT><I>n</I></TT></SUB><TT>)</TT>.</P><P>Let <TT>R</TT> be a relation over <TT>A</TT> with <I>n</I> parameters.
+A term is a parametric proof of reflexivity for <TT>R</TT> if it has type
+<TT>forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>) &#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>),
+reflexive (R </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>)</TT>. Similar definitions are given for
+parametric proofs of symmetry and transitivity.</P><DIV CLASS="theorem"><B>Example 2</B> <B>(Parametric relation (cont.))</B>  <EM>
+The </EM><EM><TT>set_eq</TT></EM><EM> relation of the previous example can be proved to be
+reflexive, symmetric and transitive.
+</EM></DIV><P>A parametric unary function <I>f</I> of type
+<TT>forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>) &#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>), </TT><TT><I>A</I></TT><SUB><TT>1</TT></SUB><TT> -&gt; </TT><TT><I>A</I></TT><SUB><TT>2</TT></SUB>
+covariantly respects two parametric relation instances <I>R</I><SUB>1</SUB> and <I>R</I><SUB>2</SUB> if,
+whenever <I>x</I>, <I>y</I> satisfy <I>R</I><SUB>1</SUB> <I>x</I> <I>y</I>, their images (<I>f</I> <I>x</I>) and (<I>f</I> <I>y</I>) 
+satisfy <I>R</I><SUB>2</SUB> (<I>f</I> <I>x</I>) (<I>f</I> <I>y</I>) . An <I>f</I> that respects its input and output relations
+will be called a unary covariant <EM>morphism</EM>. We can also say that <I>f</I> is
+a monotone function with respect to <I>R</I><SUB>1</SUB> and <I>R</I><SUB>2</SUB>. The sequence <I>x</I><SUB>1</SUB>,&#X2026; <I>x</I><SUB><I>n</I></SUB> represents the parameters of the morphism.</P><P>Let <I>R</I><SUB>1</SUB> and <I>R</I><SUB>2</SUB> be two parametric relations.
+The <EM>signature</EM> of a parametric morphism of type
+<TT>forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>) &#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>), </TT><TT><I>A</I></TT><SUB><TT>1</TT></SUB><TT> -&gt; </TT><TT><I>A</I></TT><SUB><TT>2</TT></SUB> that
+covariantly respects two parametric relations that are instances of
+<I>R</I><SUB>1</SUB> and <I>R</I><SUB>2</SUB> is written <I>R</I><SUB>1</SUB> <TT>++&gt;</TT> <I>R</I><SUB>2</SUB>.
+Notice that the special arrow <TT>++&gt;</TT>, which reminds the reader
+of covariance, is placed between the two parametric relations, not
+between the two carriers or the two relation instances.</P><P>The previous definitions are extended straightforwardly to <I>n</I>-ary morphisms,
+that are required to be simultaneously monotone on every argument.</P><P>Morphisms can also be contravariant in one or more of their arguments.
+A morphism is contravariant on an argument associated to the relation instance
+<I>R</I> if it is covariant on the same argument when the inverse relation
+<I>R</I><SUP>&#X2212;1</SUP> is considered. The special arrow <TT>--&gt;</TT> is used in signatures
+for contravariant morphisms.</P><P>Functions having arguments related by symmetric relations instances are both
+covariant and contravariant in those arguments. The special arrow
+<TT>==&gt;</TT> is used in signatures for morphisms that are both covariant
+and contravariant.</P><P>An instance of a parametric morphism <I>f</I> with <I>n</I> parameters is any term
+<TT>f </TT><TT><I>t</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>t</I></TT><SUB><TT><I>n</I></TT></SUB>.</P><DIV CLASS="theorem"><B>Example 3</B> <B>(Morphisms)</B>  <EM>
+Continuing the previous example, let
+</EM><EM><TT>union: forall (A: Type), list A -&gt; list A -&gt; list A</TT></EM><EM> perform the union
+of two sets by appending one list to the other. </EM><EM><TT>union</TT></EM><EM> is a binary
+morphism parametric over </EM><EM><TT>A</TT></EM><EM> that respects the relation instance
+</EM><EM><TT>(set_eq A)</TT></EM><EM>. The latter condition is proved by showing
+</EM><EM><TT>forall (A: Type) (S1 S1&#X2019; S2 S2&#X2019;: list A), set_eq A S1 S1&#X2019; -&gt;
+set_eq A S2 S2&#X2019; -&gt; set_eq A (union A S1 S2) (union A S1&#X2019; S2&#X2019;)</TT></EM><EM>.</EM><P><EM>The signature of the function </EM><EM><TT>union</TT></EM><EM> is
+</EM><EM><TT>set_eq ==&gt; set_eq ==&gt; set_eq</TT></EM><EM>.
+</EM></P></DIV><DIV CLASS="theorem"><B>Example 4</B> <B>(Contravariant morphism)</B>  <EM>
+The division function </EM><EM><TT>Rdiv: R -&gt; R -&gt; R</TT></EM><EM> is a morphism of
+signature </EM><EM><TT>le ++&gt; le --&gt; le</TT></EM><EM> where </EM><EM><TT>le</TT></EM><EM> is
+the usual order relation over real numbers. Notice that division is
+covariant in its first argument and contravariant in its second
+argument.
+</EM></DIV><P>Notice that Leibniz equality is a relation and that every function is a
+morphism that respects Leibniz equality. Unfortunately, Leibniz equality
+is not always the intended equality for a given structure.</P><P>In the next section we will describe the commands to register terms as
+parametric relations and morphisms. Several tactics that deal with equality
+in <SPAN STYLE="font-variant:small-caps">Coq</SPAN> can also work with the registered relations.
+The exact list of tactic will be given in Sect. <A HREF="#setoidtactics">21.7</A>.
+For instance, the
+tactic <TT>reflexivity</TT> can be used to close a goal <I>R</I> <I>n</I> <I>n</I> whenever
+<I>R</I> is an instance of a registered reflexive relation. However, the tactics
+that replace in a context <I>C</I>[] one term with another one related by <I>R</I>
+must verify that <I>C</I>[] is a morphism that respects the intended relation.
+Currently the verification consists in checking whether <I>C</I>[] is a syntactic
+composition of morphism instances that respects some obvious
+compatibility constraints.</P><DIV CLASS="theorem"><B>Example 5</B> <B>(Rewriting)</B>  <EM>
+Continuing the previous examples, suppose that the user must prove
+</EM><EM><TT>set_eq int (union int (union int S1 S2) S2) (f S1 S2)</TT></EM><EM> under the
+hypothesis </EM><EM><TT>H: set_eq int S2 (nil int)</TT></EM><EM>. It is possible to
+use the </EM><EM><TT>rewrite</TT></EM><EM> tactic to replace the first two occurrences of
+</EM><EM><TT>S2</TT></EM><EM> with </EM><EM><TT>nil int</TT></EM><EM> in the goal since the context
+</EM><EM><TT>set_eq int (union int (union int S1 nil) nil) (f S1 S2)</TT></EM><EM>, being
+a composition of morphisms instances, is a morphism. However the tactic
+will fail replacing the third occurrence of </EM><EM><TT>S2</TT></EM><EM> unless </EM><EM><TT>f</TT></EM><EM>
+has also been declared as a morphism.
+</EM></DIV><H2 CLASS="section"><A NAME="toc141"></A><A NAME="htoc439">21.2</A>  Adding new relations and morphisms</H2><P>
+A parametric relation
+<I>Aeq</I><TT>: forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>) &#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>),
+relation (A </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>)</TT> over <I>(A </I><I><I>x</I></I><SUB><I>1</I></SUB><I> &#X2026;</I><I><I>x</I></I><SUB><I><I>n</I></I></SUB><I>)</I>
+can be declared with the following command</P><P><A NAME="@default814"></A><A NAME="@command276"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Add Relation</TT> <I>A Aeq</I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>reflexivity proved by</TT> <I>refl</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>symmetry proved by</TT> <I>sym</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>transitivity proved by</TT> <I>trans</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+ <TT> as</TT> <I>id</I>.
+</BLOCKQUOTE><P>
+after having required the <TT>Setoid</TT> module with the
+<TT>Require Setoid</TT> command.</P><P>The identifier <I>id</I> gives a unique name to the morphism and it is
+used by the command to generate fresh names for automatically provided lemmas
+used internally.</P><P>Notice that <I>A</I> is required to be a term having the same parameters
+of <I>Aeq</I>. This is a limitation of the tactic that is often unproblematic
+in practice.</P><P>The proofs of reflexivity, symmetry and transitivity can be omitted if the
+relation is not an equivalence relation.</P><P>If <I>Aeq</I> is a transitive relation, then the command also generates
+a lemma of type:
+</P><BLOCKQUOTE CLASS="quote">
+<TT>forall (</TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT>1</TT></SUB><TT>)&#X2026;(</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>:</TT><TT><I>T</I></TT><SUB><TT><I>n</I></TT></SUB><TT>)
+(x y x&#X2019; y&#X2019;: (A </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT>))<BR>
+ Aeq </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT> x&#X2019; x -&gt; Aeq </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT> y y&#X2019; -&gt;<BR>
+ (Aeq </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT> x y -&gt; Aeq </TT><TT><I>x</I></TT><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><TT><I>x</I></TT><SUB><TT><I>n</I></TT></SUB><TT> x&#X2019; y&#X2019;)</TT>
+</BLOCKQUOTE><P>
+that is used to declare <I>Aeq</I> as a parametric morphism of signature
+<TT>Aeq --&gt; Aeq ++&gt; impl</TT> where <TT>impl</TT> is logical implication
+seen as a parametric relation over <TT>Aeq</TT>.</P><P>Some tactics
+(<TT>reflexivity</TT>, <TT>symmetry</TT>, <TT>transitivity</TT>) work only
+on relations that respect the expected properties. The remaining tactics
+(<TT>replace</TT>, <TT>rewrite</TT> and derived tactics such as
+<TT>autorewrite</TT>) do not require any properties over the relation.
+However, they are able to replace terms with related ones only in contexts
+that are syntactic compositions of parametric morphism instances declared with
+the following command.</P><P><A NAME="@default815"></A><A NAME="@command277"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Add Morphism</TT> <I>f</I><BR>
+ <TT> with signature</TT> <I>sig</I><BR>
+ <TT> as id</TT>.<BR>
+ <TT>Proof</TT><BR>
+  &#X2026;<BR>
+ <TT>Qed</TT>
+</BLOCKQUOTE><P>The command declares <I>f</I> as a parametric morphism of signature
+<I>sig</I>. The identifier <I>id</I> gives a unique name to the morphism
+and it is used by the command to generate fresh names for automatically
+provided lemmas used internally. The number of parameters for <I>f</I>
+is inferred by comparing its type with the provided signature.
+The command asks the user to prove interactively that <I>f</I> respects
+the relations identified from the signature.</P><DIV CLASS="theorem"><B>Example 6</B>  <EM>
+We start the example by assuming a small theory over homogeneous sets and
+we declare set equality as a parametric equivalence relation and
+union of two sets as a parametric morphism.
+</EM><PRE CLASS="verbatim"><EM>Require Export Relation_Definitions.
+Require Export Setoid.
+Set Implicit Arguments.
+Set Contextual Implicit.
+Parameter set: Type -&gt; Type.
+Parameter empty: forall A, set A.
+Parameter eq_set: forall A, set A -&gt; set A -&gt; Prop.
+Parameter union: forall A, set A -&gt; set A -&gt; set A.
+Axiom eq_set_refl: forall A, reflexive _ (eq_set (A:=A)).
+Axiom eq_set_sym: forall A, symmetric _ (eq_set (A:=A)).
+Axiom eq_set_trans: forall A, transitive _ (eq_set (A:=A)).
+Axiom empty_neutral: forall A (S: set A), eq_set (union S empty) S.
+Axiom union_compat:
+ forall (A : Type),
+  forall x x' : set A, eq_set x x' -&gt;
+  forall y y' : set A, eq_set y y' -&gt;
+   eq_set (union x y) (union x' y').
+
+Add Relation set eq_set
+ reflexivity proved by (@eq_set_refl)
+ symmetry proved by (@eq_set_sym)
+ transitivity proved by (@eq_set_trans)
+ as eq_set_rel.
+
+Add Morphism union
+ with signature eq_set ==&gt; eq_set ==&gt; eq_set
+ as union_mor.
+Proof.
+ exact union_compat.
+Qed.
+</EM></PRE><P><EM>We proceed now by proving a simple lemma performing a rewrite step
+and then applying reflexivity, as we would do working with Leibniz
+equality. Both tactic applications are accepted
+since the required properties over </EM><EM><TT>eq_set</TT></EM><EM> and
+</EM><EM><TT>union</TT></EM><EM> can be established from the two declarations above.</EM></P><PRE CLASS="verbatim"><EM>Goal forall (S: set nat),
+ eq_set (union (union S empty) S) (union S S).
+Proof.
+ intros.
+ rewrite (@empty_neutral).
+ reflexivity.
+Qed.
+</EM></PRE></DIV><P>The tables of relations and morphisms are compatible with the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> 
+sectioning mechanism. If you declare a relation or a morphism inside a section,
+the declaration will be thrown away when closing the section.
+And when you load a compiled file, all the declarations
+of this file that were not inside a section will be loaded.</P><H2 CLASS="section"><A NAME="toc142"></A><A NAME="htoc440">21.3</A>  Rewriting and non reflexive relations</H2><P>
+To replace only one argument of an n-ary morphism it is necessary to prove
+that all the other arguments are related to themselves by the respective
+relation instances.</P><DIV CLASS="theorem"><B>Example 7</B>  <EM>
+To replace </EM><EM><TT>(union S empty)</TT></EM><EM> with </EM><EM><TT>S</TT></EM><EM> in
+</EM><EM><TT>(union (union S empty) S) (union S S)</TT></EM><EM> the rewrite tactic must
+exploit the monotony of </EM><EM><TT>union</TT></EM><EM> (axiom </EM><EM><TT>union_compat</TT></EM><EM> in
+the previous example). Applying </EM><EM><TT>union_compat</TT></EM><EM> by hand we are left
+with the goal </EM><EM><TT>eq_set (union S S) (union S S)</TT></EM><EM>.
+</EM></DIV><P>When the relations associated to some arguments are not reflexive, the tactic
+cannot automatically prove the reflexivity goals, that are left to the user.</P><P>Setoids whose relation are partial equivalence relations (PER)
+are useful to deal with partial functions. Let <TT>R</TT> be a PER. We say
+that an element <TT>x</TT> is defined if <TT>R x x</TT>. A partial function
+whose domain comprises all the defined elements only is declared as a
+morphism that respects <TT>R</TT>. Every time a rewriting step is performed
+the user must prove that the argument of the morphism is defined.</P><DIV CLASS="theorem"><B>Example 8</B>  <EM>
+Let </EM><EM><TT>eqO</TT></EM><EM> be </EM><EM><TT>fun x y =&gt; x = y </TT></EM><EM><TT>&#X2227;</TT></EM><EM><TT>  x</TT></EM><EM><TT>&#X2260;</TT></EM><EM><TT> 0</TT></EM><EM> (the smaller PER over
+non zero elements). Division can be declared as a morphism of signature
+</EM><EM><TT>eq ==&gt; eq0 ==&gt; eq</TT></EM><EM>. Replace </EM><EM><TT>x</TT></EM><EM> with </EM><EM><TT>y</TT></EM><EM> in
+</EM><EM><TT>div x n = div y n</TT></EM><EM> opens the additional goal </EM><EM><TT>eq0 n n</TT></EM><EM> that
+is equivalent to </EM><EM><TT>n=n </TT></EM><EM><TT>&#X2227;</TT></EM><EM><TT> n</TT></EM><EM><TT>&#X2260;</TT></EM><EM><TT>0</TT></EM><EM>.
+</EM></DIV><H2 CLASS="section"><A NAME="toc143"></A><A NAME="htoc441">21.4</A>  Rewriting and non symmetric relations</H2><P>
+When the user works up to relations that are not symmetric, it is no longer
+the case that any covariant morphism argument is also contravariant. As a
+result it is no longer possible to replace a term with a related one in
+every context, since the obtained goal implies the previous one if and
+only if the replacement has been performed in a contravariant position.
+In a similar way, replacement in an hypothesis can be performed only if
+the replaced term occurs in a covariant position.</P><DIV CLASS="theorem"><B>Example 9</B> <B>(Covariance and contravariance)</B>  <EM>
+Suppose that division over real numbers has been defined as a
+morphism of signature </EM><EM><TT>Zdiv: Zlt ++&gt; Zlt --&gt; Zlt</TT></EM><EM> (i.e.
+</EM><EM><TT>Zdiv</TT></EM><EM> is increasing in its first argument, but decreasing on the
+second one). Let </EM><EM><TT>&lt;</TT></EM><EM> denotes </EM><EM><TT>Zlt</TT></EM><EM>. 
+Under the hypothesis </EM><EM><TT>H: x &lt; y</TT></EM><EM> we have
+</EM><EM><TT>k &lt; x / y -&gt; k &lt; x / x</TT></EM><EM>, but not
+</EM><EM><TT>k &lt; y / x -&gt; k &lt; x / x</TT></EM><EM>.
+Dually, under the same hypothesis </EM><EM><TT>k &lt; x / y -&gt; k &lt; y / y</TT></EM><EM> holds,
+but </EM><EM><TT>k &lt; y / x -&gt; k &lt; y / y</TT></EM><EM> does not.
+Thus, if the current goal is </EM><EM><TT>k &lt; x / x</TT></EM><EM>, it is possible to replace
+only the second occurrence of </EM><EM><TT>x</TT></EM><EM> (in contravariant position)
+with </EM><EM><TT>y</TT></EM><EM> since the obtained goal must imply the current one.
+On the contrary, if </EM><EM><TT>k &lt; x / x</TT></EM><EM> is
+an hypothesis, it is possible to replace only the first occurrence of
+</EM><EM><TT>x</TT></EM><EM> (in covariant position) with </EM><EM><TT>y</TT></EM><EM> since
+the current hypothesis must imply the obtained one.
+</EM></DIV><P>An error message will be raised by the <TT>rewrite</TT> and <TT>replace</TT>
+tactics when the user is trying to replace a term that occurs in the
+wrong position.</P><P>As expected, composing morphisms together propagates the variance annotations by
+switching the variance every time a contravariant position is traversed.
+</P><DIV CLASS="theorem"><B>Example 10</B>  <EM>
+Let us continue the previous example and let us consider the goal
+</EM><EM><TT>x / (x / x) &lt; k</TT></EM><EM>. The first and third occurrences of </EM><EM><TT>x</TT></EM><EM> are
+in a contravariant position, while the second one is in covariant position.
+More in detail, the second occurrence of </EM><EM><TT>x</TT></EM><EM> occurs
+covariantly in </EM><EM><TT>(x / x)</TT></EM><EM> (since division is covariant in its first
+argument), and thus contravariantly in </EM><EM><TT>x / (x / x)</TT></EM><EM> (since division
+is contravariant in its second argument), and finally covariantly in
+</EM><EM><TT>x / (x / x) &lt; k</TT></EM><EM> (since </EM><EM><TT>&lt;</TT></EM><EM>, as every transitive relation,
+is contravariant in its first argument with respect to the relation itself).
+</EM></DIV><H2 CLASS="section"><A NAME="toc144"></A><A NAME="htoc442">21.5</A>  Rewriting in ambiguous setoid contexts</H2><P>
+One function can respect several different relations and thus it can be
+declared as a morphism having multiple signatures.</P><DIV CLASS="theorem"><B>Example 11</B>  <EM>
+Union over homogeneous lists can be given all the following signatures:
+</EM><EM><TT>eq ==&gt; eq ==&gt; eq</TT></EM><EM> (</EM><EM><TT>eq</TT></EM><EM> being the equality over ordered lists)
+</EM><EM><TT>set_eq ==&gt; set_eq ==&gt; set_eq</TT></EM><EM> (</EM><EM><TT>set_eq</TT></EM><EM> being the equality
+over unordered lists up to duplicates),
+</EM><EM><TT>multiset_eq ==&gt; multiset_eq ==&gt; multiset_eq</TT></EM><EM> (</EM><EM><TT>multiset_eq</TT></EM><EM>
+being the equality over unordered lists).
+</EM></DIV><P>To declare multiple signatures for a morphism, repeat the <TT>Add Morphism</TT>
+command.</P><P>When morphisms have multiple signatures it can be the case that a rewrite
+request is ambiguous, since it is unclear what relations should be used to
+perform the rewriting. When non reflexive relations are involved, different
+choices lead to different sets of new goals to prove. In this case the
+tactic automatically picks one choice, but raises a warning describing the
+set of alternative new goals. To force one particular choice, the user
+can switch to the following alternative syntax for rewriting:</P><P><A NAME="@default816"></A><A NAME="@command278"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_rewrite</TT> <I><FONT COLOR=maroon>[</FONT></I><I>orientation</I><I><FONT COLOR=maroon>]</FONT></I> <I>term</I>
+<I><FONT COLOR=maroon>[</FONT></I><TT>in</TT> <I>ident</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+ <TT> generate side conditions</TT>
+<I>term</I><SUB>1</SUB> &#X2026;<I>term</I><SUB><I>n</I></SUB><BR>
+</BLOCKQUOTE><P>
+Up to the <TT>generate side conditions</TT> part, the syntax is 
+equivalent to the
+one of the <TT>rewrite</TT> tactic. Additionally, the user can specify a list
+of new goals that the tactic must generate. The tactic will prune out from
+the alternative choices those choices that do not open at least the user
+proposed goals. Thus, providing enough side conditions, the user can restrict
+the tactic to at most one choice.</P><DIV CLASS="theorem"><B>Example 12</B>  <EM>
+Let </EM><EM><TT>[=]+</TT></EM><EM> and </EM><EM><TT>[=]-</TT></EM><EM> be the smaller partial equivalence
+relations over positive (resp. negative) integers. Integer multiplication
+can be declared as a morphism with the following signatures:
+</EM><EM><TT>Zmult: Zlt ++&gt; [=]+ ==&gt; Zlt</TT></EM><EM> (multiplication with a positive number
+is increasing) and
+</EM><EM><TT>Zmult: Zlt --&gt; [=]- ==&gt; Zlt</TT></EM><EM> (multiplication with a negative number
+is decreasing).
+Given the hypothesis </EM><EM><TT>H: x &lt; y</TT></EM><EM> and the goal
+</EM><EM><TT>(x * n) * m &lt; 0</TT></EM><EM> the tactic </EM><EM><TT>rewrite H</TT></EM><EM> proposes
+two alternative sets of goals that correspond to proving that </EM><EM><TT>n</TT></EM><EM>
+and </EM><EM><TT>m</TT></EM><EM> are both positive or both negative.
+</EM><UL CLASS="itemize"><LI CLASS="li-itemize"><EM>
+</EM><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> (y * n) * m &lt; 0</TT></EM><EM><BR>
+ </EM><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> n [=]+ n</TT></EM><EM><BR>
+ </EM><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> m [=]+ m</TT></EM><EM><BR>
+ </EM></LI><LI CLASS="li-itemize"><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> (y * n) * m &lt; 0</TT></EM><EM><BR>
+ </EM><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> n [=]- n</TT></EM><EM><BR>
+ </EM><EM><TT>&#X2026;</TT></EM><EM><TT>&#X22A2;</TT></EM><EM><TT> m [=]- m</TT></EM><EM>
+</EM></LI></UL><EM>
+Remember that </EM><EM><TT>n [=]+ n</TT></EM><EM> is equivalent to </EM><EM><TT>n=n </TT></EM><EM><TT>&#X2227;</TT></EM><EM><TT> n &gt; 0</TT></EM><EM>.</EM><P><EM>To pick the second set of goals it is sufficient to use
+</EM><EM><TT>setoid_rewrite H generate side conditions (m [=]- m)</TT></EM><EM>
+since the side condition </EM><EM><TT>m [=]- m</TT></EM><EM> is contained only in the second set
+of goals.
+</EM></P></DIV><H2 CLASS="section"><A NAME="toc145"></A><A NAME="htoc443">21.6</A>  First class setoids and morphisms</H2><P>
+First class setoids and morphisms can also be handled by encoding them
+as records. The projections of the setoid relation and of the morphism
+function can be registered as parametric relations and morphisms, as
+illustrated by the following example.
+</P><DIV CLASS="theorem"><B>Example 13</B> <B>(First class setoids)</B>  <EM>
+</EM><PRE CLASS="verbatim"><EM>Require Export Relation_Definitions.
+Require Setoid.
+
+Record Setoid: Type :=
+{ car:Type;
+  eq:car-&gt;car-&gt;Prop;
+  refl: reflexive _ eq;
+  sym: symmetric _ eq;
+  trans: transitive _ eq
+}.
+
+Add Relation car eq
+ reflexivity proved by refl
+ symmetry proved by symm
+ transitivity proved by trans
+as eq_rel.
+
+Record Morphism (S1 S2:Setoid): Type :=
+{ f:car S1 -&gt;car S2;
+  compat: forall (x1 x2: car S1), eq S1 x1 x2 -&gt; eq S2 (f x1) (f x2)
+}.
+
+Add Morphism f with signature eq ==&gt; eq as apply_mor.
+Proof.
+ intros S1 S2 m.
+ apply (compat S1 S2 m).
+Qed.
+
+Lemma test: forall (S1 S2:Setoid) (m: Morphism S1 S2)
+ (x y: car S1), eq S1 x y -&gt; eq S2 (f _ _ m x) (f _ _ m y).
+Proof.
+ intros.
+ rewrite H.
+ reflexivity.
+Qed.
+</EM></PRE></DIV><H2 CLASS="section"><A NAME="toc146"></A><A NAME="htoc444">21.7</A>  Tactics enabled on user provided relations</H2><P>
+<A NAME="setoidtactics"></A>
+The following tactics, all prefixed by <TT>setoid_</TT>, 
+deal with arbitrary
+registered relations and morphisms. Moreover, all the corresponding unprefixed
+tactics (i.e. <TT>reflexivity, symmetry, transitivity, replace, rewrite</TT>)
+have been extended to fall back to their prefixed counterparts when
+the relation involved is not Leibniz equality. Notice, however, that using
+the prefixed tactics it is possible to pass additional arguments such as
+<TT>generate side conditions</TT> or <TT>using relation</TT>.</P><P><A NAME="@default817"></A><A NAME="@command279"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_reflexivity</TT>
+</BLOCKQUOTE><P><A NAME="@default818"></A><A NAME="@command280"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_symmetry</TT>
+<I><FONT COLOR=maroon>[</FONT></I><TT>in</TT> <I>ident</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+</BLOCKQUOTE><P><A NAME="@default819"></A><A NAME="@command281"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_transitivity</TT>
+</BLOCKQUOTE><P><A NAME="@default820"></A><A NAME="@command282"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_rewrite</TT> <I><FONT COLOR=maroon>[</FONT></I><I>orientation</I><I><FONT COLOR=maroon>]</FONT></I> <I>term</I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>in</TT> <I>ident</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>generate side conditions</TT>
+<I>term</I><SUB>1</SUB> &#X2026;<I>term</I><SUB><I>n</I></SUB><I><FONT COLOR=maroon>]</FONT></I><BR>
+</BLOCKQUOTE><P>The <TT>generate side conditions</TT> argument cannot be passed to the
+unprefixed form.</P><P><A NAME="@default821"></A><A NAME="@command283"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>setoid_replace</TT> <I>term</I> <TT>with</TT> <I>term</I>
+ <I><FONT COLOR=maroon>[</FONT></I><TT>in</TT> <I>ident</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>using relation</TT> <I>term</I><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>generate side conditions</TT>
+<I>term</I><SUB>1</SUB> &#X2026;<I>term</I><SUB><I>n</I></SUB><I><FONT COLOR=maroon>]</FONT></I><BR>
+  <I><FONT COLOR=maroon>[</FONT></I><TT>by</TT> <I>tactic</I><I><FONT COLOR=maroon>]</FONT></I>
+</BLOCKQUOTE><P>The <TT>generate side conditions</TT> and <TT>using relation</TT>
+arguments cannot be passed to the unprefixed form. The latter argument
+tells the tactic what parametric relation should be used to replace
+the first tactic argument with the second one. If omitted, it defaults
+to Leibniz equality.</P><P>Every derived tactic that is based on the unprefixed forms of the tactics
+considered above will also work up to user defined relations. For instance,
+it is possible to register hints for <TT>autorewrite</TT> that are
+not proof of Leibniz equalities. In particular it is possible to exploit
+<TT>autorewrite</TT> to simulate normalization in a term rewriting system
+up to user defined equalities.</P><H2 CLASS="section"><A NAME="toc147"></A><A NAME="htoc445">21.8</A>  Printing relations and morphisms</H2><P>
+The <TT>Print Setoids</TT> command shows the list of currently registered
+parametric relations and morphisms. For each morphism its signature is also
+given. When the rewriting tactics refuse to replace a term in a context
+because the latter is not a composition of morphisms, the <TT>Print Setoids</TT>
+command is useful to understand what additional morphisms should be registered.</P><H2 CLASS="section"><A NAME="toc148"></A><A NAME="htoc446">21.9</A>  Deprecated syntax and backward incompatibilities</H2><P>
+Due to backward compatibility reasons, the following syntax for the
+declaration of setoids and morphisms is also accepted.</P><P><A NAME="@default822"></A><A NAME="@command284"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Add Setoid</TT> <I>A Aeq ST</I> <TT>as</TT> <I>ident</I>
+</BLOCKQUOTE><P>
+where <I>Aeq</I> is a congruence relation without parameters,
+<I>A</I> is its carrier and <I>ST</I> is an object of type
+<CODE>(Setoid_Theory A Aeq)</CODE> (i.e. a record packing together the reflexivity,
+symmetry and transitivity lemmas). Notice that the syntax is not completely
+backward compatible since the identifier was not required.</P><P><A NAME="@default823"></A><A NAME="@command285"></A>
+</P><BLOCKQUOTE CLASS="quote">
+<TT>Add Morphism</TT> <I> f </I>:<I> ident</I>.<BR>
+ Proof.<BR>
+ &#X2026;<BR>
+ Qed.
+</BLOCKQUOTE><P>The latter command is restricted to the declaration of morphisms without
+parameters. It is not fully backward compatible since the property the user
+is asked to prove is slightly different: for <I>n</I>-ary morphisms the hypotheses
+of the property are permuted; moreover, when the morphism returns a
+proposition, the property is now stated using a bi-implication in place of
+a simple implication. In practice, porting an old development to the new
+semantics is usually quite simple.</P><P>Notice that several limitations of the old implementation have been lifted.
+In particular, it is now possible to declare several relations with the
+same carrier and several signatures for the same morphism. Moreover, it is
+now also possible to declare several morphisms having the same signature.
+Finally, the replace and rewrite tactics can be used to replace terms in
+contexts that were refused by the old implementation.</P><HR CLASS="footnoterule"><DL CLASS="thefootnotes"><DT CLASS="dt-thefootnotes">
+<A NAME="note27" HREF="#text27">1</A></DT><DD CLASS="dd-thefootnotes">Based on previous work by
+Clément Renard
+</DD></DL>
+<HR>
+<A HREF="Reference-Manual025.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="biblio.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

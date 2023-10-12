@@ -1,0 +1,367 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Standard Library | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+
+</head>
+
+<body>
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+    
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<h1 class="libtitle">Library Coq.Bool.Bvector</h1>
+
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Bit vectors. Contribution by Jean Duprat (ENS Lyon). 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <a class="idref" href="Coq.Bool.Bool.html#"><span class="id" type="library">Bool</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <a class="idref" href="Coq.Bool.Sumbool.html#"><span class="id" type="library">Sumbool</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="Coq.Arith.Arith.html#"><span class="id" type="library">Arith</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Open</span> <span class="id" type="keyword">Local</span> <span class="id" type="keyword">Scope</span> <span class="id" type="var">nat_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We build bit vectors in the spirit of List.v.
+The size of the vector is a parameter which is too important
+to be accessible only via function "length".
+The first idea is to build a record with both the list and the length.
+Unfortunately, this a posteriori verification leads to
+numerous lemmas for handling lengths.
+The second idea is to use a dependent type in which the length
+is a building parameter. This leads to structural induction that
+are slightly more complex and in some cases we will use a proof-term
+as definition, since the type inference mechanism for pattern-matching
+is sometimes weaker that the one implemented for elimination tactiques.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Section</span> <a name="VECTORS"><span class="id" type="section">VECTORS</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A vector is a list of size n whose elements belongs to a set A.
+If the size is non-zero, we can extract the first component and the
+rest of the vector, as well as the last component, or adding or
+removing a component (carry) or repeating the last component at the
+end of the vector.
+We can also truncate the vector and remove its p last components or
+reciprocally extend the vector by concatenation.
+A unary function over A generates a function on vectors of size n by
+applying f pointwise.
+A binary function over A generates a function on pairs of vectors of
+size n by applying f pointwise.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Variable</span> <a name="VECTORS.A"><span class="id" type="variable">A</span></a> : <span class="id" type="keyword">Type</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Inductive</span> <a name="vector"><span class="id" type="inductive">vector</span></a> : <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a> -&gt; <span class="id" type="keyword">Type</span> :=<br/>
+&nbsp;&nbsp;| <a name="Vnil"><span class="id" type="constructor">Vnil</span></a> : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> 0<br/>
+&nbsp;&nbsp;| <a name="Vcons"><span class="id" type="constructor">Vcons</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">a</span>:<a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a>) (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>), <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Vhead"><span class="id" type="definition">Vhead</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">v</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">v</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">a</span> <span class="id" type="var">_</span> <span class="id" type="var">_</span> =&gt; <span class="id" type="var">a</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Vtail"><span class="id" type="definition">Vtail</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">v</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">v</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">_</span> <span class="id" type="var">_</span> <span class="id" type="var">v</span> =&gt; <span class="id" type="var">v</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Vlast"><span class="id" type="definition">Vlast</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) -&gt; <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="Vconst"><span class="id" type="definition">Vconst</span></a> (<span class="id" type="var">a</span>:<a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a>) (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">n</span> <span class="id" type="keyword">return</span> <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#O"><span class="id" type="constructor">O</span></a> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">a</span> <span class="id" type="var">_</span> (<a class="idref" href="Coq.Bool.Bvector.html#Vconst"><span class="id" type="definition">Vconst</span></a> <span class="id" type="var">a</span> <span class="id" type="var">n</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Shifting and truncating 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vshiftout"><span class="id" type="lemma">Vshiftout</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vshiftin"><span class="id" type="lemma">Vshiftin</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vshiftrepeat"><span class="id" type="lemma">Vshiftrepeat</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vtrunc"><span class="id" type="lemma">Vtrunc</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span> <span class="id" type="var">p</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <span class="id" type="var">n</span> <a class="idref" href="Coq.Init.Peano.html#:nat_scope:x_'>'_x"><span class="id" type="notation">&gt;</span></a> <span class="id" type="var">p</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<span class="id" type="var">n</span> <a class="idref" href="Coq.Init.Peano.html#:nat_scope:x_'-'_x"><span class="id" type="notation">-</span></a> <span class="id" type="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Concatenation of two vectors 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="Vextend"><span class="id" type="definition">Vextend</span></a> <span class="id" type="var">n</span> <span class="id" type="var">p</span> (<span class="id" type="var">v</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span>) (<span class="id" type="var">w</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">p</span>) : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<span class="id" type="var">n</span><a class="idref" href="Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a><span class="id" type="var">p</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">v</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a> =&gt; <span class="id" type="var">w</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">a</span> <span class="id" type="var">n'</span> <span class="id" type="var">v'</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">a</span> (<span class="id" type="var">n'</span><a class="idref" href="Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a><span class="id" type="var">p</span>) (<a class="idref" href="Coq.Bool.Bvector.html#Vextend"><span class="id" type="definition">Vextend</span></a> <span class="id" type="var">n'</span> <span class="id" type="var">p</span> <span class="id" type="var">v'</span> <span class="id" type="var">w</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniform application on the arguments of the vector 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Variable</span> <a name="VECTORS.f"><span class="id" type="variable">f</span></a> : <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="Vunary"><span class="id" type="definition">Vunary</span></a> <span class="id" type="var">n</span> (<span class="id" type="var">v</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span>) : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">v</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <span class="id" type="var">a</span> <span class="id" type="var">n'</span> <span class="id" type="var">v'</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> (<a class="idref" href="Coq.Bool.Bvector.html#VECTORS.f"><span class="id" type="variable">f</span></a> <span class="id" type="var">a</span>) <span class="id" type="var">n'</span> (<a class="idref" href="Coq.Bool.Bvector.html#Vunary"><span class="id" type="definition">Vunary</span></a> <span class="id" type="var">n'</span> <span class="id" type="var">v'</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Variable</span> <a name="VECTORS.g"><span class="id" type="variable">g</span></a> : <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#VECTORS.A"><span class="id" type="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vbinary"><span class="id" type="lemma">Vbinary</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>, <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Eta-expansion of a vector 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Vid"><span class="id" type="definition">Vid</span></a> <span class="id" type="var">n</span> : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> -&gt; <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">n</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#O"><span class="id" type="constructor">O</span></a> =&gt; <span class="id" type="keyword">fun</span> <span class="id" type="var">_</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a><br/>
+&nbsp;&nbsp;| <span class="id" type="var">_</span> =&gt; <span class="id" type="keyword">fun</span> <span class="id" type="var">v</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> (<a class="idref" href="Coq.Bool.Bvector.html#Vhead"><span class="id" type="definition">Vhead</span></a> <span class="id" type="var">_</span> <span class="id" type="var">v</span>) <span class="id" type="var">_</span> (<a class="idref" href="Coq.Bool.Bvector.html#Vtail"><span class="id" type="definition">Vtail</span></a> <span class="id" type="var">_</span> <span class="id" type="var">v</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Vid_eq"><span class="id" type="lemma">Vid_eq</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">v</span>:<a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <span class="id" type="var">n</span>), <span class="id" type="var">v</span> <a class="idref" href="Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Coq.Bool.Bvector.html#Vid"><span class="id" type="definition">Vid</span></a> <span class="id" type="var">n</span> <span class="id" type="var">v</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="VSn_eq"><span class="id" type="lemma">VSn_eq</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">n</span> : <a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">v</span> : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)), <span class="id" type="var">v</span> <a class="idref" href="Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> (<a class="idref" href="Coq.Bool.Bvector.html#Vhead"><span class="id" type="definition">Vhead</span></a> <span class="id" type="var">_</span> <span class="id" type="var">v</span>) <span class="id" type="var">_</span> (<a class="idref" href="Coq.Bool.Bvector.html#Vtail"><span class="id" type="definition">Vtail</span></a> <span class="id" type="var">_</span> <span class="id" type="var">v</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="V0_eq"><span class="id" type="lemma">V0_eq</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">v</span> : <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> 0), <span class="id" type="var">v</span> <a class="idref" href="Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Bool.Bvector.html#VECTORS"><span class="id" type="section">VECTORS</span></a>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" type="keyword">Section</span> <a name="BOOLEAN_VECTORS"><span class="id" type="section">BOOLEAN_VECTORS</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A bit vector is a vector over booleans.
+Notice that the LEAST significant bit comes first (little-endian representation).
+We extract the least significant bit (head) and the rest of the vector (tail).
+We compute bitwise operation on vector: negation, and, or, xor.
+We compute size-preserving shifts: to the left (towards most significant bits,
+we hence use Vshiftout) and to the right (towards least significant bits,
+we use Vshiftin) by inserting a 'carry' bit (logical shift) or by repeating
+the most significant bit (arithmetical shift).
+NOTA BENE: all shift operations expect predecessor of size as parameter
+(they only work on non-empty vectors).
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bvector"><span class="id" type="definition">Bvector</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#vector"><span class="id" type="inductive">vector</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bnil"><span class="id" type="definition">Bnil</span></a> := @<a class="idref" href="Coq.Bool.Bvector.html#Vnil"><span class="id" type="constructor">Vnil</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bcons"><span class="id" type="definition">Bcons</span></a> := @<a class="idref" href="Coq.Bool.Bvector.html#Vcons"><span class="id" type="constructor">Vcons</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bvect_true"><span class="id" type="definition">Bvect_true</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vconst"><span class="id" type="definition">Vconst</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#true"><span class="id" type="constructor">true</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bvect_false"><span class="id" type="definition">Bvect_false</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vconst"><span class="id" type="definition">Vconst</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#false"><span class="id" type="constructor">false</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Blow"><span class="id" type="definition">Blow</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vhead"><span class="id" type="definition">Vhead</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bhigh"><span class="id" type="definition">Bhigh</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vtail"><span class="id" type="definition">Vtail</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bsign"><span class="id" type="definition">Bsign</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vlast"><span class="id" type="definition">Vlast</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="Bneg"><span class="id" type="definition">Bneg</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vunary"><span class="id" type="definition">Vunary</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#negb"><span class="id" type="definition">negb</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BVand"><span class="id" type="definition">BVand</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vbinary"><span class="id" type="lemma">Vbinary</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#andb"><span class="id" type="definition">andb</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BVor"><span class="id" type="definition">BVor</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vbinary"><span class="id" type="lemma">Vbinary</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#orb"><span class="id" type="definition">orb</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BVxor"><span class="id" type="definition">BVxor</span></a> := <a class="idref" href="Coq.Bool.Bvector.html#Vbinary"><span class="id" type="lemma">Vbinary</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <a class="idref" href="Coq.Init.Datatypes.html#xorb"><span class="id" type="definition">xorb</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BshiftL"><span class="id" type="definition">BshiftL</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) (<span class="id" type="var">carry</span>:<a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Bool.Bvector.html#Bcons"><span class="id" type="definition">Bcons</span></a> <span class="id" type="var">carry</span> <span class="id" type="var">n</span> (<a class="idref" href="Coq.Bool.Bvector.html#Vshiftout"><span class="id" type="lemma">Vshiftout</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <span class="id" type="var">n</span> <span class="id" type="var">bv</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BshiftRl"><span class="id" type="definition">BshiftRl</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) (<span class="id" type="var">carry</span>:<a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Bool.Bvector.html#Bhigh"><span class="id" type="definition">Bhigh</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) (<a class="idref" href="Coq.Bool.Bvector.html#Vshiftin"><span class="id" type="lemma">Vshiftin</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) <span class="id" type="var">carry</span> <span class="id" type="var">bv</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="BshiftRa"><span class="id" type="definition">BshiftRa</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Coq.Bool.Bvector.html#Bhigh"><span class="id" type="definition">Bhigh</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) (<a class="idref" href="Coq.Bool.Bvector.html#Vshiftrepeat"><span class="id" type="lemma">Vshiftrepeat</span></a> <a class="idref" href="Coq.Init.Datatypes.html#bool"><span class="id" type="inductive">bool</span></a> <span class="id" type="var">n</span> <span class="id" type="var">bv</span>).<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="BshiftL_iter"><span class="id" type="definition">BshiftL_iter</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) (<span class="id" type="var">p</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) : <a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">p</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#O"><span class="id" type="constructor">O</span></a> =&gt; <span class="id" type="var">bv</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">p'</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#BshiftL"><span class="id" type="definition">BshiftL</span></a> <span class="id" type="var">n</span> (<a class="idref" href="Coq.Bool.Bvector.html#BshiftL_iter"><span class="id" type="definition">BshiftL_iter</span></a> <span class="id" type="var">n</span> <span class="id" type="var">bv</span> <span class="id" type="var">p'</span>) <a class="idref" href="Coq.Init.Datatypes.html#false"><span class="id" type="constructor">false</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="BshiftRl_iter"><span class="id" type="definition">BshiftRl_iter</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) (<span class="id" type="var">p</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) : <a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">p</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#O"><span class="id" type="constructor">O</span></a> =&gt; <span class="id" type="var">bv</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">p'</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#BshiftRl"><span class="id" type="definition">BshiftRl</span></a> <span class="id" type="var">n</span> (<a class="idref" href="Coq.Bool.Bvector.html#BshiftRl_iter"><span class="id" type="definition">BshiftRl_iter</span></a> <span class="id" type="var">n</span> <span class="id" type="var">bv</span> <span class="id" type="var">p'</span>) <a class="idref" href="Coq.Init.Datatypes.html#false"><span class="id" type="constructor">false</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <a name="BshiftRa_iter"><span class="id" type="definition">BshiftRa_iter</span></a> (<span class="id" type="var">n</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) (<span class="id" type="var">bv</span>:<a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>)) (<span class="id" type="var">p</span>:<a class="idref" href="Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>) : <a class="idref" href="Coq.Bool.Bvector.html#Bvector"><span class="id" type="definition">Bvector</span></a> (<a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">p</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#O"><span class="id" type="constructor">O</span></a> =&gt; <span class="id" type="var">bv</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Coq.Init.Datatypes.html#S"><span class="id" type="constructor">S</span></a> <span class="id" type="var">p'</span> =&gt; <a class="idref" href="Coq.Bool.Bvector.html#BshiftRa"><span class="id" type="definition">BshiftRa</span></a> <span class="id" type="var">n</span> (<a class="idref" href="Coq.Bool.Bvector.html#BshiftRa_iter"><span class="id" type="definition">BshiftRa_iter</span></a> <span class="id" type="var">n</span> <span class="id" type="var">bv</span> <span class="id" type="var">p'</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Bool.Bvector.html#BOOLEAN_VECTORS"><span class="id" type="section">BOOLEAN_VECTORS</span></a>.<br/>
+</div>
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf">Standard Library
+  <ul class="menu">
+  <li><a href="index.html">Table of contents</a></li>
+  <li><a href="genindex.html">Index</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq_@_lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
+

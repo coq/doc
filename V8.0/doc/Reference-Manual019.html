@@ -1,0 +1,672 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+Implicit Coercions
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual018.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual020.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc350">Chapter&nbsp;16</A>&nbsp;&nbsp;Implicit Coercions</H1>
+<FONT SIZE=5><B>Amokrane Saïbi</B></FONT> <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<A NAME="Coercions-full"></A>
+<A NAME="@default682"></A><BR>
+<BR>
+<A NAME="toc102"></A>
+<H2><A NAME="htoc351">16.1</A>&nbsp;&nbsp;General Presentation</H2>
+This section describes the inheritance mechanism of <FONT COLOR=navy>Coq</FONT>. In <FONT COLOR=navy>Coq</FONT> with
+inheritance, we are not interested in adding any expressive power to
+our theory, but only convenience. Given a term, possibly not typable,
+we are interested in the problem of determining if it can be well
+typed modulo insertion of appropriate coercions. We allow to write:
+<UL><LI>
+<I>f</I>&nbsp;<I>a</I> where <I>f</I>:<I>forall</I>&nbsp; <I>x</I>:<I>A</I>, <I>B</I> and <I>a</I>:<I>A</I>' when <I>A</I>' can 
+ be seen in some sense as a subtype of <I>A</I>.
+<LI><I>x</I>:<I>A</I> when <I>A</I> is not a type, but can be seen in 
+ a certain sense as a type: set, group, category etc.
+<LI><I>f</I>&nbsp;<I>a</I> when <I>f</I> is not a function, but can be seen in a certain sense
+ as a function: bijection, functor, any structure morphism etc.
+</UL>
+<A NAME="toc103"></A>
+<H2><A NAME="htoc352">16.2</A>&nbsp;&nbsp;Classes</H2>
+<A NAME="@default683"></A>
+ A class with <I>n</I> parameters is any defined name with a type
+<I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>A</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>:<I>A</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>), <I>s</I> where <I>s</I> is a sort. Thus a class with
+parameters is considered as a single class and not as a family of
+classes. An object of a class <I>C</I> is any term of type <I>C</I>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>
+.. <I>t</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>. In addition to these user-classes, we have two abstract
+classes:
+<UL><LI>
+<TT>Sortclass</TT>, the class of sorts; 
+ its objects are the terms whose type is a sort.
+<LI><TT>Funclass</TT>, the class of functions; 
+ its objects are all the terms with a functional 
+ type, i.e. of form <I>forall</I>&nbsp; <I>x</I>:<I>A</I>, <I>B</I>.
+</UL>
+Formally, the syntax of a classes is defined on Figure&nbsp;<A HREF="#fig:classes">16.1</A>.
+<BLOCKQUOTE><DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>class</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>qualid</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>Sortclass</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>Funclass</TT></TD>
+</TR></TABLE>
+</DIV>
+<BR>
+<DIV ALIGN=center>Figure 16.1: Syntax of classes</DIV><BR>
+
+<A NAME="fig:classes"></A>
+<DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE>
+<A NAME="toc104"></A>
+<H2><A NAME="htoc353">16.3</A>&nbsp;&nbsp;Coercions</H2>
+<A NAME="@default684"></A>
+<A NAME="@default685"></A>
+ A name <I>f</I> can be declared as a coercion between a source user-class
+<I>C</I> with <I>n</I> parameters and a target class <I>D</I> if one of these
+conditions holds:
+<UL><LI>
+<I>D</I> is a user-class, then the type of <I>f</I> must have the form
+ <I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB> : <I>A</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> : <I>A</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)(<I>y</I>: <I>C</I>&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>), <I>D</I>&nbsp;<I>u</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>u</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> where <I>m</I>
+ is the number of parameters of <I>D</I>.
+<LI><I>D</I> is <TT>Funclass</TT>, then the type of <I>f</I> must have the form
+ <I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>: <I>A</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>: <I>A</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)(<I>y</I>: <I>C</I>&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)(<I>x</I>:<I>A</I>), <I>B</I>. 
+<LI><I>D</I> is <TT>Sortclass</TT>, then the type of <I>f</I> must have the form
+ <I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>: <I>A</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>: <I>A</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)(<I>y</I>: <I>C</I>&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>), <I>s</I> with <I>s</I> a sort. 
+</UL>
+We then write <I>f</I>:<I>C</I> <TT>&gt;-&gt;</TT> <I>D</I>. The restriction on the type
+of coercions is called <EM>the uniform inheritance condition</EM>.
+Remark that the abstract classes <TT>Funclass</TT> and <TT>Sortclass</TT>
+cannot be source classes.<BR>
+<BR>
+To coerce an object <I>t</I>:<I>C</I>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> of <I>C</I> towards <I>D</I>, we have to
+apply the coercion <I>f</I> to it; the obtained term <I>f</I>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>&nbsp;<I>t</I> is
+then an object of <I>D</I>.<BR>
+<BR>
+<A NAME="toc105"></A>
+<H2><A NAME="htoc354">16.4</A>&nbsp;&nbsp;Identity Coercions</H2>
+<A NAME="@default686"></A>
+Identity coercions are special cases of coercions used to go around
+the uniform inheritance condition. Let <I>C</I> and <I>D</I> be two classes
+with respectively <I>n</I> and <I>m</I> parameters and
+<I>f</I>:<I>forall</I>&nbsp;(<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>)(<I>y</I>:<I>C</I>&nbsp;<I>u</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>u</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>), <I>D</I>&nbsp;<I>v</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>v</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> a function which
+does not verify the uniform inheritance condition. To declare <I>f</I> as
+coercion, one has first to declare a subclass <I>C</I>' of <I>C</I>:<BR>
+<DIV ALIGN=center><I>C</I>' := <I>fun</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>) =&gt; <I>C</I>&nbsp;<I>u</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>u</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB></DIV><BR>
+We then define an <EM>identity coercion</EM> between <I>C</I>' and <I>C</I>:
+<DIV ALIGN=center><TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=right NOWRAP><I>Id</I>_<I>C</I>'_<I>C</I></TD>
+<TD ALIGN=center NOWRAP>:=</TD>
+<TD ALIGN=left NOWRAP><I>fun</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>)(<I>y</I>:<I>C</I>'&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>) =&gt; (<I>y</I>:<I>C</I>&nbsp;<I>u</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>u</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)</TD>
+</TR></TABLE></DIV><BR>
+We can now declare <I>f</I> as coercion from <I>C</I>' to <I>D</I>, since we can
+``cast'' its type as
+<I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>)(<I>y</I>:<I>C</I>'&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>),<I>D</I>&nbsp;<I>v</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>v</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>.<BR>
+The identity
+coercions have a special status: to coerce an object <I>t</I>:<I>C</I>'&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>
+of <I>C</I>' towards <I>C</I>, we does not have to insert explicitly <I>Id</I>_<I>C</I>'_<I>C</I>
+since <I>Id</I>_<I>C</I>'_<I>C</I>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>&nbsp;<I>t</I> is convertible with <I>t</I>. However we
+``rewrite'' the type of <I>t</I> to become an object of <I>C</I>; in this case,
+it becomes <I>C</I>&nbsp;<I>u</I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>*</FONT></SUP>..<I>u</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB><SUP><FONT SIZE=2>*</FONT></SUP> where each <I>u</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB><SUP><FONT SIZE=2>*</FONT></SUP> is the result of the
+substitution in <I>u</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> of the variables <I>x</I><SUB><FONT SIZE=2><I>j</I></FONT></SUB> by <I>t</I><SUB><FONT SIZE=2><I>j</I></FONT></SUB>.<BR>
+<BR>
+<A NAME="toc106"></A>
+<H2><A NAME="htoc355">16.5</A>&nbsp;&nbsp;Inheritance Graph</H2>
+<A NAME="@default687"></A>
+Coercions form an inheritance graph with classes as nodes. We call
+<EM>coercion path</EM> an ordered list of coercions between two nodes of
+the graph. A class <I>C</I> is said to be a subclass of <I>D</I> if there is a
+coercion path in the graph from <I>C</I> to <I>D</I>; we also say that <I>C</I>
+inherits from <I>D</I>. Our mechanism supports multiple inheritance since a
+class may inherit from several classes, contrary to simple inheritance
+where a class inherits from at most one class. However there must be
+at most one path between two classes. If this is not the case, only
+the <EM>oldest</EM> one is valid and the others are ignored. So the order
+of declaration of coercions is important.<BR>
+<BR>
+We extend notations for coercions to coercion paths. For instance
+[<I>f</I><SUB><FONT SIZE=2>1</FONT></SUB>;..;<I>f</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>]:<I>C</I> <TT>&gt;-&gt;</TT> <I>D</I> is the coercion path composed
+by the coercions <I>f</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>f</I><SUB><FONT SIZE=2><I>k</I></FONT></SUB>. The application of a coercion path to a
+term consists of the successive application of its coercions.<BR>
+<BR>
+<A NAME="toc107"></A>
+<H2><A NAME="htoc356">16.6</A>&nbsp;&nbsp;Declaration of Coercions</H2>
+
+<H3><A NAME="htoc357">16.6.1</A>&nbsp;&nbsp;<TT>Coercion </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> : </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> &gt;-&gt; </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>.</TT></H3>
+<A NAME="@default688"></A><A NAME="@command191"></A>
+Declares the construction denoted by <I><FONT COLOR=maroon>qualid</FONT></I> as a coercion between
+<I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<I><FONT COLOR=maroon>qualid</FONT></I> <TT>not declared</TT><A NAME="@error112"></A>
+<LI><I><FONT COLOR=maroon>qualid</FONT></I> <TT>is already a coercion</TT><A NAME="@error113"></A>
+<LI><TT>Funclass cannot be a source class</TT><A NAME="@error114"></A>
+<LI><TT>Sortclass cannot be a source class</TT><A NAME="@error115"></A>
+<LI><I><FONT COLOR=maroon>qualid</FONT></I> <TT>is not a function</TT><A NAME="@error116"></A>
+<LI><TT>Cannot find the source class of </TT><I><FONT COLOR=maroon>qualid</FONT></I><A NAME="@error117"></A>
+<LI><TT>Cannot recognize </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> as a source class of </TT><I><FONT COLOR=maroon>qualid</FONT></I><A NAME="@error118"></A>
+<LI><I><FONT COLOR=maroon>qualid</FONT></I> <TT>does not respect the inheritance uniform condition</TT><A NAME="@error119"></A>
+<LI><TT>Found target class </TT><I><FONT COLOR=maroon>class</FONT></I><TT> instead of </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><A NAME="@error120"></A></OL>
+When the coercion <I><FONT COLOR=maroon>qualid</FONT></I> is added to the inheritance graph, non
+valid coercion paths are ignored; they are signaled by a warning.
+<BR>
+<B>Warning :</B>
+<OL type=1><LI>
+<TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP>
+<TT>Ambiguous paths: </TT></TD>
+<TD ALIGN=left NOWRAP>[<I>f</I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP>;..;<I>f</I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB><SUP><FONT SIZE=2>1</FONT></SUP>] : <I>C</I><SUB><FONT SIZE=2>1</FONT></SUB><TT>&gt;-&gt;</TT><I>D</I><SUB><FONT SIZE=2>1</FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP></TD>
+<TD ALIGN=left NOWRAP>...</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP></TD>
+<TD ALIGN=left NOWRAP>[<I>f</I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP>;..;<I>f</I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP>] : <I>C</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB><TT>&gt;-&gt;</TT><I>D</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>
+ </TD>
+</TR></TABLE>
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Coercion Local </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> : </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> &gt;-&gt; </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>.</TT>
+<A NAME="@default689"></A><A NAME="@command192"></A><BR>
+Declares the construction denoted by <I><FONT COLOR=maroon>qualid</FONT></I> as a coercion local to
+ the current section.<BR>
+<BR>
+<LI><TT>Coercion </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default690"></A><A NAME="@command193"></A><BR>
+This defines <I><FONT COLOR=maroon>ident</FONT></I> just like <TT>Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> :=
+ </TT><I><FONT COLOR=maroon>term</FONT></I>, and then declares <I><FONT COLOR=maroon>ident</FONT></I> as a coercion between it
+ source and its target.<BR>
+<BR>
+<LI><TT>Coercion </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><TT> : </TT><I><FONT COLOR=maroon>type</FONT></I><BR>
+This defines <I><FONT COLOR=maroon>ident</FONT></I> just like 
+ <TT>Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> : </TT><I><FONT COLOR=maroon>type</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I>, and then
+ declares <I><FONT COLOR=maroon>ident</FONT></I> as a coercion between it source and its target. <BR>
+<BR>
+<LI><TT>Coercion Local </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default691"></A><A NAME="@command194"></A><BR>
+This defines <I><FONT COLOR=maroon>ident</FONT></I> just like <TT>Local </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> :=
+ </TT><I><FONT COLOR=maroon>term</FONT></I>, and then declares <I><FONT COLOR=maroon>ident</FONT></I> as a coercion between it
+ source and its target.<BR>
+<BR>
+<LI>Assumptions can be declared as coercions at declaration
+time. This extends the grammar of declarations from Figure
+<A HREF="Reference-Manual003.html#sentences-syntax">1.3</A> as follows:
+<A NAME="@default692"></A><A NAME="@command195"></A>
+<A NAME="@default693"></A><A NAME="@command196"></A>
+<A NAME="@default694"></A><A NAME="@command197"></A>
+<A NAME="@default695"></A><A NAME="@command198"></A><BR>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>declaration</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>declaration_keyword</FONT></I> <I><FONT COLOR=maroon>assums</FONT></I> <TT>.</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>assums</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>simple_assums</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>(</TT> <I><FONT COLOR=maroon>simple_assums</FONT></I><TT>)</TT>  ...  <TT>(</TT> <I><FONT COLOR=maroon>simple_assums</FONT></I><TT>)</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>simple_assums</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I>  ...  <I><FONT COLOR=maroon>ident</FONT></I> <TT>:</TT><I><FONT COLOR=maroon>[</FONT></I><TT>&gt;</TT><I><FONT COLOR=maroon>]</FONT></I> <I><FONT COLOR=maroon>term</FONT></I></TD>
+</TR></TABLE><BR>
+If the extra <TT>&gt;</TT> is present before the type of some assumptions, these
+assumptions are declared as coercions.<BR>
+<BR>
+<LI>Constructors of inductive types can be declared as coercions at
+definition time of the inductive type. This extends and modifies the
+grammar of inductive types from Figure <A HREF="Reference-Manual003.html#sentences-syntax">1.3</A> as follows: 
+<A NAME="@default696"></A><A NAME="@command199"></A>
+<A NAME="@default697"></A><A NAME="@command200"></A><BR>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>inductive</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><TT>Inductive</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <TT>with</TT> ... <TT>with</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <TT>.</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>CoInductive</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <TT>with</TT> ... <TT>with</TT> <I><FONT COLOR=maroon>ind_body</FONT></I> <TT>.</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ind_body</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>binderlet</FONT></I>  ...  <I><FONT COLOR=maroon>binderlet</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>:</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>:=</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>&nbsp;&nbsp;&nbsp;<I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>[</FONT></I><TT>|<I><FONT COLOR=maroon>]</FONT></I> </TT><I><FONT COLOR=maroon>constructor</FONT></I><TT> | ... | </TT><I><FONT COLOR=maroon>constructor</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>constructor</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>binderlet</FONT></I>  ...  <I><FONT COLOR=maroon>binderlet</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><TT>:</TT><I><FONT COLOR=maroon>[</FONT></I><TT>&gt;<I><FONT COLOR=maroon>]</FONT></I> </TT><I><FONT COLOR=maroon>term</FONT></I><TT><I><FONT COLOR=maroon>]</FONT></I></TT></TD>
+</TR></TABLE>
+</DIV><BR>
+Especially, if the extra <TT>&gt;</TT> is present in a constructor
+declaration, this constructor is declared as a coercion.
+</OL>
+
+<H3><A NAME="htoc358">16.6.2</A>&nbsp;&nbsp;<TT>Identity Coercion </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>:</TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> &gt;-&gt; </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>.</TT></H3> 
+<A NAME="@default698"></A><A NAME="@command201"></A>
+We check that <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> is a constant with a value of the form
+<I>fun</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>) =&gt; (<I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>) where <I>m</I> is the
+number of parameters of <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>. Then we define an identity
+function with the type
+<I>forall</I>&nbsp; (<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>:<I>T</I><SUB><FONT SIZE=2>1</FONT></SUB>)..(<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>:<I>T</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>)(<I>y</I>:<I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>&nbsp;<I>x</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>x</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>),
+<I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>&nbsp;<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>..<I>t</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>, and we declare it as an identity
+coercion between <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>must be a transparent constant</TT><A NAME="@error121"></A> 
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Identity Coercion Local </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>:</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> &gt;-&gt; </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>.</TT><BR>
+Idem but locally to the current section.<BR>
+<BR>
+<LI><TT>SubClass </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>type</FONT></I><TT>.</TT><BR>
+<A NAME="@default699"></A><A NAME="@command202"></A>
+ If <I><FONT COLOR=maroon>type</FONT></I> is a class
+<I><FONT COLOR=maroon>ident</FONT></I>' applied to some arguments then <I><FONT COLOR=maroon>ident</FONT></I> is defined and an
+identity coercion of name <TT>Id_</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>_</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT> is
+declared. Otherwise said, this is an abbreviation for <BR>
+<BR>
+<TT>Definition </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>type</FONT></I><TT>.</TT> <BR>
+<BR>
+followed by<BR>
+<BR>
+<TT>Identity Coercion Id_</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>_</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><TT>:</TT><I><FONT COLOR=maroon>ident</FONT></I><TT> &gt;-&gt; </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT>.<BR>
+<BR>
+<LI><TT>Local SubClass </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>type</FONT></I><TT>.</TT><BR>
+Same as before but locally to the current section.</OL>
+<A NAME="toc108"></A>
+<H2><A NAME="htoc359">16.7</A>&nbsp;&nbsp;Displaying Available Coercions</H2>
+
+<H3><A NAME="htoc360">16.7.1</A>&nbsp;&nbsp;<TT>Print Classes.</TT></H3> 
+<A NAME="@default700"></A><A NAME="@command203"></A>
+Print the list of declared classes in the current context.<BR>
+<BR>
+
+<H3><A NAME="htoc361">16.7.2</A>&nbsp;&nbsp;<TT>Print Coercions.</TT></H3>
+<A NAME="@default701"></A><A NAME="@command204"></A>
+Print the list of declared coercions in the current context.<BR>
+<BR>
+
+<H3><A NAME="htoc362">16.7.3</A>&nbsp;&nbsp;<TT>Print Graph.</TT></H3> 
+<A NAME="@default702"></A><A NAME="@command205"></A>
+Print the list of valid coercion paths in the current context.<BR>
+<BR>
+
+<H3><A NAME="htoc363">16.7.4</A>&nbsp;&nbsp;<TT>Print Coercion Paths </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> </TT><I><FONT COLOR=maroon>class</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>.</TT></H3> 
+<A NAME="@default703"></A><A NAME="@command206"></A>
+Print the list of valid coercion paths from <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> to <I><FONT COLOR=maroon>class</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>.<BR>
+<BR>
+<A NAME="toc109"></A>
+<H2><A NAME="htoc364">16.8</A>&nbsp;&nbsp;Activating the Printing of Coercions</H2>
+
+<H3><A NAME="htoc365">16.8.1</A>&nbsp;&nbsp;<TT>Set Printing Coercions.</TT></H3>
+<A NAME="@default704"></A><A NAME="@command207"></A>
+<A NAME="@default705"></A><A NAME="@command208"></A>
+This command forces all the coercions to be printed.
+Conversely, to skip the printing of coercions, use
+ <TT>Unset Printing Coercions</TT>.
+By default, coercions are not printed.<BR>
+<BR>
+
+<H3><A NAME="htoc366">16.8.2</A>&nbsp;&nbsp;<TT>Set Printing Coercion </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT>.</TT></H3>
+<A NAME="@default706"></A><A NAME="@command209"></A>
+<A NAME="@default707"></A><A NAME="@command210"></A>
+This command forces coercion denoted by <I><FONT COLOR=maroon>qualid</FONT></I> to be printed.
+To skip the printing of coercion <I><FONT COLOR=maroon>qualid</FONT></I>, use
+ <TT>Unset Printing Coercion </TT><I><FONT COLOR=maroon>qualid</FONT></I>.
+By default, a coercion is never printed.<BR>
+<BR>
+<A NAME="toc110"></A>
+<H2><A NAME="htoc367">16.9</A>&nbsp;&nbsp;Classes as Records</H2>
+<A NAME="Coercions-and-records"></A>
+<A NAME="@default708"></A>
+We allow the definition of <EM>Structures with Inheritance</EM> (or
+classes as records) by extending the existing <TT>Record</TT> macro
+(see section&nbsp;<A HREF="Reference-Manual004.html#Record">2.1</A>). Its new syntax is:<BR>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><TT>Record <I><FONT COLOR=maroon>[</FONT></I>&gt;<I><FONT COLOR=maroon>]</FONT></I>&nbsp;</TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><I><FONT COLOR=maroon>binderlet</FONT></I><TT> : </TT><I><FONT COLOR=maroon>sort</FONT></I><TT> := <I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>0</FONT></TT></SUB><TT><I><FONT COLOR=maroon>]</FONT></I> </TT><CODE><TT>{</TT></CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;&nbsp;&nbsp;&nbsp;<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> [:|:&gt;] </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ;</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>...</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> [:|:&gt;] </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> </TT><CODE><TT>}</TT></CODE><TT>. </TT></TD>
+</TR></TABLE></TD>
+</TR></TABLE>
+</DIV>
+The identifier <I><FONT COLOR=maroon>ident</FONT></I> is the name of the defined record and <I><FONT COLOR=maroon>sort</FONT></I>
+is its type. The identifier <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> is the name of its
+constructor. The identifiers <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, .., <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> are the
+names of its fields and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, .., <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> their respective
+types. The alternative <TT>[:|:&gt;]</TT> is ``<TT>:</TT>'' or ``<TT>:&gt;</TT>''. If <TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT>:&gt;</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB>, then <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is
+automatically declared as coercion from <I><FONT COLOR=maroon>ident</FONT></I> to the class of
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>. Remark that <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> always verifies the uniform
+inheritance condition. If the optional ``<TT>&gt;</TT>'' before <I><FONT COLOR=maroon>ident</FONT></I> is
+present, then <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> (or the default name <TT>Build_</TT><I><FONT COLOR=maroon>ident</FONT></I>
+if <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> is omitted) is automatically declared as a coercion
+from the class of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> to <I><FONT COLOR=maroon>ident</FONT></I> (this may fail if the
+uniform inheritance condition is not satisfied).<BR>
+<BR>
+<BR>
+<B>Remark: </B>The keyword <TT>Structure</TT><A NAME="@default709"></A><A NAME="@command211"></A> is a synonym of <TT>Record</TT>.<BR>
+<BR>
+<A NAME="toc111"></A>
+<H2><A NAME="htoc368">16.10</A>&nbsp;&nbsp;Coercions and Sections</H2>
+<A NAME="@default710"></A>
+ The inheritance mechanism is compatible with the section
+mechanism. The global classes and coercions defined inside a section
+are redefined after its closing, using their new value and new
+type. The classes and coercions which are local to the section are
+simply forgotten.
+Coercions with a local source class or a local target class, and 
+coercions which do not verify the uniform inheritance condition any longer
+are also forgotten.<BR>
+<BR>
+<A NAME="toc112"></A>
+<H2><A NAME="htoc369">16.11</A>&nbsp;&nbsp;Examples</H2>
+There are three situations:
+<UL><LI>
+<I>f</I>&nbsp;<I>a</I> is ill-typed where <I>f</I>:<I>forall</I>&nbsp;<I>x</I>:<I>A</I>,<I>B</I> and <I>a</I>:<I>A</I>'. If there is a
+ coercion path between <I>A</I>' and <I>A</I>, <I>f</I>&nbsp;<I>a</I> is transformed into
+ <I>f</I>&nbsp;<I>a</I>' where <I>a</I>' is the result of the application of this
+ coercion path to <I>a</I>.<BR>
+<BR>
+We first give an example of coercion between atomic inductive types<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Definition&nbsp;bool_in_nat&nbsp;(b:bool)&nbsp;:=&nbsp;if&nbsp;b&nbsp;then&nbsp;0&nbsp;else&nbsp;1.</TT><BR>
+<TT><I>bool_in_nat&nbsp;is&nbsp;defined</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;bool_in_nat&nbsp;:&nbsp;bool&nbsp;&gt;-&gt;&nbsp;nat.</TT><BR>
+<TT><I>bool_in_nat&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(0&nbsp;=&nbsp;true).</TT><BR>
+<TT><I>0&nbsp;=&nbsp;true</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;Prop</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(0&nbsp;=&nbsp;true).</TT><BR>
+<TT><I>0&nbsp;=&nbsp;bool_in_nat&nbsp;true</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;Prop</I></TT><BR>
+</DIV>
+
+<BR>
+<BR>
+<B>Warning: </B>``<CODE>Check true=O.</CODE>'' fails. This is ``normal'' behaviour of
+coercions. To validate <CODE>true=O</CODE>, the coercion is searched from
+<CODE>nat</CODE> to <CODE>bool</CODE>. There is none.<BR>
+<BR>
+We give an example of coercion between classes with parameters.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Parameters</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;(C&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Set)&nbsp;(D&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;bool&nbsp;-&gt;&nbsp;Set)&nbsp;(E&nbsp;:&nbsp;bool&nbsp;-&gt;&nbsp;Set).</TT><BR>
+<TT><I>C&nbsp;is&nbsp;assumed</I></TT><BR>
+<TT><I>D&nbsp;is&nbsp;assumed</I></TT><BR>
+<TT><I>E&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;f&nbsp;:&nbsp;forall&nbsp;n:nat,&nbsp;C&nbsp;n&nbsp;-&gt;&nbsp;D&nbsp;(S&nbsp;n)&nbsp;true.</TT><BR>
+<TT><I>f&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;f&nbsp;:&nbsp;C&nbsp;&gt;-&gt;&nbsp;D.</TT><BR>
+<TT><I>f&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;g&nbsp;:&nbsp;forall&nbsp;(n:nat)&nbsp;(b:bool),&nbsp;D&nbsp;n&nbsp;b&nbsp;-&gt;&nbsp;E&nbsp;b.</TT><BR>
+<TT><I>g&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;g&nbsp;:&nbsp;D&nbsp;&gt;-&gt;&nbsp;E.</TT><BR>
+<TT><I>g&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;c&nbsp;:&nbsp;C&nbsp;0.</TT><BR>
+<TT><I>c&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;T&nbsp;:&nbsp;E&nbsp;true&nbsp;-&gt;&nbsp;nat.</TT><BR>
+<TT><I>T&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(T&nbsp;c).</TT><BR>
+<TT><I>T&nbsp;c</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(T&nbsp;c).</TT><BR>
+<TT><I>T&nbsp;(g&nbsp;1&nbsp;true&nbsp;(f&nbsp;0&nbsp;c))</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+</DIV>
+
+<BR>
+We give now an example using identity coercions.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Definition&nbsp;D'&nbsp;(b:bool)&nbsp;:=&nbsp;D&nbsp;1&nbsp;b.</TT><BR>
+<TT><I>D'&nbsp;is&nbsp;defined</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Identity&nbsp;Coercion&nbsp;IdD'D&nbsp;:&nbsp;D'&nbsp;&gt;-&gt;&nbsp;D.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Print&nbsp;IdD'D.</TT><BR>
+<TT><I>IdD'D&nbsp;=&nbsp;</I></TT><BR>
+<TT><I>(fun&nbsp;(b&nbsp;:&nbsp;bool)&nbsp;(x&nbsp;:&nbsp;D'&nbsp;b)&nbsp;=&gt;&nbsp;x):forall&nbsp;b&nbsp;:&nbsp;bool,&nbsp;D'&nbsp;b&nbsp;-&gt;&nbsp;D&nbsp;1&nbsp;b</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;forall&nbsp;b&nbsp;:&nbsp;bool,&nbsp;D'&nbsp;b&nbsp;-&gt;&nbsp;D&nbsp;1&nbsp;b</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;d'&nbsp;:&nbsp;D'&nbsp;true.</TT><BR>
+<TT><I>d'&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(T&nbsp;d').</TT><BR>
+<TT><I>T&nbsp;d'</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(T&nbsp;d').</TT><BR>
+<TT><I>T&nbsp;(g&nbsp;1&nbsp;true&nbsp;d')</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+</DIV>
+
+<BR>
+ In the case of functional arguments, we use the monotonic rule of
+sub-typing. Approximatively, to coerce <I>t</I>:<I>forall</I>&nbsp;<I>x</I>:<I>A</I>, <I>B</I> towards
+<I>forall</I>&nbsp;<I>x</I>:<I>A</I>',<I>B</I>', one have to coerce <I>A</I>' towards <I>A</I> and <I>B</I> towards
+<I>B</I>'. An example is given below:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Parameters&nbsp;(A&nbsp;B&nbsp;:&nbsp;Set)&nbsp;(h&nbsp;:&nbsp;A&nbsp;-&gt;&nbsp;B).</TT><BR>
+<TT><I>A&nbsp;is&nbsp;assumed</I></TT><BR>
+<TT><I>B&nbsp;is&nbsp;assumed</I></TT><BR>
+<TT><I>h&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;h&nbsp;:&nbsp;A&nbsp;&gt;-&gt;&nbsp;B.</TT><BR>
+<TT><I>h&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;U&nbsp;:&nbsp;(A&nbsp;-&gt;&nbsp;E&nbsp;true)&nbsp;-&gt;&nbsp;nat.</TT><BR>
+<TT><I>U&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;t&nbsp;:&nbsp;B&nbsp;-&gt;&nbsp;C&nbsp;0.</TT><BR>
+<TT><I>t&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(U&nbsp;t).</TT><BR>
+<TT><I>U&nbsp;(fun&nbsp;x&nbsp;:&nbsp;A&nbsp;=&gt;&nbsp;t&nbsp;x)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(U&nbsp;t).</TT><BR>
+<TT><I>U&nbsp;(fun&nbsp;x&nbsp;:&nbsp;A&nbsp;=&gt;&nbsp;g&nbsp;1&nbsp;true&nbsp;(f&nbsp;0&nbsp;(t&nbsp;(h&nbsp;x))))</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+</DIV>
+
+<BR>
+ Remark the changes in the result following the modification of the
+previous example.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;U'&nbsp;:&nbsp;(C&nbsp;0&nbsp;-&gt;&nbsp;B)&nbsp;-&gt;&nbsp;nat.</TT><BR>
+<TT><I>U'&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;t'&nbsp;:&nbsp;E&nbsp;true&nbsp;-&gt;&nbsp;A.</TT><BR>
+<TT><I>t'&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(U'&nbsp;t').</TT><BR>
+<TT><I>U'&nbsp;(fun&nbsp;x&nbsp;:&nbsp;C&nbsp;0&nbsp;=&gt;&nbsp;t'&nbsp;x)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(U'&nbsp;t').</TT><BR>
+<TT><I>U'&nbsp;(fun&nbsp;x&nbsp;:&nbsp;C&nbsp;0&nbsp;=&gt;&nbsp;h&nbsp;(t'&nbsp;(g&nbsp;1&nbsp;true&nbsp;(f&nbsp;0&nbsp;x))))</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+</DIV>
+
+<BR>
+<BR>
+<LI>An assumption <I>x</I>:<I>A</I> when <I>A</I> is not a type, is ill-typed. It is
+ replaced by <I>x</I>:<I>A</I>' where <I>A</I>' is the result of the application
+ to <I>A</I> of the coercion path between the class of <I>A</I> and <TT>Sortclass</TT> if it exists. This case occurs in the abstraction
+ <I>fun</I>&nbsp; <I>x</I>:<I>A</I> =&gt; <I>t</I>, universal quantification <I>forall</I>&nbsp;<I>x</I>:<I>A</I>, <I>B</I>,
+ global variables and parameters of (co-)inductive definitions
+ and functions. In <I>forall</I>&nbsp;<I>x</I>:<I>A</I>, <I>B</I>, such a coercion path may be
+ applied to <I>B</I> also if necessary.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;Graph&nbsp;:&nbsp;Type.</TT><BR>
+<TT><I>Graph&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;Node&nbsp;:&nbsp;Graph&nbsp;-&gt;&nbsp;Type.</TT><BR>
+<TT><I>Node&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;Node&nbsp;:&nbsp;Graph&nbsp;&gt;-&gt;&nbsp;Sortclass.</TT><BR>
+<TT><I>Node&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;G&nbsp;:&nbsp;Graph.</TT><BR>
+<TT><I>G&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;Arrows&nbsp;:&nbsp;G&nbsp;-&gt;&nbsp;G&nbsp;-&gt;&nbsp;Type.</TT><BR>
+<TT><I>Arrows&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;Arrows.</TT><BR>
+<TT><I>Arrows</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;G&nbsp;-&gt;&nbsp;G&nbsp;-&gt;&nbsp;Type</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;fg&nbsp;:&nbsp;G&nbsp;-&gt;&nbsp;G.</TT><BR>
+<TT><I>fg&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;fg.</TT><BR>
+<TT><I>fg</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;G&nbsp;-&gt;&nbsp;G</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;fg.</TT><BR>
+<TT><I>fg</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;Node&nbsp;G&nbsp;-&gt;&nbsp;Node&nbsp;G</I></TT><BR>
+</DIV>
+
+<BR>
+<BR>
+<LI><I>f</I>&nbsp;<I>a</I> is ill-typed because <I>f</I>:<I>A</I> is not a function. The term
+ <I>f</I> is replaced by the term obtained by applying to <I>f</I> the
+ coercion path between <I>A</I> and <TT>Funclass</TT> if it exists.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;bij&nbsp;:&nbsp;Set&nbsp;-&gt;&nbsp;Set&nbsp;-&gt;&nbsp;Set.</TT><BR>
+<TT><I>bij&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;ap&nbsp;:&nbsp;forall&nbsp;A&nbsp;B:Set,&nbsp;bij&nbsp;A&nbsp;B&nbsp;-&gt;&nbsp;A&nbsp;-&gt;&nbsp;B.</TT><BR>
+<TT><I>ap&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Coercion&nbsp;ap&nbsp;:&nbsp;bij&nbsp;&gt;-&gt;&nbsp;Funclass.</TT><BR>
+<TT><I>ap&nbsp;is&nbsp;now&nbsp;a&nbsp;coercion</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Parameter&nbsp;b&nbsp;:&nbsp;bij&nbsp;nat&nbsp;nat.</TT><BR>
+<TT><I>b&nbsp;is&nbsp;assumed</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(b&nbsp;0).</TT><BR>
+<TT><I>b&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Set&nbsp;Printing&nbsp;Coercions.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Check&nbsp;(b&nbsp;0).</TT><BR>
+<TT><I>ap&nbsp;nat&nbsp;nat&nbsp;b&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat</I></TT><BR>
+</DIV>
+
+<BR>
+Let us see the resulting graph of this session.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Print&nbsp;Graph.</TT><BR>
+<TT><I>[bool_in_nat]&nbsp;:&nbsp;bool&nbsp;&gt;-&gt;&nbsp;nat</I></TT><BR>
+<TT><I>[f]&nbsp;:&nbsp;C&nbsp;&gt;-&gt;&nbsp;D</I></TT><BR>
+<TT><I>[f;&nbsp;g]&nbsp;:&nbsp;C&nbsp;&gt;-&gt;&nbsp;E</I></TT><BR>
+<TT><I>[g]&nbsp;:&nbsp;D&nbsp;&gt;-&gt;&nbsp;E</I></TT><BR>
+<TT><I>[IdD'D]&nbsp;:&nbsp;D'&nbsp;&gt;-&gt;&nbsp;D</I></TT><BR>
+<TT><I>[IdD'D;</I></TT><BR>
+<TT><I>g]&nbsp;:&nbsp;D'&nbsp;&gt;-&gt;&nbsp;E</I></TT><BR>
+<TT><I>[h]&nbsp;:&nbsp;A&nbsp;&gt;-&gt;&nbsp;B</I></TT><BR>
+<TT><I>[Node]&nbsp;:&nbsp;Graph&nbsp;&gt;-&gt;&nbsp;Sortclass</I></TT><BR>
+<TT><I>[ap]&nbsp;:&nbsp;bij&nbsp;&gt;-&gt;&nbsp;Funclass</I></TT><BR>
+</DIV>
+
+</UL>
+<HR>
+<A HREF="Reference-Manual018.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual020.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

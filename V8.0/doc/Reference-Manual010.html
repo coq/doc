@@ -1,0 +1,2874 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+Tactics
+
+
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual009.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual011.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc175">Chapter&nbsp;8</A>&nbsp;&nbsp;Tactics
+<A NAME="@default417"></A>
+<A NAME="Tactics"></A></H1>
+A deduction rule is a link between some (unique) formula, that we call
+the <EM>conclusion</EM> and (several) formulas that we call the <EM>premises</EM>. Indeed, a deduction rule can be read in two ways. The first
+one has the shape: <I>``if I know this and this then I can deduce
+this''</I>. For instance, if I have a proof of <I>A</I> and a proof of <I>B</I>
+then I have a proof of <I>A</I> /\ <I>B</I>. This is forward reasoning from
+premises to conclusion. The other way says: <I>``to prove this I
+have to prove this and this''</I>. For instance, to prove <I>A</I> /\ <I>B</I>, I
+have to prove <I>A</I> and I have to prove <I>B</I>. This is backward reasoning
+which proceeds from conclusion to premises. We say that the conclusion
+is <EM>the goal</EM><A NAME="@default418"></A> to prove and premises are <EM>the
+subgoals</EM><A NAME="@default419"></A>. The tactics implement <EM>backward
+reasoning</EM>. When applied to a goal, a tactic replaces this goal with
+the subgoals it generates. We say that a tactic reduces a goal to its
+subgoal(s).<BR>
+<BR>
+Each (sub)goal is denoted with a number. The current goal is numbered
+1. By default, a tactic is applied to the current goal, but one can
+address a particular goal in the list by writing <I><FONT COLOR=maroon>n:</FONT></I><FONT COLOR=maroon><I>tactic</I></FONT> which
+means <I>``apply tactic </I><I><FONT COLOR=maroon>tactic</FONT></I><I> to goal number <FONT COLOR=maroon>n</FONT>''</I>.
+We can show the list of subgoals by typing <TT>Show</TT> (see
+Section&nbsp;<A HREF="Reference-Manual009.html#Show">7.3.1</A>). <BR>
+<BR>
+Since not every rule applies to a given statement, every tactic cannot be
+used to reduce any goal. In other words, before applying a tactic to a
+given goal, the system checks that some <EM>preconditions</EM> are
+satisfied. If it is not the case, the tactic raises an error message.<BR>
+<BR>
+Tactics are build from atomic tactics and tactic expressions (which
+extends the folklore notion of tactical) to combine those atomic
+tactics. This chapter is devoted to atomic tactics. The tactic
+language will be described in chapter&nbsp;<A HREF="Reference-Manual011.html#TacticLanguage">9</A>.<BR>
+<BR>
+There are, at least, three levels of atomic tactics. The simplest one
+implements basic rules of the logical framework. The second level is
+the one of <EM>derived rules</EM> which are built by combination of other
+tactics. The third one implements heuristics or decision procedures to
+build a complete proof of a goal.<BR>
+<BR>
+<A NAME="toc42"></A>
+<H2><A NAME="htoc176">8.1</A>&nbsp;&nbsp;Invocation of tactics
+<A NAME="tactic-syntax"></A>
+<A NAME="@default420"></A></H2>
+A tactic is applied as an ordinary command. If the tactic does not
+address the first subgoal, the command may be preceded by the wished
+subgoal number as shown below:<BR>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tactic_invocation</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>num</FONT></I> <TT>:</TT> <I><FONT COLOR=maroon>tactic</FONT></I> <TT>.</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tactic</FONT></I> <TT>.</TT></TD>
+</TR></TABLE><BR>
+<A NAME="toc43"></A>
+<H2><A NAME="htoc177">8.2</A>&nbsp;&nbsp;Explicit proof as a term</H2>
+
+<H3><A NAME="htoc178">8.2.1</A>&nbsp;&nbsp;<TT>exact </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default421"></A><A NAME="@tactic3"></A><TT>
+</TT><A NAME="exact"></A></H3>
+This tactic applies to any goal. It gives directly the exact proof
+term of the goal. Let <TT>T</TT> be our goal, let <TT>p</TT> be a term of type
+<TT>U</TT> then <TT>exact p</TT> succeeds iff <TT>T</TT> and <TT>U</TT> are
+convertible (see Section&nbsp;<A HREF="Reference-Manual006.html#conv-rules">4.3</A>).<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not an exact proof</TT><A NAME="@error44"></A>
+</OL>
+
+<H3><A NAME="htoc179">8.2.2</A>&nbsp;&nbsp;<TT>refine </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default422"></A><A NAME="@tactic4"></A><TT>
+</TT><A NAME="refine"></A><TT>
+</TT><A NAME="@default423"></A></H3>
+This tactic allows to give an exact proof but still with some
+holes. The holes are noted ``<TT>_</TT>''.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>invalid argument</TT><A NAME="@error45"></A>: 
+ the tactic <TT>refine</TT> doesn't know what to do
+ with the term you gave.
+<LI><TT>Refine passed ill-formed term</TT>: the term you gave is not
+ a valid proof (not easy to debug in general).
+ This message may also occur in higher-level tactics, which call 
+ <TT>refine</TT> internally.
+<LI><TT>Cannot infer a term for this placeholder</TT><A NAME="@error46"></A>
+ there is a hole in the term you gave
+ which type cannot be inferred. Put a cast around it.
+</OL>
+An example of use is given in section&nbsp;<A HREF="Reference-Manual012.html#refine-example">10.1</A>.<BR>
+<BR>
+<A NAME="toc44"></A>
+<H2><A NAME="htoc180">8.3</A>&nbsp;&nbsp;Basics
+<A NAME="@default424"></A></H2>
+Tactics presented in this section implement the basic typing rules of
+<FONT COLOR=navy>Cic</FONT> given in Chapter&nbsp;<A HREF="Reference-Manual006.html#Cic">4</A>.<BR>
+<BR>
+
+<H3><A NAME="htoc181">8.3.1</A>&nbsp;&nbsp;<TT>assumption</TT>
+<A NAME="@default425"></A><A NAME="@tactic5"></A></H3>
+This tactic applies to any goal. It implements the
+``Var''<A NAME="@default426"></A> rule given in
+Section&nbsp;<A HREF="Reference-Manual006.html#Typed-terms">4.2</A>. It looks in the local context for an
+hypothesis which type is equal to the goal. If it is the case, the
+subgoal is proved. Otherwise, it fails.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>No such assumption</TT><A NAME="@error47"></A>
+</OL>
+
+<H3><A NAME="htoc182">8.3.2</A>&nbsp;&nbsp;<TT>clear </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="@default427"></A><A NAME="@tactic6"></A><TT>
+</TT><A NAME="clear"></A></H3>
+This tactic erases the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I> in the local context
+of the current goal. Then <I><FONT COLOR=maroon>ident</FONT></I> is no more displayed and no more
+usable in the proof development.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>clear </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>.</TT><BR>
+<BR>
+This is equivalent to <TT>clear </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>. ... clear
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>.</TT><BR>
+<BR>
+<LI><TT>clearbody </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>.</TT><A NAME="@default428"></A><A NAME="@tactic7"></A><BR>
+<BR>
+This tactic expects <I><FONT COLOR=maroon>ident</FONT></I> to be a local definition then clears
+ its body. Otherwise said, this tactic turns a definition into an
+ assumption.</OL>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT> not found</TT><A NAME="@error48"></A>
+<LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT> is used in the conclusion</TT><A NAME="@error49"></A> 
+<LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT> is used in the hypothesis </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><A NAME="@error50"></A> 
+</OL>
+
+<H3><A NAME="htoc183">8.3.3</A>&nbsp;&nbsp;<TT>move </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> after </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="@default429"></A><A NAME="@tactic8"></A></H3>
+This moves the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> in the local context
+after the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>.<BR>
+<BR>
+If <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> comes before <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the order of dependences,
+then all hypotheses between <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> which
+(possibly indirectly) depend on <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> are moved also.<BR>
+<BR>
+If <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> comes after <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the order of dependences,
+then all hypotheses between <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> which 
+(possibly indirectly) occur in <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> are moved also.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT> not found</TT><A NAME="@error51"></A><BR>
+<BR>
+<LI><TT>Cannot move </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> after </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>:
+ it occurs in </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><A NAME="@error52"></A><BR>
+<BR>
+<LI><TT>Cannot move </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> after </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>:
+ it depends on </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><A NAME="@error53"></A></OL>
+
+<H3><A NAME="htoc184">8.3.4</A>&nbsp;&nbsp;<TT>rename </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> into </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="@default430"></A><A NAME="@tactic9"></A></H3>
+This renames hypothesis <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> into <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the current
+context<SUP><A NAME="text12" HREF="#note12">1</A></SUP><BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> not found</TT><A NAME="@error54"></A><BR>
+<BR>
+<LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> is already used</TT><A NAME="@error55"></A></OL>
+
+<H3><A NAME="htoc185">8.3.5</A>&nbsp;&nbsp;<TT>intro
+</TT><A NAME="@default431"></A><A NAME="@tactic10"></A><TT>
+</TT><A NAME="intro"></A></H3>
+This tactic applies to a goal which is either a product or starts with
+a let binder. If the goal is a product, the tactic implements the
+``Lam''<A NAME="@default432"></A> rule given in
+Section&nbsp;<A HREF="Reference-Manual006.html#Typed-terms">4.2</A><SUP><A NAME="text13" HREF="#note13">2</A></SUP>. If the
+goal starts with a let binder then the tactic implements a mix of the
+``Let''<A NAME="@default433"></A> and ``Conv''<A NAME="@default434"></A>.<BR>
+<BR>
+If the current goal is a dependent product <TT>forall <I>x</I>:<I>T</I>, <I>U</I></TT> (resp <TT>let <I>x</I>:=<I>t</I> in <I>U</I></TT>) then <TT>intro</TT> puts <TT><I>x</I>:<I>T</I></TT> (resp <TT><I>x</I>:=<I>t</I></TT>)
+ in the local context.
+The new subgoal is <I>U</I>.
+<BR>
+<BR>
+If the goal is a non dependent product <TT><I>T</I> -&gt; <I>U</I></TT>, then it puts
+in the local context either <TT>H</TT><I>n</I><TT>:<I>T</I></TT> (if <I>T</I> is of
+type <TT>Set</TT> or <TT>Prop</TT>) or <TT>X</TT><I>n</I><TT>:<I>T</I></TT> (if the type
+of <I>T</I> is <TT>Type</TT>). The optional index <I>n</I> is such that <TT>H</TT><I>n</I> or <TT>X</TT><I>n</I> is a fresh identifier.
+In both cases the new subgoal is <I>U</I>.<BR>
+<BR>
+If the goal is neither a product nor starting with a let definition,
+the tactic <TT>intro</TT> applies the tactic <TT>red</TT> until the tactic
+<TT>intro</TT> can be applied or the goal is not reducible.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>No product even after head-reduction</TT><A NAME="@error56"></A>
+<LI><TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT> is already used</TT><A NAME="@error57"></A>
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>intros</TT><A NAME="@default435"></A><A NAME="@tactic11"></A><BR>
+<BR>
+Repeats <TT>intro</TT> until it meets the head-constant. It never reduces
+ head-constants and it never fails.<BR>
+<BR>
+<LI><TT>intro </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+Applies <TT>intro</TT> but forces <I><FONT COLOR=maroon>ident</FONT></I> to be the name of the
+ introduced hypothesis.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>name </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> is already used</TT><A NAME="@error58"></A><BR>
+<BR>
+<BR>
+<B>Remark: </B>If a name used by <TT>intro</TT> hides the base name of a global
+ constant then the latter can still be referred to by a qualified name
+ (see <A HREF="Reference-Manual004.html#LongNames">2.5.2</A>).<BR>
+<BR>
+<LI><TT>intros </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> <BR>
+<BR>
+Is equivalent to the composed tactic <TT>intro </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; ... ;
+ intro </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>.<BR>
+<BR>
+More generally, the <TT>intros</TT> tactic takes a pattern as
+ argument in order to introduce names for components of an inductive
+ definition or to clear introduced hypotheses; This is explained
+ in&nbsp;<A HREF="#intros-pattern">8.7.3</A>.<BR>
+<BR>
+<LI><TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I> <A NAME="@default436"></A><A NAME="@tactic12"></A><BR>
+<BR>
+Repeats <TT>intro</TT> until it meets a premise of the goal having form
+ <TT>(</TT> <I><FONT COLOR=maroon>ident</FONT></I>&nbsp;<TT>:</TT>&nbsp;<I><FONT COLOR=maroon>term</FONT></I> <TT>)</TT> and discharges the variable
+ named <I><FONT COLOR=maroon>ident</FONT></I> of the current goal.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>No such hypothesis in current goal</TT><A NAME="@error59"></A><BR>
+<BR>
+<LI><TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> <A NAME="@default437"></A><A NAME="@tactic13"></A><BR>
+<BR>
+Repeats <TT>intro</TT> until the <I><FONT COLOR=maroon>num</FONT></I>-th non-dependent premise. For
+ instance, on the subgoal <CODE>forall x y:nat, x=y -&gt; forall z:nat,z=x-&gt;z=y</CODE> the
+ tactic <TT>intros until 2</TT> is equivalent to <TT>intros x y H
+ z H0</TT> (assuming <TT>x, y, H, z</TT> and <TT>H0</TT> do not already
+ occur in context).<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>No such hypothesis in current goal</TT><A NAME="@error60"></A><BR>
+<BR>
+Happens when <I><FONT COLOR=maroon>num</FONT></I> is 0 or is greater than the number of non-dependent
+ products of the goal.<BR>
+<BR>
+<LI><TT>intro after </TT><I><FONT COLOR=maroon>ident</FONT></I> <A NAME="@default438"></A><A NAME="@tactic14"></A><BR>
+<BR>
+Applies <TT>intro</TT> but puts the introduced
+ hypothesis after the hypothesis <I><FONT COLOR=maroon>ident</FONT></I> in the hypotheses.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=a><LI>
+<TT>No product even after head-reduction</TT><A NAME="@error61"></A>
+<LI><TT>No such hypothesis</TT><A NAME="@error62"></A> : <I><FONT COLOR=maroon>ident</FONT></I>
+</OL><BR>
+<BR>
+<LI><TT>intro </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> after </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>
+ <A NAME="@default439"></A><A NAME="@tactic15"></A><BR>
+<BR>
+Behaves as previously but <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> is the name of the introduced
+ hypothesis. It is equivalent to <TT>intro </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; move
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> after </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=a><LI>
+<TT>No product even after head-reduction</TT><A NAME="@error63"></A>
+<LI><TT>No such hypothesis</TT><A NAME="@error64"></A> : <I><FONT COLOR=maroon>ident</FONT></I>
+</OL></OL>
+
+<H3><A NAME="htoc186">8.3.6</A>&nbsp;&nbsp;<TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default440"></A><A NAME="@tactic16"></A><TT>
+</TT><A NAME="apply"></A></H3>
+This tactic applies to any goal. The argument <I><FONT COLOR=maroon>term</FONT></I> is a term
+well-formed in the local context. The tactic <TT>apply</TT> tries to
+match the current goal against the conclusion of the type of <I><FONT COLOR=maroon>term</FONT></I>.
+If it succeeds, then the tactic returns as many subgoals as the number
+of non dependent premises of the type of <I><FONT COLOR=maroon>term</FONT></I>. The tactic <TT>apply</TT> relies on first-order pattern-matching with dependent
+types. See <TT>pattern</TT> in section <A HREF="#pattern">8.5.7</A> to transform a
+second-order pattern-matching problem into a first-order one.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Impossible to unify ... with ...</TT><A NAME="@error65"></A> <BR>
+<BR>
+The <TT>apply</TT>
+ tactic failed to match the conclusion of <I><FONT COLOR=maroon>term</FONT></I> and the current goal.
+ You can help the <TT>apply</TT> tactic by transforming your
+ goal with the <TT>change</TT> or <TT>pattern</TT> tactics (see 
+ sections&nbsp;<A HREF="#pattern">8.5.7</A>,&nbsp;<A HREF="#change">8.3.10</A>).<BR>
+<BR>
+<LI><TT>generated subgoal </TT><I><FONT COLOR=maroon>term</FONT></I><TT>'</TT><TT> has metavariables in it</TT><A NAME="@error66"></A><BR>
+<BR>
+This occurs when some instantiations of premises of <I><FONT COLOR=maroon>term</FONT></I> are not
+ deducible from the unification. This is the case, for instance, when
+ you want to apply a transitivity property. In this case, you have to
+ use one of the variants below:</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> 
+ <A NAME="@default441"></A><A NAME="@tactic17"></A><BR>
+<BR>
+Provides <TT>apply</TT> with explicit instantiations for all dependent
+ premises of the type of <I><FONT COLOR=maroon>term</FONT></I> which do not occur in the conclusion
+ and consequently cannot be found by unification. Notice that
+ <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> must be given according to the order
+ of these dependent premises of the type of <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Not the right number of missing arguments</TT><A NAME="@error67"></A><BR>
+<BR>
+<LI><TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I><TT> with (</TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>) ... (</TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>
+ := </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT> <BR>
+<BR>
+This also provides <TT>apply</TT> with values for instantiating
+ premises. But variables are referred by names and non dependent
+ products by order (see syntax in Section&nbsp;<A HREF="#Binding-list">8.3.11</A>).<BR>
+<BR>
+<LI><TT>eapply </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default442"></A><A NAME="@tactic18"></A><A NAME="eapply"></A><BR>
+<BR>
+The tactic <TT>eapply</TT> behaves as <TT>apply</TT> but does not fail
+ when no instantiation are deducible for some variables in the
+ premises. Rather, it turns these variables into so-called
+ existential variables which are variables still to instantiate. An
+ existential variable is identified by a name of the form <TT>?<I>n</I></TT>
+ where <I>n</I> is a number. The instantiation is intended to be found
+ later in the proof.<BR>
+<BR>
+An example of use of <TT>eapply</TT> is given in
+ Section&nbsp;<A HREF="Reference-Manual012.html#eapply-example">10.2</A>. <BR>
+<BR>
+<LI><TT>lapply </TT><I><FONT COLOR=maroon>term</FONT></I> <A NAME="@default443"></A><A NAME="@tactic19"></A> <BR>
+<BR>
+This tactic applies to any goal, say <TT>G</TT>. The argument <I><FONT COLOR=maroon>term</FONT></I>
+ has to be well-formed in the current context, its type being
+ reducible to a non-dependent product <TT>A -&gt; B</TT> with <TT>B</TT>
+ possibly containing products. Then it generates two subgoals <TT>B-&gt;G</TT> and <TT>A</TT>. Applying <TT>lapply H</TT> (where <TT>H</TT> has type
+ <TT>A-&gt;B</TT> and <TT>B</TT> does not start with a product) does the same
+ as giving the sequence <TT>cut B. 2:apply H.</TT> where <TT>cut</TT> is
+ described below.<BR>
+<BR>
+<BR>
+<B>Warning: </B>When <I><FONT COLOR=maroon>term</FONT></I> contains more than one non
+ dependent product the tactic <TT>lapply</TT> only takes into account the
+ first product.</OL>
+
+<H3><A NAME="htoc187">8.3.7</A>&nbsp;&nbsp;<TT>set ( </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><TT> )</TT>
+<A NAME="tactic:set"></A>
+<A NAME="@default444"></A><A NAME="@tactic20"></A>
+<A NAME="@default445"></A><A NAME="@tactic21"></A></H3>
+This replaces <I><FONT COLOR=maroon>term</FONT></I> by <I><FONT COLOR=maroon>ident</FONT></I> in the conclusion or in the
+hypotheses of the current goal and adds the new definition <I><FONT COLOR=maroon>ident</FONT></I><TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> to the local context. The default is to make this
+replacement only in the conclusion.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in *</TT><BR>
+<TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in * |- *</TT><BR>
+This behaves as above but substitutes <I><FONT COLOR=maroon>term</FONT></I>
+ everywhere in the goal (both in conclusion and hypotheses).<BR>
+<BR>
+<LI><TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in * |-</TT><BR>
+<BR>
+This behaves the same but substitutes <I><FONT COLOR=maroon>term</FONT></I> in
+ the hypotheses only (not in the conclusion).<BR>
+<BR>
+<LI><TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in |- *</TT><BR>
+<BR>
+This is equivalent to <TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>)</TT>, i.e. it substitutes <I><FONT COLOR=maroon>term</FONT></I> in the conclusion only.<BR>
+<BR>
+<LI><TT>set ( </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>0</FONT></TT></SUB><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><TT> ) in </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><BR>
+<BR>
+This behaves the same but substitutes <I><FONT COLOR=maroon>term</FONT></I> only in
+ the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>.<BR>
+<BR>
+<LI><TT>set (</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This notation allows to specify which occurrences of <I><FONT COLOR=maroon>term</FONT></I> have to
+be substituted in the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>. The occurrences
+are numbered from left to right and are meaningful on a pure
+expression using no implicit argument, notation or coercion. A
+negative occurrence number means an occurrence which should not be
+substituted. As an exception of the left-to-right order, the
+occurrences in the <TT>return</TT> subexpression of a <TT>match</TT> are
+considered <EM>before</EM> the occurrences in the matched term.<BR>
+<BR>
+For expressions using notations, or hiding implicit arguments or
+coercions, it is recommended to make explicit all occurrences in 
+order by using <TT>Set Printing All</TT> (see
+section&nbsp;<A HREF="Reference-Manual004.html#SetPrintingAll">2.8</A>).<BR>
+<BR>
+<LI><TT>set ( </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in |- * at</TT>
+ <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This allows to specify which occurrences of the conclusion are concerned.<BR>
+<BR>
+<LI><TT>set (</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB><SUP><FONT SIZE=2>1</FONT></SUP>, ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP> ...<I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP><BR>
+<BR>
+It substitutes <I><FONT COLOR=maroon>term</FONT></I> at occurrences <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>i</I></FONT></SUP> ...
+ <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB><SUP><FONT SIZE=2><I>i</I></FONT></SUP> of hypothesis <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>. Each <TT>at</TT> part is
+ optional.<BR>
+<BR>
+<LI><TT>set (</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>) in</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB><SUP><FONT SIZE=2>1</FONT></SUP>, ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP> ...<I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP>
+ <TT>|- *</TT> <TT>at</TT> <I><FONT COLOR=maroon>num</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>num</FONT></I>'<SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This is the more general form which combines all the previous
+ possibilities.<BR>
+<BR>
+<LI><TT>set </TT> <I><FONT COLOR=maroon>term</FONT></I><BR>
+<BR>
+This behaves as <TT>set (</TT> <I><FONT COLOR=maroon>ident</FONT></I> := <I><FONT COLOR=maroon>term</FONT></I> <TT>)</TT> but <I><FONT COLOR=maroon>ident</FONT></I>
+ is generated by <FONT COLOR=navy>Coq</FONT>. This variant is available for the 
+ forms with <TT>in</TT> too.<BR>
+<BR>
+<LI><TT>pose ( </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><TT> )</TT><BR>
+<BR>
+This adds the local definition <I><FONT COLOR=maroon>ident</FONT></I> := <I><FONT COLOR=maroon>term</FONT></I> to the current
+ context without performing any replacement in the goal or in the
+ hypotheses.<BR>
+<BR>
+<LI><TT>pose </TT><I><FONT COLOR=maroon>term</FONT></I><BR>
+<BR>
+This behaves as <TT>pose (</TT> <I><FONT COLOR=maroon>ident</FONT></I> := <I><FONT COLOR=maroon>term</FONT></I> <TT>)</TT> but
+ <I><FONT COLOR=maroon>ident</FONT></I> is generated by <FONT COLOR=navy>Coq</FONT>.</OL>
+
+<H3><A NAME="htoc188">8.3.8</A>&nbsp;&nbsp;<TT>assert ( </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> : </TT><I><FONT COLOR=maroon>form</FONT></I><TT> )</TT>
+<A NAME="@default446"></A><A NAME="@tactic22"></A></H3>
+This tactic applies to any goal. <TT>assert (H : U)</TT> adds a new
+hypothesis of name <TT>H</TT> asserting <TT>U</TT> to the current goal
+and opens a new subgoal <TT>U</TT><SUP><A NAME="text14" HREF="#note14">3</A></SUP>. The subgoal <TT>U</TT> comes first
+in the list of subgoals remaining to prove.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not a proposition or a type</TT><A NAME="@error68"></A><BR>
+<BR>
+Arises when the argument <I><FONT COLOR=maroon>form</FONT></I> is neither of type <TT>Prop</TT>, <TT>Set</TT> nor <TT>Type</TT>.</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>assert </TT><I><FONT COLOR=maroon>form</FONT></I><BR>
+<BR>
+This behaves as <TT>assert (</TT> <I><FONT COLOR=maroon>ident</FONT></I> : <I><FONT COLOR=maroon>form</FONT></I> <TT>)</TT> but
+ <I><FONT COLOR=maroon>ident</FONT></I> is generated by <FONT COLOR=navy>Coq</FONT>.<BR>
+<BR>
+<LI><TT>assert (</TT> <I><FONT COLOR=maroon>ident</FONT></I> := <I><FONT COLOR=maroon>term</FONT></I> <TT>)</TT><BR>
+<BR>
+This behaves as <TT>assert (</TT><I><FONT COLOR=maroon>ident</FONT></I><TT> : </TT><I><FONT COLOR=maroon>type</FONT></I><TT>);[exact
+ </TT><I><FONT COLOR=maroon>term</FONT></I><TT>|idtac]</TT> where <I><FONT COLOR=maroon>type</FONT></I> is the type of <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+<LI><TT>cut </TT><I><FONT COLOR=maroon>form</FONT></I><A NAME="@default447"></A><A NAME="@tactic23"></A> <BR>
+<BR>
+This tactic applies to any goal. It implements the non dependent
+ case of the ``App''<A NAME="@default448"></A> rule given in
+ Section&nbsp;<A HREF="Reference-Manual006.html#Typed-terms">4.2</A>. (This is Modus Ponens inference rule.)
+ <TT>cut U</TT> transforms the current goal <TT>T</TT> into the two
+ following subgoals: <TT>U -&gt; T</TT> and <TT>U</TT>. The subgoal <TT>U
+ -&gt; T</TT> comes first in the list of remaining subgoal to prove.</OL>
+
+<H3><A NAME="htoc189">8.3.9</A>&nbsp;&nbsp;<TT>generalize </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default449"></A><A NAME="@tactic24"></A><TT>
+</TT><A NAME="generalize"></A></H3>
+This tactic applies to any goal. It generalizes the conclusion w.r.t.
+one subterm of it. For example:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Show.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;x&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;y&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;0&nbsp;&lt;=&nbsp;x&nbsp;+&nbsp;y&nbsp;+&nbsp;y</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;generalize&nbsp;(x&nbsp;+&nbsp;y&nbsp;+&nbsp;y).</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;x&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;y&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;n&nbsp;:&nbsp;nat,&nbsp;0&nbsp;&lt;=&nbsp;n</I></TT><BR>
+</DIV>
+<BR>
+If the goal is <I>G</I> and <I>t</I> is a subterm of type <I>T</I> in the goal, then
+<TT>generalize</TT> <I>t</I> replaces the goal by <TT>forall (x:<I>T</I>), <I>G</I>'</TT>
+where <I>G</I>' is obtained from <I>G</I> by replacing all occurrences of <I>t</I> by
+<TT>x</TT>. The name of the variable (here <TT>n</TT>) is chosen accordingly
+to <I>T</I>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>generalize </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> <BR>
+<BR>
+Is equivalent to <TT>generalize </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>; ... ; generalize
+ </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB>. Note that the sequence of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>'s are processed
+ from <I>n</I> to 1.<BR>
+<BR>
+<LI><TT>generalize dependent </TT><I><FONT COLOR=maroon>term</FONT></I> <A NAME="@default450"></A><A NAME="@tactic25"></A><BR>
+<BR>
+This generalizes <I><FONT COLOR=maroon>term</FONT></I> but also <EM>all</EM> hypotheses which depend
+ on <I><FONT COLOR=maroon>term</FONT></I>. It clears the generalized hypotheses.</OL>
+
+<H3><A NAME="htoc190">8.3.10</A>&nbsp;&nbsp;<TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default451"></A><A NAME="@tactic26"></A><TT>
+</TT><A NAME="change"></A></H3>
+This tactic applies to any goal. It implements the rule
+``Conv''<A NAME="@default452"></A> given in section&nbsp;<A HREF="Reference-Manual006.html#Conv">4.3</A>. <TT>change U</TT> replaces the current goal <TT>T</TT> with <TT>U</TT> providing that
+<TT>U</TT> is well-formed and that <TT>T</TT> and <TT>U</TT> are convertible.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not convertible</TT><A NAME="@error69"></A>
+</OL>
+<A NAME="@default453"></A><A NAME="@tactic27"></A>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> <BR>
+<BR>
+This replaces the occurrences of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> by <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the
+ current goal. The terms <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> must be
+ convertible.<BR>
+<BR>
+<LI><TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> <BR>
+<BR>
+This replaces the occurrences numbered <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> of
+ <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> by <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the current goal.
+ The terms <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> must be convertible.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Too few occurrences</TT><BR>
+<BR>
+<LI><TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+<LI><TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+<LI><TT>change </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> in
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+This applies the <TT>change</TT> tactic not to the goal but to the
+ hypothesis <I><FONT COLOR=maroon>ident</FONT></I>.</OL>
+<BR>
+<B>See also: </B><A HREF="#Conversion-tactics">8.5</A><BR>
+<BR>
+
+<H3><A NAME="htoc191">8.3.11</A>&nbsp;&nbsp;Bindings list
+<A NAME="@default454"></A>
+<A NAME="Binding-list"></A></H3>
+A bindings list is generally used after the keyword <TT>with</TT> in
+tactics. The general shape of a bindings list is <TT>(</TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> :=
+ </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>) ... (</TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT> where <I><FONT COLOR=maroon>ref</FONT></I> is either an
+<I><FONT COLOR=maroon>ident</FONT></I> or a <I><FONT COLOR=maroon>num</FONT></I>. It is used to provide a tactic with a list of
+values (<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>) that have to be substituted
+respectively to <I><FONT COLOR=maroon>ref</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>ref</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>. For all <I>i</I> in [1... 
+<I>n</I>], if <I><FONT COLOR=maroon>ref</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> then it references the dependent
+product <TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT>:T</TT> (for some type <TT>T</TT>); if <I><FONT COLOR=maroon>ref</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is
+<I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> then it references the <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>-th non dependent premise.<BR>
+<BR>
+A bindings list can also be a simple list of terms <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>
+ </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>. In that case the references to which
+these terms correspond are determined by the tactic. In case of <TT>elim</TT> (see section&nbsp;<A HREF="#elim">4</A>) the terms should correspond to
+all the dependent products in the type of <I><FONT COLOR=maroon>term</FONT></I> while in the case of
+<TT>apply</TT> only the dependent products which are not bound in
+the conclusion of the type are given.<BR>
+<BR>
+<A NAME="toc45"></A>
+<H2><A NAME="htoc192">8.4</A>&nbsp;&nbsp;Negation and contradiction</H2>
+
+<H3><A NAME="htoc193">8.4.1</A>&nbsp;&nbsp;<TT>absurd </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default455"></A><A NAME="@tactic28"></A><TT>
+</TT><A NAME="absurd"></A></H3>
+This tactic applies to any goal. The argument <I><FONT COLOR=maroon>term</FONT></I> is any
+proposition <TT>P</TT> of type <TT>Prop</TT>. This tactic applies <TT>False</TT> elimination, that is it deduces the current goal from <TT>False</TT>, and generates as subgoals <TT>~P</TT> and <TT>P</TT>. It is
+very useful in proofs by cases, where some cases are impossible. In
+most cases, <TT>P</TT> or ~<TT>P</TT> is one of the hypotheses of
+the local context.<BR>
+<BR>
+
+<H3><A NAME="htoc194">8.4.2</A>&nbsp;&nbsp;<TT>contradiction
+</TT><A NAME="contradiction"></A><TT>
+</TT><A NAME="@default456"></A><A NAME="@tactic29"></A></H3>
+This tactic applies to any goal. The <TT>contradiction</TT> tactic
+attempts to find in the current context (after all <TT>intros</TT>) one
+which is equivalent to <TT>False</TT>. It permits to prune irrelevant
+cases. This tactic is a macro for the tactics sequence <TT>intros;
+ elimtype False; assumption</TT>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>No such assumption</TT><A NAME="@error70"></A>
+</OL>
+<A NAME="toc46"></A>
+<H2><A NAME="htoc195">8.5</A>&nbsp;&nbsp;Conversion tactics
+<A NAME="@default457"></A>
+<A NAME="Conversion-tactics"></A></H2>
+This set of tactics implements different specialized usages of the
+tactic <TT>change</TT>.<BR>
+<BR>
+All conversion tactics (including <TT>change</TT>) can be
+parameterized by the parts of the goal where the conversion can
+occur. The specification of such parts are called <EM>clauses</EM>. It
+can be either the conclusion, or an hypothesis. In the case of a
+defined hypothesis it is possible to specify if the conversion should
+occur on the type part, the body part or both (default).<BR>
+<BR>
+<A NAME="@default458"></A>
+Clauses are written after a conversion tactic (tactic
+<TT>set</TT>&nbsp;<A HREF="#tactic:set">8.3.7</A> also uses clauses) and are introduced by
+the keyword <TT>in</TT>. If no clause is provided, the default is to
+perform the conversion only in the conclusion.<BR>
+<BR>
+The syntax and description of the various clauses follows:
+<DL COMPACT=compact><DT>
+<B><TT>in H</TT></B><SUB><B><TT><FONT SIZE=2>1</FONT></TT></B></SUB><B><TT> ... H</TT></B><SUB><B><TT><FONT SIZE=2><I>n</I></FONT></TT></B></SUB><B><TT> |- </TT></B><DD> only in hypotheses <I>H</I><SUB><FONT SIZE=2>1</FONT></SUB>
+ ...<I>H</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+<DT><B><TT>in H</TT></B><SUB><B><TT><FONT SIZE=2>1</FONT></TT></B></SUB><B><TT> ... H</TT></B><SUB><B><TT><FONT SIZE=2><I>n</I></FONT></TT></B></SUB><B><TT> |- *</TT></B><DD> in hypotheses <I>H</I><SUB><FONT SIZE=2>1</FONT></SUB> ...
+ <I>H</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> and in the conclusion
+<DT><B><TT>in * |-</TT></B><DD> in every hypothesis
+<DT><B><TT>in *</TT></B><DD> (equivalent to <TT>in * |- *</TT>) everywhere
+<DT><B><TT>in (type of H</TT></B><SUB><B><TT><FONT SIZE=2>1</FONT></TT></B></SUB><B><TT>) (value of H</TT></B><SUB><B><TT><FONT SIZE=2>2</FONT></TT></B></SUB><B><TT>) ... |-</TT></B><DD> in
+ type part of <I>H</I><SUB><FONT SIZE=2>1</FONT></SUB>, in the value part of <I>H</I><SUB><FONT SIZE=2>2</FONT></SUB>, etc. 
+</DL>
+For backward compatibility, the notation <TT>in</TT>&nbsp;<I>H</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>H</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+performs the conversion in hypotheses <I>H</I><SUB><FONT SIZE=2>1</FONT></SUB>... <I>H</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>.<BR>
+<BR>
+
+<H3><A NAME="htoc196">8.5.1</A>&nbsp;&nbsp;<TT>cbv </TT><I><FONT COLOR=maroon>flag</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>flag</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>, <TT>lazy </TT><I><FONT COLOR=maroon>flag</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>
+... </TT><I><FONT COLOR=maroon>flag</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> and <TT>compute</TT>
+<A NAME="@default459"></A><A NAME="@tactic30"></A>
+<A NAME="@default460"></A><A NAME="@tactic31"></A>
+<A NAME="@default461"></A><A NAME="@tactic32"></A></H3>
+These parameterized reduction tactics apply to any goal and perform
+the normalization of the goal according to the specified flags. Since
+the reduction considered in <FONT COLOR=navy>Coq</FONT> include beta (reduction of
+functional application), delta (unfolding of transparent constants,
+see <A HREF="Reference-Manual008.html#Transparent">6.2.5</A>), iota (reduction of <TT>Cases</TT>, <TT>Fix</TT>
+and <TT>CoFix</TT> expressions) and zeta (removal of local
+definitions), every flag is one of <TT>beta</TT>, <TT>delta</TT>, <TT>iota</TT>, <TT>zeta</TT>, <TT>[</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>k</I></FONT></TT></SUB><TT>]</TT> and <TT>-[</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>k</I></FONT></TT></SUB><TT>]</TT>. The last two flags give the list
+of constants to unfold, or the list of constants not to unfold. These
+two flags can occur only after the <TT>delta</TT> flag. 
+If alone (i.e. not
+followed by <TT>[</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>k</I></FONT></TT></SUB><TT>]</TT> or <TT>-[</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...</TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>k</I></FONT></TT></SUB><TT>]</TT>), the <TT>delta</TT> flag means that all constants must be unfolded.
+However, the <TT>delta</TT> flag does not apply to variables bound by a
+let-in construction whose unfolding is controlled by the <TT>zeta</TT> flag only. In addition, there is a flag <TT>Evar</TT> to perform
+instantiation of existential variables (``?'') when an instantiation
+actually exists. <BR>
+<BR>
+The goal may be normalized with two strategies: <EM>lazy</EM> (<TT>lazy</TT>
+tactic), or <EM>call-by-value</EM> (<TT>cbv</TT> tactic). The lazy strategy
+is a call-by-need strategy, with sharing of reductions: the arguments of a
+function call are partially evaluated only when necessary, but if an
+argument is used several times, it is computed only once. This
+reduction is efficient for reducing expressions with dead code. For
+instance, the proofs of a proposition there exists<SUB><FONT SIZE=2><I>T</I></FONT></SUB> &nbsp;<I>x</I>. <I>P</I>(<I>x</I>) reduce to a
+pair of a witness <I>t</I>, and a proof that <I>t</I> verifies the predicate
+<I>P</I>. Most of the time, <I>t</I> may be computed without computing the proof
+of <I>P</I>(<I>t</I>), thanks to the lazy strategy.<BR>
+<BR>
+The call-by-value strategy is the one used in ML languages: the
+arguments of a function call are evaluated first, using a weak
+reduction (no reduction under the lambda-abstractions). Despite the
+lazy strategy always performs fewer reductions than the call-by-value
+strategy, the latter should be preferred for evaluating purely
+computational expressions (i.e. with few dead code).<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>compute</TT> <A NAME="@default462"></A><A NAME="@tactic33"></A> <BR>
+<BR>
+This tactic is an alias for <TT>cbv beta delta evar iota zeta</TT>.
+</OL>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Delta must be specified before</TT><A NAME="@error71"></A><BR>
+<BR>
+A list of constants appeared before the <TT>delta</TT> flag.
+</OL>
+
+<H3><A NAME="htoc197">8.5.2</A>&nbsp;&nbsp;<TT>red</TT>
+<A NAME="@default463"></A><A NAME="@tactic34"></A></H3>
+This tactic applies to a goal which has the form <TT>forall (x:T1)...(xk:Tk), c t1 ... tn</TT> where <TT>c</TT> is a constant. If
+<TT>c</TT> is transparent then it replaces <TT>c</TT> with its definition
+(say <TT>t</TT>) and then reduces <TT>(t t1 ... tn)</TT> according to
+betaiotazeta-reduction rules.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not reducible</TT><A NAME="@error72"></A>
+</OL>
+
+<H3><A NAME="htoc198">8.5.3</A>&nbsp;&nbsp;<TT>hnf</TT>
+<A NAME="@default464"></A><A NAME="@tactic35"></A></H3>
+This tactic applies to any goal. It replaces the current goal with its
+head normal form according to the betadeltaiotazeta-reduction rules.
+<TT>hnf</TT> does not produce a real head normal form but either a
+product or an applicative term in head normal form or a variable.<BR>
+<BR>
+<BR>
+<B>Example: </B>The term <CODE>forall n:nat, (plus (S n) (S n))</CODE> is not reduced by <TT>hnf</TT>.<BR>
+<BR>
+<BR>
+<B>Remark: </B>The delta rule only applies to transparent constants
+(see section&nbsp;<A HREF="Reference-Manual008.html#Opaque">6.2.4</A> on transparency and opacity).<BR>
+<BR>
+
+<H3><A NAME="htoc199">8.5.4</A>&nbsp;&nbsp;<TT>simpl
+</TT><A NAME="@default465"></A><A NAME="@tactic36"></A></H3>
+This tactic applies to any goal. The tactic <TT>simpl</TT> first applies
+betaiota-reduction rule. Then it expands transparent constants
+and tries to reduce <TT>T'</TT> according, once more, to betaiota
+rules. But when the iota rule is not applicable then possible
+delta-reductions are not applied. For instance trying to use <TT>simpl</TT> on <TT>(plus n O)=n</TT> does change nothing.<BR>
+<BR>
+<A NAME="@default466"></A><A NAME="@tactic37"></A>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>simpl </TT><I><FONT COLOR=maroon>term</FONT></I><BR>
+<BR>
+This applies <TT>simpl</TT> only to the occurrences of <I><FONT COLOR=maroon>term</FONT></I> in the
+ current goal.<BR>
+<BR>
+<LI><TT>simpl </TT><I><FONT COLOR=maroon>term</FONT></I><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><BR>
+<BR>
+This applies <TT>simpl</TT> only to the <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>
+ occurrences of <I><FONT COLOR=maroon>term</FONT></I> in the current goal.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Too few occurrences</TT><BR>
+<BR>
+<LI><TT>simpl </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+This applies <TT>simpl</TT> only to the applicative subterms whose head
+ occurrence is <I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<LI><TT>simpl </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><BR>
+<BR>
+This applies <TT>simpl</TT> only to the <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>
+applicative subterms whose head occurrence is <I><FONT COLOR=maroon>ident</FONT></I>.</OL>
+
+<H3><A NAME="htoc200">8.5.5</A>&nbsp;&nbsp;<TT>unfold </TT><I><FONT COLOR=maroon>qualid</FONT></I><A NAME="@default467"></A><A NAME="@tactic38"></A><TT>
+</TT><A NAME="unfold"></A></H3>
+This tactic applies to any goal. The argument <I><FONT COLOR=maroon>qualid</FONT></I> must denote a
+defined transparent constant or local definition (see Sections&nbsp;<A HREF="Reference-Manual003.html#Simpl-definitions">1.3.2</A> and&nbsp;<A HREF="Reference-Manual008.html#Transparent">6.2.5</A>). The tactic <TT>unfold</TT> applies the delta rule to each occurrence of the constant
+to which <I><FONT COLOR=maroon>qualid</FONT></I> refers in the current goal and then replaces it
+with its betaiota-normal form.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<I><FONT COLOR=maroon>qualid</FONT></I> <TT>does not denote an evaluable constant</TT><A NAME="@error73"></A></OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>unfold </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>, ..., </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>
+ <A NAME="@default468"></A><A NAME="@tactic39"></A><BR>
+<BR>
+Replaces <EM>simultaneously</EM> <I><FONT COLOR=maroon>qualid</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>qualid</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+ with their definitions and replaces the current goal with its
+ betaiota normal form.<BR>
+<BR>
+<LI><TT>unfold </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><SUP><TT><FONT SIZE=2>1</FONT></TT></SUP><TT>, ..., </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><SUP><TT><FONT SIZE=2>1</FONT></TT></SUP><TT>,
+..., </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><SUP><TT><FONT SIZE=2><I>n</I></FONT></TT></SUP><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>j</I></FONT></TT></SUB><SUP><TT><FONT SIZE=2><I>n</I></FONT></TT></SUP><BR>
+<BR>
+The lists <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP>, ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP> and <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>n</I></FONT></SUP>, ...,
+ <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>j</I></FONT></SUB><SUP><FONT SIZE=2><I>n</I></FONT></SUP> specify the occurrences of <I><FONT COLOR=maroon>qualid</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ...,
+ <I><FONT COLOR=maroon>qualid</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> to be unfolded. Occurrences are located from left to
+ right.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>bad occurrence number of </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><BR>
+<BR>
+<BR>
+<B>Error message: </B><I><FONT COLOR=maroon>qualid</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> <TT>does not occur</TT></OL>
+
+<H3><A NAME="htoc201">8.5.6</A>&nbsp;&nbsp;<TT>fold</TT> <I><FONT COLOR=maroon>term</FONT></I><A NAME="@default469"></A><A NAME="@tactic40"></A></H3>
+This tactic applies to any goal. The term <I><FONT COLOR=maroon>term</FONT></I> is reduced using the <TT>red</TT>
+tactic. Every occurrence of the resulting term in the goal is then
+substituted for <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>fold</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <BR>
+<BR>
+Equivalent to <TT>fold</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>;</TT>...<TT>; fold</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>.
+</OL>
+
+<H3><A NAME="htoc202">8.5.7</A>&nbsp;&nbsp;<TT>pattern </TT><I><FONT COLOR=maroon>term</FONT></I>
+<A NAME="@default470"></A><A NAME="@tactic41"></A>
+<A NAME="pattern"></A></H3>
+This command applies to any goal. The argument <I><FONT COLOR=maroon>term</FONT></I> must be a free
+subterm of the current goal. The command <TT>pattern</TT> performs
+beta-expansion (the inverse of beta-reduction) of the current goal
+(say <TT>T</TT>) by
+<OL type=1><LI>
+replacing all occurrences of <I><FONT COLOR=maroon>term</FONT></I> in <TT>T</TT> with a fresh variable
+<LI>abstracting this variable
+<LI>applying the abstracted goal to <I><FONT COLOR=maroon>term</FONT></I>
+</OL>
+For instance, if the current goal <I>T</I> is expressible has phi(<I>t</I>)
+where the notation captures all the instances of <I>t</I> in phi(<I>t</I>),
+then <TT>pattern <I>t</I></TT> transforms it into <TT>(fun x:<I>A</I> =&gt; phi(x)) <I>t</I></TT>. This command can be used, for instance, when the tactic
+<TT>apply</TT> fails on matching.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>pattern </TT><I><FONT COLOR=maroon>term</FONT></I><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><BR>
+<BR>
+Only the occurrences <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> of <I><FONT COLOR=maroon>term</FONT></I> will be
+ considered for beta-expansion. Occurrences are located from left
+ to right.<BR>
+<BR>
+<LI><TT>pattern </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>, ..., </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><BR>
+<BR>
+Starting from a goal phi(<I>t</I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I>t</I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>), the tactic
+ <TT>pattern <I>t</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>, ..., <I>t</I></TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB> generates the equivalent goal <TT>(fun (x</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>:<I>A</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>) ... (x</TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT>:<I>A</I></TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT>) =&gt; phi(x</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>...
+ x</TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT>)) <I>t</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... <I>t</I></TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB>.<BR>
+If <I>t</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> occurs in one of the
+ generated types <I>A</I><SUB><FONT SIZE=2><I>j</I></FONT></SUB> these occurrences will also be considered and
+ possibly abstracted.<BR>
+<BR>
+<LI><TT>pattern </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><SUP><TT><FONT SIZE=2>1</FONT></TT></SUP><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB></SUB><SUP><TT><FONT SIZE=2>1</FONT></TT></SUP><TT>, ...,
+ </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT> at </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><SUP><TT><FONT SIZE=2><I>m</I></FONT></TT></SUP><TT> ... </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB></SUB><SUP><TT><FONT SIZE=2><I>m</I></FONT></TT></SUP><BR>
+<BR>
+This behaves as above but processing only the occurrences <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP>,
+ ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB><SUP><FONT SIZE=2>1</FONT></SUP> of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP>, ..., <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2><I>j</I></FONT></SUB><SUP><FONT SIZE=2><I>m</I></FONT></SUP>
+ of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> starting from <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>.</OL>
+
+<H3><A NAME="htoc203">8.5.8</A>&nbsp;&nbsp;Conversion tactics applied to hypotheses</H3>
+<I><FONT COLOR=maroon>conv_tactic</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <BR>
+<BR>
+Applies the conversion tactic <I><FONT COLOR=maroon>conv_tactic</FONT></I> to the
+hypotheses <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>. The tactic <I><FONT COLOR=maroon>conv_tactic</FONT></I> is
+any of the conversion tactics listed in this section. <BR>
+<BR>
+If <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is a local definition, then <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> can be replaced
+by (Type of <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>) to address not the body but the type of the
+local definition. Example: <TT>unfold not in (Type of H1) (Type of H3).</TT><BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>No such hypothesis</TT><A NAME="@error74"></A> : <I><FONT COLOR=maroon>ident</FONT></I>.
+</OL>
+<A NAME="toc47"></A>
+<H2><A NAME="htoc204">8.6</A>&nbsp;&nbsp;Introductions</H2>
+Introduction tactics address goals which are inductive constants.
+They are used when one guesses that the goal can be obtained with one
+of its constructors' type.<BR>
+<BR>
+
+<H3><A NAME="htoc205">8.6.1</A>&nbsp;&nbsp;<TT>constructor </TT><I><FONT COLOR=maroon>num</FONT></I><A NAME="constructor"></A><TT>
+</TT><A NAME="@default471"></A><A NAME="@tactic42"></A></H3>
+This tactic applies to a goal such that the head of its conclusion is
+an inductive constant (say <TT>I</TT>). The argument <I><FONT COLOR=maroon>num</FONT></I> must be less
+or equal to the numbers of constructor(s) of <TT>I</TT>. Let <TT>ci</TT> be
+the <TT>i</TT>-th constructor of <TT>I</TT>, then <TT>constructor i</TT> is
+equivalent to <TT>intros; apply ci</TT>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not an inductive product</TT><A NAME="@error75"></A>
+<LI><TT>Not enough constructors</TT><A NAME="@error76"></A>
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>constructor</TT> <BR>
+<BR>
+This tries <TT>constructor 1</TT> then <TT>constructor 2</TT>,
+ ... , then <TT>constructor</TT> <I>n</I> where <I>n</I> if
+ the number of constructors of the head of the goal.<BR>
+<BR>
+<LI><TT>constructor </TT><I><FONT COLOR=maroon>num</FONT></I><TT>&nbsp;with</TT> <I><FONT COLOR=maroon>bindings_list</FONT></I>
+ <A NAME="@default472"></A><A NAME="@tactic43"></A><BR>
+<BR>
+Let <TT>ci</TT> be the <TT>i</TT>-th constructor of <TT>I</TT>, then <TT>constructor i with </TT><I><FONT COLOR=maroon>bindings_list</FONT></I> is equivalent to <TT>intros;
+ apply ci with </TT><I><FONT COLOR=maroon>bindings_list</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Warning: </B>the terms in the <I><FONT COLOR=maroon>bindings_list</FONT></I> are checked
+ in the context where <TT>constructor</TT> is executed and not in the
+ context where <TT>apply</TT> is executed (the introductions are not
+ taken into account).<BR>
+<BR>
+<LI><TT>split</TT><A NAME="@default473"></A><A NAME="@tactic44"></A><BR>
+<BR>
+Applies if <TT>I</TT> has only one constructor, typically in the case
+ of conjunction <I>A</I>/\ <I>B</I>. Then, it is equivalent to <TT>constructor 1</TT>.<BR>
+<BR>
+<LI><TT>exists </TT><I><FONT COLOR=maroon>bindings_list</FONT></I><A NAME="@default474"></A><A NAME="@tactic45"></A> <BR>
+<BR>
+Applies if <TT>I</TT> has only one constructor, for instance in the
+ case of existential quantification there exists <I>x</I><FONT SIZE=5>·</FONT> <I>P</I>(<I>x</I>). 
+ Then, it is equivalent to <TT>intros; constructor 1 with </TT><I><FONT COLOR=maroon>bindings_list</FONT></I>.<BR>
+<BR>
+<LI><TT>left</TT><A NAME="@default475"></A><A NAME="@tactic46"></A>, <TT>right</TT><A NAME="@default476"></A><A NAME="@tactic47"></A><BR>
+<BR>
+Apply if <TT>I</TT> has two constructors, for instance in the case of
+ disjunction <I>A</I>\/ <I>B</I>. Then, they are respectively equivalent to <TT>constructor 1</TT> and <TT>constructor 2</TT>.<BR>
+<BR>
+<LI><TT>left </TT><I><FONT COLOR=maroon>bindings_list</FONT></I>, <TT>right </TT><I><FONT COLOR=maroon>bindings_list</FONT></I>, <TT>split
+ </TT><I><FONT COLOR=maroon>bindings_list</FONT></I><BR>
+<BR>
+As soon as the inductive type has the right number of constructors,
+ these expressions are equivalent to the corresponding <TT>constructor <I>i</I> with </TT><I><FONT COLOR=maroon>bindings_list</FONT></I>.</OL>
+<A NAME="toc48"></A>
+<H2><A NAME="htoc206">8.7</A>&nbsp;&nbsp;Eliminations (Induction and Case Analysis)</H2>
+Elimination tactics are useful to prove statements by induction or
+case analysis. Indeed, they make use of the elimination (or
+induction) principles generated with inductive definitions (see
+Section&nbsp;<A HREF="Reference-Manual006.html#Cic-inductive-definitions">4.5</A>).<BR>
+<BR>
+
+<H3><A NAME="htoc207">8.7.1</A>&nbsp;&nbsp;<TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default477"></A><A NAME="@tactic48"></A></H3>
+This tactic applies to any goal. The type of the argument <I><FONT COLOR=maroon>term</FONT></I> must
+be an inductive constant. Then, the tactic <TT>induction</TT>
+generates subgoals, one for each possible form of <I><FONT COLOR=maroon>term</FONT></I>, i.e. one
+for each constructor of the inductive type.<BR>
+<BR>
+The tactic <TT>induction</TT> automatically replaces every occurrences
+of <I><FONT COLOR=maroon>term</FONT></I> in the conclusion and the hypotheses of the goal. It
+automatically adds induction hypotheses (using names of the form <TT>IHn1</TT>) to the local context. If some hypothesis must not be taken
+into account in the induction hypothesis, then it needs to be removed
+first (you can also use the tactics <TT>elim</TT> or <TT>simple induction</TT>,
+see below).<BR>
+<BR>
+There are particular cases:
+<UL><LI>If <I><FONT COLOR=maroon>term</FONT></I> is an identifier <I><FONT COLOR=maroon>ident</FONT></I> denoting a quantified
+variable of the conclusion of the goal, then <TT>induction </TT><I><FONT COLOR=maroon>ident</FONT></I>
+behaves as <TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; induction </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+<LI>If <I><FONT COLOR=maroon>term</FONT></I> is a <I><FONT COLOR=maroon>num</FONT></I>, then <TT>induction </TT><I><FONT COLOR=maroon>num</FONT></I> behaves as
+<TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> followed by <TT>induction</TT> applied to the
+last introduced hypothesis.<BR>
+<BR>
+<BR>
+<B>Remark: </B>For simple induction on a numeral, use syntax <TT>induction
+(</TT><I><FONT COLOR=maroon>num</FONT></I><TT>)</TT> (not very interesting anyway).</UL>
+<BR>
+<B>Example: </B><BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Lemma&nbsp;induction_test&nbsp;:&nbsp;forall&nbsp;n:nat,&nbsp;n&nbsp;=&nbsp;n&nbsp;-&gt;&nbsp;n&nbsp;&lt;=&nbsp;n.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;n&nbsp;:&nbsp;nat,&nbsp;n&nbsp;=&nbsp;n&nbsp;-&gt;&nbsp;n&nbsp;&lt;=&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros&nbsp;n&nbsp;H.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;n&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;n&nbsp;=&nbsp;n</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;n&nbsp;&lt;=&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;induction&nbsp;n.</TT><BR>
+<TT><I>2&nbsp;subgoals</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;0&nbsp;=&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;0&nbsp;&lt;=&nbsp;0</I></TT><BR>
+<TT><I>subgoal&nbsp;2&nbsp;is:</I></TT><BR>
+<TT><I>&nbsp;S&nbsp;n&nbsp;&lt;=&nbsp;S&nbsp;n</I></TT><BR>
+</DIV>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not an inductive product</TT><A NAME="@error77"></A>
+<LI><TT>Cannot refine to conclusions with meta-variables</TT><A NAME="@error78"></A><BR>
+<BR>
+As <TT>induction</TT> uses <TT>apply</TT>, see Section&nbsp;<A HREF="#apply">8.3.6</A> and
+ the variant <TT>elim ... with ...</TT> below.
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> as </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><BR>
+<BR>
+This behaves as <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I> but uses the names in
+ <I><FONT COLOR=maroon>intro_pattern</FONT></I> to names the variables introduced in the context.
+ The <I><FONT COLOR=maroon>intro_pattern</FONT></I> must have the form <TT>[</TT> <I>p</I><SUB><FONT SIZE=2>11</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2>1<I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB> <TT>|</TT> ... <TT>|</TT> <I>p</I><SUB><FONT SIZE=2><I>m</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>mn</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB> <TT>]</TT> with <I>m</I> being the number of constructors of the type of
+ <I><FONT COLOR=maroon>term</FONT></I>. Each variable introduced by <TT>induction</TT> in the context
+ of the <I>i</I><SUP><FONT SIZE=2><I>th</I></FONT></SUP> goal gets its name from the list <I>p</I><SUB><FONT SIZE=2><I>i</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>in</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB> in order. If there are not enough names, <TT>induction</TT>
+ invents names for the remaining variables to introduce. More
+ generally, the <I>p</I>'s can be any introduction patterns (see
+ Section&nbsp;<A HREF="#intros-pattern">8.7.3</A>). This provides a concise notation for
+ nested induction.<BR>
+<BR>
+<BR>
+<B>Remark: </B>for an inductive type with one constructor, the pattern notation
+<TT>(<I>p</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>,...,<I>p</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT> can be used instead of
+<TT>[</TT> <I>p</I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>]</TT>.<BR>
+<BR>
+<LI><TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I><BR>
+<BR>
+This behaves as <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I> but using the induction
+scheme of name <I><FONT COLOR=maroon>qualid</FONT></I>. It does not expect that the type of
+<I><FONT COLOR=maroon>term</FONT></I> is inductive.<BR>
+<BR>
+<LI><TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> as </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><BR>
+<BR>
+This combines <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I>
+and <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> as </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I>.<BR>
+<BR>
+<LI><TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="elim"></A><BR>
+<BR>
+This is a more basic induction tactic. Again, the type of the
+ argument <I><FONT COLOR=maroon>term</FONT></I> must be an inductive constant. Then according to
+ the type of the goal, the tactic <TT>elim</TT> chooses the right
+ destructor and applies it (as in the case of the <TT>apply</TT>
+ tactic). For instance, assume that our proof context contains <TT>n:nat</TT>, assume that our current goal is <TT>T</TT> of type <TT>Prop</TT>, then <TT>elim n</TT> is equivalent to <TT>apply nat_ind with
+ (n:=n)</TT>. The tactic <TT>elim</TT> does not affect the hypotheses of
+ the goal, neither introduces the induction loading into the context
+ of hypotheses.<BR>
+<BR>
+<LI><TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I> <BR>
+<BR>
+also works when the type of <I><FONT COLOR=maroon>term</FONT></I> starts with products and the
+ head symbol is an inductive definition. In that case the tactic
+ tries both to find an object in the inductive definition and to use
+ this inductive definition for elimination. In case of non-dependent
+ products in the type, subgoals are generated corresponding to the
+ hypotheses. In the case of dependent products, the tactic will try
+ to find an instance for which the elimination lemma applies.<BR>
+<BR>
+<LI><TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>
+ <A NAME="@default478"></A><A NAME="@tactic49"></A> 
+ 
+ Allows the user to give explicitly the values for dependent
+ premises of the elimination schema. All arguments must be given.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Not the right number of dependent arguments</TT><A NAME="@error79"></A><BR>
+<BR>
+<LI><TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I><TT> with </TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ref</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>
+ := </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> <BR>
+<BR>
+Provides also <TT>elim</TT> with values for instantiating premises by
+ associating explicitly variables (or non dependent products) with
+ their intended instance.<BR>
+<BR>
+<LI><TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> using </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>
+<A NAME="@default479"></A><A NAME="@tactic50"></A> <BR>
+<BR>
+Allows the user to give explicitly an elimination predicate
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> which is not the standard one for the underlying inductive
+type of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>. Each of the <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> is either
+a simple term or a term with a bindings list (see <A HREF="#Binding-list">8.3.11</A>).<BR>
+<BR>
+<LI><TT>elimtype </TT><I><FONT COLOR=maroon>form</FONT></I><A NAME="@default480"></A><A NAME="@tactic51"></A><BR>
+<BR>
+The argument <I><FONT COLOR=maroon>form</FONT></I> must be inductively defined. <TT>elimtype I</TT>
+ is equivalent to <TT>cut I. intro H</TT><I><FONT COLOR=maroon>n</FONT></I><TT>; elim H</TT><I><FONT COLOR=maroon>n</FONT></I><TT>;
+ clear H</TT><I><FONT COLOR=maroon>n</FONT></I>. Therefore the hypothesis <TT>H</TT><I><FONT COLOR=maroon>n</FONT></I> will
+ not appear in the context(s) of the subgoal(s). Conversely, if <TT>t</TT> is a term of (inductive) type <TT>I</TT> and which does not occur
+ in the goal then <TT>elim t</TT> is equivalent to <TT>elimtype I; 2:
+ exact t.</TT><BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Impossible to unify ... with ...</TT><A NAME="@error80"></A> <BR>
+<BR>
+Arises when <I><FONT COLOR=maroon>form</FONT></I> needs to be applied to parameters.<BR>
+<BR>
+<LI><TT>simple induction </TT><I><FONT COLOR=maroon>ident</FONT></I><A NAME="@default481"></A><A NAME="@tactic52"></A><BR>
+<BR>
+This tactic behaves as <TT>intros until
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; elim </TT><I><FONT COLOR=maroon>ident</FONT></I> when <I><FONT COLOR=maroon>ident</FONT></I> is a quantified
+ variable of the goal.<BR>
+<BR>
+<LI><TT>simple induction </TT><I><FONT COLOR=maroon>num</FONT></I><BR>
+<BR>
+This tactic behaves as <TT>intros until
+ </TT><I><FONT COLOR=maroon>num</FONT></I><TT>; elim </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the name given by
+ <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> to the <I><FONT COLOR=maroon>num</FONT></I>-th non-dependent premise of
+ the goal.</OL>
+
+<H3><A NAME="htoc208">8.7.2</A>&nbsp;&nbsp;<TT>destruct </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default482"></A><A NAME="@tactic53"></A></H3>
+The tactic <TT>destruct</TT> is used to perform case analysis without
+recursion. Its behavior is similar to <TT>induction</TT> except
+that no induction hypothesis is generated. It applies to any goal and
+the type of <I><FONT COLOR=maroon>term</FONT></I> must be inductively defined. There are particular cases:
+<UL><LI>If <I><FONT COLOR=maroon>term</FONT></I> is an identifier <I><FONT COLOR=maroon>ident</FONT></I> denoting a quantified
+variable of the conclusion of the goal, then <TT>destruct </TT><I><FONT COLOR=maroon>ident</FONT></I>
+behaves as <TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; destruct </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+<LI>If <I><FONT COLOR=maroon>term</FONT></I> is a <I><FONT COLOR=maroon>num</FONT></I>, then <TT>destruct </TT><I><FONT COLOR=maroon>num</FONT></I> behaves as
+<TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> followed by <TT>destruct</TT> applied to the
+last introduced hypothesis.<BR>
+<BR>
+<BR>
+<B>Remark: </B>For destruction of a numeral, use syntax <TT>destruct
+(</TT><I><FONT COLOR=maroon>num</FONT></I><TT>)</TT> (not very interesting anyway).</UL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>destruct </TT><I><FONT COLOR=maroon>term</FONT></I><TT> as </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><BR>
+<BR>
+This behaves as <TT>destruct </TT><I><FONT COLOR=maroon>term</FONT></I> but uses the names in
+ <I><FONT COLOR=maroon>intro_pattern</FONT></I> to names the variables introduced in the context.
+ The <I><FONT COLOR=maroon>intro_pattern</FONT></I> must have the form <TT>[</TT> <I>p</I><SUB><FONT SIZE=2>11</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2>1<I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB> <TT>|</TT> ... <TT>|</TT> <I>p</I><SUB><FONT SIZE=2><I>m</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>mn</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB> <TT>]</TT> with <I>m</I> being the number of constructors of the type of
+ <I><FONT COLOR=maroon>term</FONT></I>. Each variable introduced by <TT>destruct</TT> in the context
+ of the <I>i</I><SUP><FONT SIZE=2><I>th</I></FONT></SUP> goal gets its name from the list <I>p</I><SUB><FONT SIZE=2><I>i</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>in</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB> in order. If there are not enough names, <TT>destruct</TT>
+ invents names for the remaining variables to introduce. More
+ generally, the <I>p</I>'s can be any introduction patterns (see
+ Section&nbsp;<A HREF="#intros-pattern">8.7.3</A>). This provides a concise notation for
+ nested destruction.<BR>
+<BR>
+<BR>
+<B>Remark: </B>for an inductive type with one constructor, the pattern notation
+<TT>(<I>p</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>,...,<I>p</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT> can be used instead of
+<TT>[</TT> <I>p</I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>]</TT>.<BR>
+<BR>
+<LI><TT>destruct </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I><BR>
+<BR>
+This is a synonym of <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I>.<BR>
+<BR>
+<LI><TT>destruct </TT><I><FONT COLOR=maroon>term</FONT></I><TT> as </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I><BR>
+<BR>
+This is a synonym of <TT>induction </TT><I><FONT COLOR=maroon>term</FONT></I><TT> using </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> as
+ </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I>.<BR>
+<BR>
+<LI><TT>case </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="case"></A><A NAME="@default483"></A><A NAME="@tactic54"></A><BR>
+<BR>
+The tactic <TT>case</TT> is a more basic tactic to perform case
+ analysis without recursion. It behaves as <TT>elim </TT><I><FONT COLOR=maroon>term</FONT></I> but using
+ a case-analysis elimination principle and not a recursive one.<BR>
+<BR>
+<LI><TT>case </TT><I><FONT COLOR=maroon>term</FONT></I><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>
+ <A NAME="@default484"></A><A NAME="@tactic55"></A><BR>
+<BR>
+Analogous to <TT>elim ... with</TT> above.<BR>
+<BR>
+<LI><TT>simple destruct </TT><I><FONT COLOR=maroon>ident</FONT></I><A NAME="@default485"></A><A NAME="@tactic56"></A><BR>
+<BR>
+This tactic behaves as <TT>intros until
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; case </TT><I><FONT COLOR=maroon>ident</FONT></I> when <I><FONT COLOR=maroon>ident</FONT></I> is a quantified
+ variable of the goal.<BR>
+<BR>
+<LI><TT>simple destruct </TT><I><FONT COLOR=maroon>num</FONT></I><BR>
+<BR>
+This tactic behaves as <TT>intros until
+ </TT><I><FONT COLOR=maroon>num</FONT></I><TT>; case </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the name given by
+ <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> to the <I><FONT COLOR=maroon>num</FONT></I>-th non-dependent premise of
+ the goal.</OL>
+
+<H3><A NAME="htoc209">8.7.3</A>&nbsp;&nbsp;<TT>intros </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><TT> ... </TT><I><FONT COLOR=maroon>intro_pattern</FONT></I><TT>
+</TT><A NAME="intros-pattern"></A><TT>
+</TT><A NAME="@default486"></A><A NAME="@tactic57"></A></H3>
+The tactic <TT>intros</TT> applied to introduction patterns performs both
+introduction of variables and case analysis in order to give names to
+components of an hypothesis.<BR>
+<BR>
+An introduction pattern is either:
+<UL><LI>
+the wildcard: <TT>_</TT>
+<LI>a variable
+<LI>a disjunction of lists of patterns:
+ <TT>[<I>p</I></TT><SUB><TT><FONT SIZE=2>11</FONT></TT></SUB><TT> ... <I>p</I></TT><SUB><TT><FONT SIZE=2>1<I>m</I></FONT></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB></SUB><TT> | ... | <I>p</I></TT><SUB><TT><FONT SIZE=2>11</FONT></TT></SUB><TT> ... <I>p</I></TT><SUB><TT><FONT SIZE=2><I>nm</I></FONT></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB></SUB><TT>]</TT>
+<LI>a conjunction of patterns: <TT>(</TT> <I>p</I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>,</TT> ... <TT>,</TT> <I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>)</TT>
+</UL>
+The behavior of <TT>intros</TT> is defined inductively over the
+structure of the pattern given as argument:
+<UL><LI>
+introduction on the wildcard do the introduction and then
+ immediately clear (cf&nbsp;<A HREF="#clear">8.3.2</A>) the corresponding hypothesis;
+<LI>introduction on a variable behaves like described in&nbsp;<A HREF="#intro">8.3.5</A>; 
+<LI>introduction over a
+list of patterns <I>p</I><SUB><FONT SIZE=2>1</FONT></SUB>&nbsp;...&nbsp;<I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> is equivalent to the sequence of
+introductions over the patterns namely:
+<TT>intros <I>p</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>;...; intros <I>p</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>, the goal should start with
+at least <I>n</I> products;
+<LI>introduction over a
+disjunction of list of patterns
+<TT>[<I>p</I></TT><SUB><TT><FONT SIZE=2>11</FONT></TT></SUB><TT> ... <I>p</I></TT><SUB><TT><FONT SIZE=2>1<I>m</I></FONT></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB></SUB><TT> | ... | <I>p</I></TT><SUB><TT><FONT SIZE=2>11</FONT></TT></SUB><TT> ... <I>p</I></TT><SUB><TT><FONT SIZE=2><I>nm</I></FONT></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB></SUB><TT>]</TT>. It introduces a new variable <I>X</I>, its type should be an inductive
+definition with <I>n</I>
+constructors, then it performs a case analysis over <I>X</I> 
+(which generates <I>n</I> subgoals), it 
+clears <I>X</I> and performs on each generated subgoals the corresponding
+<TT>intros</TT>&nbsp;<I>p</I><SUB><FONT SIZE=2><I>i</I>1</FONT></SUB> ... <I>p</I><SUB><FONT SIZE=2><I>im</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB> tactic;
+<LI>introduction over a 
+conjunction of patterns (<I>p</I><SUB><FONT SIZE=2>1</FONT></SUB>,...,<I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>), it
+introduces a new variable <I>X</I>, its type should be an inductive 
+definition with 1
+constructor with (at least) <I>n</I> arguments, then it performs a case 
+analysis over <I>X</I> 
+(which generates 1 subgoal with at least <I>n</I> products), it 
+clears <I>X</I> and performs an introduction over the list of patterns <I>p</I><SUB><FONT SIZE=2>1</FONT></SUB>&nbsp;...&nbsp;<I>p</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>.
+</UL>
+<BR>
+<B>Remark: </B>The pattern <TT>(<I>p</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>, ..., <I>p</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT>
+is a synonym for the pattern <TT>[<I>p</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... <I>p</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>]</TT>, i.e. it
+corresponds to the decomposition of an hypothesis typed by an
+inductive type with a single constructor.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Lemma&nbsp;intros_test&nbsp;:&nbsp;forall&nbsp;A&nbsp;B&nbsp;C:Prop,&nbsp;A&nbsp;\/&nbsp;B&nbsp;/\&nbsp;C&nbsp;-&gt;&nbsp;(A&nbsp;-&gt;&nbsp;C)&nbsp;-&gt;&nbsp;C.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;A&nbsp;B&nbsp;C&nbsp;:&nbsp;Prop,&nbsp;A&nbsp;\/&nbsp;B&nbsp;/\&nbsp;C&nbsp;-&gt;&nbsp;(A&nbsp;-&gt;&nbsp;C)&nbsp;-&gt;&nbsp;C</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros&nbsp;A&nbsp;B&nbsp;C&nbsp;[a|&nbsp;[_&nbsp;c]]&nbsp;f.</TT><BR>
+<TT><I>2&nbsp;subgoals</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;A&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;B&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;C&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;a&nbsp;:&nbsp;A</I></TT><BR>
+<TT><I>&nbsp;&nbsp;f&nbsp;:&nbsp;A&nbsp;-&gt;&nbsp;C</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;C</I></TT><BR>
+<TT><I>subgoal&nbsp;2&nbsp;is:</I></TT><BR>
+<TT><I>&nbsp;C</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;apply&nbsp;(f&nbsp;a).</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;A&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;B&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;C&nbsp;:&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;c&nbsp;:&nbsp;C</I></TT><BR>
+<TT><I>&nbsp;&nbsp;f&nbsp;:&nbsp;A&nbsp;-&gt;&nbsp;C</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;C</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Proof&nbsp;c.</TT><BR>
+<TT><I>intros_test&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+
+<H3><A NAME="htoc210">8.7.4</A>&nbsp;&nbsp;<TT>double induction </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="@default487"></A><A NAME="@tactic58"></A></H3>
+This tactic applies to any goal. If the variables <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> of the goal have an inductive type, then this tactic
+performs double induction on these variables. For instance, if the
+current goal is <CODE>forall n m:nat, P n m</CODE> then, <TT>double induction n
+ m</TT> yields the four cases with their respective inductive hypotheses.
+In particular the case for <CODE>(P (S n) (S m))</CODE> with the induction
+hypotheses <CODE>(P (S n) m)</CODE> and <CODE>(m:nat)(P n m)</CODE> (hence
+<CODE>(P n m)</CODE> and <CODE>(P n (S m))</CODE>).<BR>
+<BR>
+<BR>
+<B>Remark: </B>When the induction hypothesis <CODE>(P (S n) m)</CODE> is not
+needed, <TT>induction </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; destruct </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> produces
+more concise subgoals.<BR>
+<BR>
+<BR>
+<B>Variant: </B><OL type=1><LI><TT>double induction </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> </TT><I><FONT COLOR=maroon>num</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><BR>
+<BR>
+This applies double induction on the <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><SUP><FONT SIZE=2><I>th</I></FONT></SUP> and <I><FONT COLOR=maroon>num</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><SUP><FONT SIZE=2><I>th</I></FONT></SUP> <I>non dependent</I> premises of the goal. More generally, any combination of an
+<I><FONT COLOR=maroon>ident</FONT></I> and an <I><FONT COLOR=maroon>num</FONT></I> is valid.</OL>
+
+<H3><A NAME="htoc211">8.7.5</A>&nbsp;&nbsp;<TT>decompose [ </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> ] </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="decompose"></A><TT>
+</TT><A NAME="@default488"></A><A NAME="@tactic59"></A></H3>
+This tactic allows to recursively decompose a
+complex proposition in order to obtain atomic ones.
+Example: <BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Lemma&nbsp;ex1&nbsp;:&nbsp;forall&nbsp;A&nbsp;B&nbsp;C:Prop,&nbsp;A&nbsp;/\&nbsp;B&nbsp;/\&nbsp;C&nbsp;\/&nbsp;B&nbsp;/\&nbsp;C&nbsp;\/&nbsp;C&nbsp;/\&nbsp;A&nbsp;-&gt;&nbsp;C.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;A&nbsp;B&nbsp;C&nbsp;:&nbsp;Prop,&nbsp;A&nbsp;/\&nbsp;B&nbsp;/\&nbsp;C&nbsp;\/&nbsp;B&nbsp;/\&nbsp;C&nbsp;\/&nbsp;C&nbsp;/\&nbsp;A&nbsp;-&gt;&nbsp;C</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros&nbsp;A&nbsp;B&nbsp;C&nbsp;H;&nbsp;decompose&nbsp;[and&nbsp;or]&nbsp;H;&nbsp;assumption.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Qed.</TT><BR>
+</DIV>
+<BR>
+<TT>decompose</TT> does not work on right-hand sides of implications or products.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>decompose sum </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default489"></A><A NAME="@tactic60"></A>
+ This decomposes sum types (like <TT>or</TT>).
+<LI><TT>decompose record </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default490"></A><A NAME="@tactic61"></A>
+ This decomposes record types (inductive types with one constructor,
+ like <TT>and</TT> and <TT>exists</TT> and those defined with the
+ <TT>Record</TT> macro, see p.&nbsp;<A HREF="Reference-Manual004.html#Record">??</A>).
+</OL>
+
+<H3><A NAME="htoc212">8.7.6</A>&nbsp;&nbsp;<TT>functional induction </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>.
+</TT><A NAME="@default491"></A><A NAME="@tactic62"></A><TT>
+</TT><A NAME="FunInduction"></A></H3>
+The <EM>experimental</EM> tactic <TT>functional induction</TT>
+performs case analysis and induction following the definition of
+a (not mutually recursive) function.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Lemma&nbsp;le_minus&nbsp;:&nbsp;forall&nbsp;n&nbsp;m:nat,&nbsp;(n&nbsp;-&nbsp;m&nbsp;&lt;=&nbsp;n).</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;n&nbsp;m&nbsp;:&nbsp;nat,&nbsp;n&nbsp;-&nbsp;m&nbsp;&lt;=&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros&nbsp;n&nbsp;m.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;n&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;m&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;n&nbsp;-&nbsp;m&nbsp;&lt;=&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;functional&nbsp;induction&nbsp;minus&nbsp;n&nbsp;m;&nbsp;simpl;&nbsp;auto.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Qed.</TT><BR>
+</DIV>
+<BR>
+<TT>functional induction</TT> is a shorthand for the more general
+command <TT>Functional Scheme</TT> which builds induction
+principles following the recursive structure of (possibly
+mutually recursive)
+functions. <BR>
+<B>See also: </B><A HREF="Reference-Manual012.html#FunScheme-examples">10.4</A> for the difference
+between using one or the other.<BR>
+<BR>
+<BR>
+<B>Remark: </B><TT>functional induction</TT> may fail on functions built by
+tactics. In particular case analysis of a function are considered
+only if they are not inside an application.<BR>
+<BR>
+<BR>
+<B>Remark: </B>Arguments of the function must be given, including the
+implicit ones. If the function is recursive, arguments must be
+variables, otherwise they may be any term.<BR>
+<BR>
+<BR>
+<B>See also: </B><A HREF="#FunScheme">8.14</A>,<A HREF="Reference-Manual012.html#FunScheme-examples">10.4</A><BR>
+<BR>
+<A NAME="toc49"></A>
+<H2><A NAME="htoc213">8.8</A>&nbsp;&nbsp;Equality</H2>
+These tactics use the equality <TT>eq:forall A:Type, A-&gt;A-&gt;Prop</TT>
+defined in file <TT>Logic.v</TT> (see Section&nbsp;<A HREF="Reference-Manual005.html#Equality">3.1.2</A>). The
+notation for <TT>eq</TT>&nbsp;<I>T</I>&nbsp;<I>t</I>&nbsp;<I>u</I> is simply <TT><I>t</I>=<I>u</I></TT> dropping the
+implicit type of <I>t</I> and <I>u</I>.<BR>
+<BR>
+
+<H3><A NAME="htoc214">8.8.1</A>&nbsp;&nbsp;<TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="rewrite"></A><TT>
+</TT><A NAME="@default492"></A><A NAME="@tactic63"></A></H3>
+This tactic applies to any goal. The type of <I><FONT COLOR=maroon>term</FONT></I>
+must have the form<BR>
+<BR>
+<TT>(x</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>:A</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>) ... (x</TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>:A</TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>)</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>. <BR>
+<BR>
+Then <TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I> replaces every occurrence of 
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> by <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the goal. Some of the variables x<SUB><FONT SIZE=2>1</FONT></SUB> are
+solved by unification, and some of the types <TT>A</TT><SUB><FONT SIZE=2>1</FONT></SUB>, ...,
+<TT>A</TT><SUB><FONT SIZE=2><I>n</I></FONT></SUB> become new subgoals.<BR>
+<BR>
+<BR>
+<B>Remark: </B>In case the type of 
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> contains occurrences of variables bound in the
+type of <I><FONT COLOR=maroon>term</FONT></I>, the tactic tries first to find a subterm of the goal
+which matches this term in order to find a closed instance <I><FONT COLOR=maroon>term</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB>
+of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, and then all instances of <I><FONT COLOR=maroon>term</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB> will be replaced.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>The term provided does not end with an equation</TT><A NAME="@error81"></A><BR>
+<BR>
+<LI><TT>Tactic generated a subgoal identical to the original goal</TT><A NAME="@error82"></A><BR>
+This happens if <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> does not occur in the goal.
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>rewrite -&gt; </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default493"></A><A NAME="@tactic64"></A><BR>
+Is equivalent to <TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><BR>
+<BR>
+<LI><TT>rewrite &lt;- </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default494"></A><A NAME="@tactic65"></A><BR>
+Uses the equality <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> from right to left<BR>
+<BR>
+<LI><TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I>
+ <A NAME="@default495"></A><A NAME="@tactic66"></A><BR>
+Analogous to <TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I> but rewriting is done in the
+ hypothesis named <I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<LI><TT>rewrite -&gt; </TT><I><FONT COLOR=maroon>term</FONT></I><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I>
+ <A NAME="@default496"></A><A NAME="@tactic67"></A><BR>
+Behaves as <TT>rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<LI><TT>rewrite &lt;- </TT><I><FONT COLOR=maroon>term</FONT></I><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+<A NAME="@default497"></A><A NAME="@tactic68"></A>
+ Uses the equality <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> from right to left to
+ rewrite in the hypothesis named <I><FONT COLOR=maroon>ident</FONT></I>.
+</OL>
+
+<H3><A NAME="htoc215">8.8.2</A>&nbsp;&nbsp;<TT>cutrewrite -&gt; </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> = </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="cutrewrite"></A><TT>
+</TT><A NAME="@default498"></A><A NAME="@tactic69"></A></H3>
+This tactic acts like <TT>replace </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>
+(see below).<BR>
+<BR>
+
+<H3><A NAME="htoc216">8.8.3</A>&nbsp;&nbsp;<TT>replace </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="@default499"></A><A NAME="@tactic70"></A></H3>
+This tactic applies to any goal. It replaces all free occurrences of
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> in the current goal with <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> and generates the
+equality <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> as a subgoal. This equality is
+automatically solved if it occurs amongst the assumption, or if its
+symmetric form occurs. It is equivalent to <TT>cut
+</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; [intro H<I><FONT COLOR=maroon>n</FONT></I>; rewrite &lt;- H<I><FONT COLOR=maroon>n</FONT></I>; clear H<I><FONT COLOR=maroon>n</FONT></I>| assumption || symmetry; try assumption]</TT>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>replace </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> in </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+This replaces <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> with <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> in the hypothesis named
+ <I><FONT COLOR=maroon>ident</FONT></I>, and generates the subgoal <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>. <BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=a><LI>
+ <TT>No such hypothesis</TT><A NAME="@error83"></A> : <I><FONT COLOR=maroon>ident</FONT></I>
+ <LI><TT>Nothing to rewrite in </TT><I><FONT COLOR=maroon>ident</FONT></I><A NAME="@error84"></A>
+ </OL></OL>
+
+<H3><A NAME="htoc217">8.8.4</A>&nbsp;&nbsp;<TT>reflexivity
+</TT><A NAME="reflexivity"></A><TT>
+</TT><A NAME="@default500"></A><A NAME="@tactic71"></A></H3>
+This tactic applies to a goal which has the form <TT>t=u</TT>. It checks
+that <TT>t</TT> and <TT>u</TT> are convertible and then solves the goal.
+It is equivalent to <TT>apply refl_equal</TT>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>The conclusion is not a substitutive equation</TT><A NAME="@error85"></A>
+<LI><TT>Impossible to unify ... with ..</TT><A NAME="@error86"></A>
+</OL>
+
+<H3><A NAME="htoc218">8.8.5</A>&nbsp;&nbsp;<TT>symmetry
+</TT><A NAME="@default501"></A><A NAME="@tactic72"></A><TT>
+</TT><A NAME="@default502"></A><A NAME="@tactic73"></A></H3>
+This tactic applies to a goal which has the form <TT>t=u</TT> and changes it
+into <TT>u=t</TT>.<BR>
+<BR>
+<BR>
+<B>Variant: </B><TT>symmetry in </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+If the statement of the hypothesis <I><FONT COLOR=maroon>ident</FONT></I> has the form <TT>t=u</TT>,
+the tactic changes it to <TT>u=t</TT>.<BR>
+<BR>
+
+<H3><A NAME="htoc219">8.8.6</A>&nbsp;&nbsp;<TT>transitivity </TT><I><FONT COLOR=maroon>term</FONT></I><A NAME="@default503"></A><A NAME="@tactic74"></A></H3>
+This tactic applies to a goal which has the form <TT>t=u</TT>
+and transforms it into the two subgoals 
+<TT>t=</TT><I><FONT COLOR=maroon>term</FONT></I> and <TT></TT><I><FONT COLOR=maroon>term</FONT></I><TT>=u</TT>.<BR>
+<BR>
+
+<H3><A NAME="htoc220">8.8.7</A>&nbsp;&nbsp;<TT>subst </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="@default504"></A><A NAME="@tactic75"></A></H3>
+This tactic applies to a goal which has <I><FONT COLOR=maroon>ident</FONT></I> in its context and
+(at least) one hypothesis, say <TT>H</TT>, of type <TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT>=t</TT> or <TT>t=</TT><I><FONT COLOR=maroon>ident</FONT></I>. Then it replaces 
+<I><FONT COLOR=maroon>ident</FONT></I> by <TT>t</TT> everywhere in the goal (in the hypotheses 
+and in the conclusion) and clears <I><FONT COLOR=maroon>ident</FONT></I> and <TT>H</TT> from the context.<BR>
+<BR>
+<BR>
+<B>Remark: </B>When several hypotheses have the form <TT></TT><I><FONT COLOR=maroon>ident</FONT></I><TT>=t</TT> or <TT>t=</TT><I><FONT COLOR=maroon>ident</FONT></I>, the first one is used. <BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+ <TT>subst </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><BR>
+Is equivalent to <TT>subst </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; ...; subst </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>.
+ <LI><TT>subst</TT><BR>
+Applies <TT>subst</TT> repeatedly to all identifiers from the context
+ for which an equality exists.
+</OL>
+
+<H3><A NAME="htoc221">8.8.8</A>&nbsp;&nbsp;<TT>stepl </TT><I><FONT COLOR=maroon>term</FONT></I></H3>
+<A NAME="@default505"></A><A NAME="@tactic76"></A>
+This tactic is for chaining rewriting steps. It assumes a goal of the
+form ``<I>R</I> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>'' where <I>R</I> is a binary relation
+and relies on a database of lemmas of the form <TT>forall</TT> <I>x</I> <I>y</I>
+<I>z</I>, <I>R</I> <I>x</I> <I>y</I> <TT>-&gt;</TT> <I>eq</I> <I>x</I> <I>z</I> <TT>-&gt;</TT> <I>R</I> <I>z</I> <I>y</I> where <I>eq</I>
+is typically a setoid equality. The application of <TT>stepl </TT><I><FONT COLOR=maroon>term</FONT></I>
+then replaces the goal by ``<I>R</I> <I><FONT COLOR=maroon>term</FONT></I> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>'' and adds a new
+goal stating ``<I>eq</I> <I><FONT COLOR=maroon>term</FONT></I> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>''.<BR>
+<BR>
+Lemmas are added to the database using the command 
+<A NAME="@default506"></A><A NAME="@command148"></A>
+<BLOCKQUOTE>
+<TT>Declare Left Step </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT>.</TT>
+</BLOCKQUOTE>
+where <I><FONT COLOR=maroon>qualid</FONT></I> is the name of the lemma.<BR>
+<BR>
+The tactic is especially useful for parametric setoids which are not
+accepted as regular setoids for <TT>rewrite</TT> and <TT>setoid_replace</TT> (see chapter <A HREF="Reference-Manual023.html#setoid_replace">20</A>).<BR>
+<BR>
+<A NAME="@default507"></A><A NAME="@tactic77"></A>
+<A NAME="@default508"></A><A NAME="@command149"></A>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>stepl </TT><I><FONT COLOR=maroon>term</FONT></I><TT> by </TT><I><FONT COLOR=maroon>tactic</FONT></I><BR>
+This applies <TT>stepl </TT><I><FONT COLOR=maroon>term</FONT></I> then applies <I><FONT COLOR=maroon>tactic</FONT></I> to the second goal.<BR>
+<BR>
+<LI><TT>stepr </TT><I><FONT COLOR=maroon>term</FONT></I><BR>
+<TT>stepr </TT><I><FONT COLOR=maroon>term</FONT></I><TT> by </TT><I><FONT COLOR=maroon>tactic</FONT></I><BR>
+This behaves as <TT>stepl</TT> but on the right-hand-side of the binary relation.
+Lemmas are expected to be of the form
+``<TT>forall</TT> <I>x</I> <I>y</I>
+<I>z</I>, <I>R</I> <I>x</I> <I>y</I> <TT>-&gt;</TT> <I>eq</I> <I>y</I> <I>z</I> <TT>-&gt;</TT> <I>R</I> <I>x</I> <I>z</I>''
+and are registered using the command
+<BLOCKQUOTE>
+<TT>Declare Right Step </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT>.</TT>
+</BLOCKQUOTE>
+</OL>
+<A NAME="toc50"></A>
+<H2><A NAME="htoc222">8.9</A>&nbsp;&nbsp;Equality and inductive sets</H2>
+We describe in this section some special purpose tactics dealing with
+equality and inductive sets or types. These tactics use the equality
+<TT>eq:forall (A:Type), A-&gt;A-&gt;Prop</TT>, simply written with the
+infix symbol <TT>=</TT>.<BR>
+<BR>
+
+<H3><A NAME="htoc223">8.9.1</A>&nbsp;&nbsp;<TT>decide equality
+</TT><A NAME="decideequality"></A><TT>
+</TT><A NAME="@default509"></A><A NAME="@tactic78"></A></H3>
+This tactic solves a goal of the form
+<TT>forall <I>x</I> <I>y</I>:<I>R</I>, {<I>x</I>=<I>y</I>}+{</TT><CODE><TT>~</TT></CODE><TT><I>x</I>=<I>y</I>}</TT>, where <I>R</I>
+is an inductive type such that its constructors do not take proofs or
+functions as arguments, nor objects in dependent types.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>decide equality </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT> </TT>.<BR>
+Solves a goal of the form <TT>{</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><TT>}+{</TT><CODE><TT>~</TT></CODE><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><TT>}</TT>.
+</OL>
+
+<H3><A NAME="htoc224">8.9.2</A>&nbsp;&nbsp;<TT>compare </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>
+</TT><A NAME="@default510"></A><A NAME="@tactic79"></A></H3>
+This tactic compares two given objects <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> 
+of an inductive datatype. If <I>G</I> is the current goal, it leaves the sub-goals
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> <TT>-&gt;</TT> <I>G</I> and <CODE>~</CODE><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>
+<TT>-&gt;</TT> <I>G</I>. The type
+of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> must satisfy the same restrictions as in the tactic
+<TT>decide equality</TT>.<BR>
+<BR>
+
+<H3><A NAME="htoc225">8.9.3</A>&nbsp;&nbsp;<TT>discriminate </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="discriminate"></A><TT>
+</TT><A NAME="@default511"></A><A NAME="@tactic80"></A></H3>
+This tactic proves any goal from an absurd hypothesis stating that two
+structurally different terms of an inductive set are equal. For
+example, from the hypothesis <TT>(S (S O))=(S O)</TT> we can derive by
+absurdity any proposition. Let <I><FONT COLOR=maroon>ident</FONT></I> be a hypothesis of type
+<TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> = </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> in the local context, <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> being elements of an inductive set. To build the proof,
+the tactic traverses the normal forms<SUP><A NAME="text15" HREF="#note15">4</A></SUP> of
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> looking for a couple of subterms <TT>u</TT>
+and <TT>w</TT> (<TT>u</TT> subterm of the normal form of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<TT>w</TT> subterm of the normal form of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>), placed at the same
+positions and whose head symbols are two different constructors. If
+such a couple of subterms exists, then the proof of the current goal
+is completed, otherwise the tactic fails.<BR>
+<BR>
+<BR>
+<B>Remark: </B>If <I><FONT COLOR=maroon>ident</FONT></I> does not denote an hypothesis in the local context
+but refers to an hypothesis quantified in the goal, then the
+latter is first introduced in the local context using
+<TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<I><FONT COLOR=maroon>ident</FONT></I> <TT>Not a discriminable equality</TT><A NAME="@error87"></A><BR>
+occurs when the type of the specified hypothesis is not an equation.
+</OL> 
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>discriminate</TT> <I><FONT COLOR=maroon>num</FONT></I><BR>
+This does the same thing as <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> then
+<TT>discriminate </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the identifier for the last
+introduced hypothesis.
+<LI><TT>discriminate</TT><A NAME="@default512"></A><A NAME="@tactic81"></A><BR>
+It applies to a goal of the form <CODE><TT>~</TT></CODE><TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> and it is equivalent to: 
+ <TT>unfold not; intro </TT><I><FONT COLOR=maroon>ident</FONT></I>; <TT>discriminate
+ </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=a><LI>
+ <TT>No discriminable equalities</TT><A NAME="@error88"></A><BR>
+occurs when the goal does not verify the expected preconditions.
+ </OL>
+</OL>
+
+<H3><A NAME="htoc226">8.9.4</A>&nbsp;&nbsp;<TT>injection </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="injection"></A><TT>
+</TT><A NAME="@default513"></A><A NAME="@tactic82"></A></H3>
+The <TT>injection</TT> tactic is based on the fact that constructors of
+inductive sets are injections. That means that if <I>c</I> is a constructor
+of an inductive set, and if (<I>c</I>&nbsp;<B><I>t</I></B><SUB><B><FONT SIZE=2>1</FONT></B></SUB>) and (<I>c</I>&nbsp;<B><I>t</I></B><SUB><B><FONT SIZE=2>2</FONT></B></SUB>) are two
+terms that are equal then &nbsp;<B><I>t</I></B><SUB><B><FONT SIZE=2>1</FONT></B></SUB> and &nbsp;<B><I>t</I></B><SUB><B><FONT SIZE=2>2</FONT></B></SUB> are equal
+too.<BR>
+<BR>
+If <I><FONT COLOR=maroon>ident</FONT></I> is an hypothesis of type <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> = </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>,
+then <TT>injection</TT> behaves as applying injection as deep as possible to
+derive the equality of all the subterms of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>
+placed in the same positions. For example, from the hypothesis <TT>(S
+ (S n))=(S (S (S m))</TT> we may derive <TT>n=(S m)</TT>. To use this
+tactic <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> should be elements of an inductive
+set and they should be neither explicitly equal, nor structurally
+different. We mean by this that, if <TT>n</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB> and <TT>n</TT><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> are
+their respective normal forms, then:
+<UL><LI>
+<TT>n</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB> and <TT>n</TT><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> should not be syntactically equal,
+<LI>there must not exist any couple of subterms <TT>u</TT> and <TT>w</TT>,
+ <TT>u</TT> subterm of <TT>n</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB> and <TT>w</TT> subterm of <TT>n</TT><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> ,
+ placed in the same positions and having different constructors as
+ head symbols.
+</UL>
+If these conditions are satisfied, then, the tactic derives the
+equality of all the subterms of <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> placed in
+the same positions and puts them as antecedents of the current goal.<BR>
+<BR>
+<BR>
+<B>Example: </B>Consider the following goal:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;list&nbsp;:&nbsp;Set&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;nil&nbsp;:&nbsp;list</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;cons&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;list&nbsp;-&gt;&nbsp;list.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Variable&nbsp;P&nbsp;:&nbsp;list&nbsp;-&gt;&nbsp;Prop.</TT><BR>
+</DIV>
+
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Show.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;l&nbsp;:&nbsp;list</I></TT><BR>
+<TT><I>&nbsp;&nbsp;n&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;P&nbsp;nil</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H0&nbsp;:&nbsp;cons&nbsp;n&nbsp;l&nbsp;=&nbsp;cons&nbsp;0&nbsp;nil</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;P&nbsp;l</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;injection&nbsp;H0.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;l&nbsp;:&nbsp;list</I></TT><BR>
+<TT><I>&nbsp;&nbsp;n&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;P&nbsp;nil</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H0&nbsp;:&nbsp;cons&nbsp;n&nbsp;l&nbsp;=&nbsp;cons&nbsp;0&nbsp;nil</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;l&nbsp;=&nbsp;nil&nbsp;-&gt;&nbsp;n&nbsp;=&nbsp;0&nbsp;-&gt;&nbsp;P&nbsp;l</I></TT><BR>
+</DIV>
+<BR>
+Beware that <TT>injection</TT> yields always an equality in a sigma type
+whenever the injected object has a dependent type.<BR>
+<BR>
+<BR>
+<B>Remark: </B>If <I><FONT COLOR=maroon>ident</FONT></I> does not denote an hypothesis in the local context
+but refers to an hypothesis quantified in the goal, then the
+latter is first introduced in the local context using
+<TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<I><FONT COLOR=maroon>ident</FONT></I> <TT>is not a projectable equality</TT><A NAME="@error89"></A> 
+ occurs when the type of
+ the hypothesis <I>id</I> does not verify the preconditions.
+<LI><TT>Not an equation</TT><A NAME="@error90"></A> occurs when the type of the
+ hypothesis <I>id</I> is not an equation.
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>injection</TT> <I><FONT COLOR=maroon>num</FONT></I><BR>
+<BR>
+This does the same thing as <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> then
+<TT>injection </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the identifier for the last
+introduced hypothesis.<BR>
+<BR>
+<LI><TT>injection</TT><A NAME="@default514"></A><A NAME="@tactic83"></A> <BR>
+<BR>
+If the current goal is of the form <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>&lt;&gt;</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>,
+ the tactic computes the head normal form of the goal and then
+ behaves as the sequence: <TT>unfold not; intro </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; injection
+ </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>goal does not satisfy the expected preconditions</TT><A NAME="@error91"></A>
+</OL>
+
+<H3><A NAME="htoc227">8.9.5</A>&nbsp;&nbsp;<TT>simplify_eq </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="@default515"></A><A NAME="@tactic84"></A><TT>
+</TT><A NAME="simplify-eq"></A></H3>
+Let <I><FONT COLOR=maroon>ident</FONT></I> be the name of an hypothesis of type <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>=</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> in the local context. If <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> are structurally different (in the sense described for the
+tactic <TT>discriminate</TT>), then the tactic <TT>simplify_eq</TT> behaves as <TT>discriminate </TT><I><FONT COLOR=maroon>ident</FONT></I> otherwise it behaves as <TT>injection
+ </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Remark: </B>If <I><FONT COLOR=maroon>ident</FONT></I> does not denote an hypothesis in the local context
+but refers to an hypothesis quantified in the goal, then the
+latter is first introduced in the local context using
+<TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>simplify_eq</TT> <I><FONT COLOR=maroon>num</FONT></I><BR>
+<BR>
+ This does the same thing as <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> then
+<TT>simplify_eq </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the identifier for the last
+introduced hypothesis.
+<LI><TT>simplify_eq</TT>
+If the current goal has form <CODE>~</CODE><I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>=<I>t</I><SUB><FONT SIZE=2>2</FONT></SUB>, then this tactic does 
+<TT>hnf; intro </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>; simplify_eq </TT><I><FONT COLOR=maroon>ident</FONT></I>.
+</OL>
+
+<H3><A NAME="htoc228">8.9.6</A>&nbsp;&nbsp;<TT>dependent rewrite -&gt; </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="@default516"></A><A NAME="@tactic85"></A><TT>
+</TT><A NAME="dependent-rewrite"></A></H3>
+This tactic applies to any goal. If <I><FONT COLOR=maroon>ident</FONT></I> has type 
+<CODE>(existS A B a b)=(existS A B a' b')</CODE> 
+in the local context (i.e. each term of the
+equality has a sigma type { <I>a</I>:<I>A</I>&nbsp; &amp;&nbsp;(<I>B</I>&nbsp;<I>a</I>)}) this tactic rewrites
+<CODE>a</CODE> into <CODE>a'</CODE> and <CODE>b</CODE> into <CODE>b'</CODE> in the current
+goal. This tactic works even if <I>B</I> is also a sigma type. This kind
+of equalities between dependent pairs may be derived by the injection
+and inversion tactics.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>dependent rewrite &lt;- </TT><I><FONT COLOR=maroon>ident</FONT></I>
+<A NAME="@default517"></A><A NAME="@tactic86"></A><BR>
+Analogous to <TT>dependent rewrite -&gt;</TT> but uses the equality from
+right to left.
+</OL>
+<A NAME="toc51"></A>
+<H2><A NAME="htoc229">8.10</A>&nbsp;&nbsp;Inversion
+<A NAME="inversion"></A></H2>
+
+<H3><A NAME="htoc230">8.10.1</A>&nbsp;&nbsp;<TT>inversion </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+</TT><A NAME="@default518"></A><A NAME="@tactic87"></A></H3>
+Let the type of <I><FONT COLOR=maroon>ident</FONT></I>&nbsp; in the local context be (<I>I</I>&nbsp;<B><I>t</I></B>),
+where <I>I</I> is a (co)inductive predicate. Then,
+<TT>inversion</TT> applied to <I><FONT COLOR=maroon>ident</FONT></I>&nbsp; derives for each possible
+constructor <I>c</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> of (<I>I</I>&nbsp;<B><I>t</I></B>), <B>all</B> the necessary
+conditions that should hold for the instance (<I>I</I>&nbsp;<B><I>t</I></B>) to be
+proved by <I>c</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.<BR>
+<BR>
+<BR>
+<B>Remark: </B>If <I><FONT COLOR=maroon>ident</FONT></I> does not denote an hypothesis in the local context
+but refers to an hypothesis quantified in the goal, then the
+latter is first introduced in the local context using
+<TT>intros until </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>inversion</TT> <I><FONT COLOR=maroon>num</FONT></I>This does the same thing as <TT>intros until </TT><I><FONT COLOR=maroon>num</FONT></I> then
+ <TT>inversion </TT><I><FONT COLOR=maroon>ident</FONT></I> where <I><FONT COLOR=maroon>ident</FONT></I> is the identifier for the
+ last introduced hypothesis.<BR>
+<BR>
+<LI><A NAME="@default519"></A><A NAME="@tactic88"></A> <TT>inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+ This behaves as <TT>inversion</TT> and then erases <I><FONT COLOR=maroon>ident</FONT></I>&nbsp; from the
+ context.<BR>
+<BR>
+<LI><A NAME="@default520"></A><A NAME="@tactic89"></A> <TT>inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I><BR>
+<BR>
+This behaves as <TT>inversion</TT> but using names in
+ <I><FONT COLOR=maroon>intro_pattern</FONT></I> for naming hypotheses. The <I><FONT COLOR=maroon>intro_pattern</FONT></I> must have
+ the form <TT>[</TT> <I>p</I><SUB><FONT SIZE=2>11</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2>1<I>n</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB> <TT>|</TT> ... <TT>|</TT>
+ <I>p</I><SUB><FONT SIZE=2><I>m</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>mn</I></FONT><SUB><FONT SIZE=2><I>m</I></FONT></SUB></SUB> <TT>]</TT> with <I>m</I> being the number of
+ constructors of the type of <I><FONT COLOR=maroon>ident</FONT></I>. Be careful that the list must
+ be of length <I>m</I> even if <TT>inversion</TT> discards some cases (which
+ is precisely one of its roles): for the discarded cases, just use an
+ empty list (i.e. <I>n</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>=0).<BR>
+<BR>
+The arguments of the <I>i</I><SUP><FONT SIZE=2><I>th</I></FONT></SUP> constructor and the
+ equalities that <TT>inversion</TT> introduces in the context of the
+ goal corresponding to the <I>i</I><SUP><FONT SIZE=2><I>th</I></FONT></SUP> constructor, if it exists, get
+ their names from the list <I>p</I><SUB><FONT SIZE=2><I>i</I>1</FONT></SUB> ...<I>p</I><SUB><FONT SIZE=2><I>in</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB> in order. If
+ there are not enough names, <TT>induction</TT> invents names for the
+ remaining variables to introduce. In case an equation splits into
+ several equations (because <TT>inversion</TT> applies <TT>injection</TT>
+ on the equalities it generates), the corresponding name <I>p</I><SUB><FONT SIZE=2><I>ij</I></FONT></SUB> in
+ the list must be replaced by a sublist of the form <TT>[<I>p</I></TT><SUB><TT><FONT SIZE=2><I>ij</I>1</FONT></TT></SUB><TT>
+ ...<I>p</I></TT><SUB><TT><FONT SIZE=2><I>ijq</I></FONT></TT></SUB><TT>]</TT> (or, equivalently, <TT>(<I>p</I></TT><SUB><TT><FONT SIZE=2><I>ij</I>1</FONT></TT></SUB><TT>,
+ ..., <I>p</I></TT><SUB><TT><FONT SIZE=2><I>ijq</I></FONT></TT></SUB><TT>)</TT>) where <I>q</I> is the number of subequations
+ obtained from splitting the original equation. Here is an example.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Inductive&nbsp;contains0&nbsp;:&nbsp;list&nbsp;nat&nbsp;-&gt;&nbsp;Prop&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;in_hd&nbsp;:&nbsp;forall&nbsp;l,&nbsp;contains0&nbsp;(0&nbsp;::&nbsp;l)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;|&nbsp;in_tl&nbsp;:&nbsp;forall&nbsp;l&nbsp;b,&nbsp;contains0&nbsp;l&nbsp;-&gt;&nbsp;contains0&nbsp;(b&nbsp;::&nbsp;l).</TT><BR>
+<TT><I>contains0&nbsp;is&nbsp;defined</I></TT><BR>
+<TT><I>contains0_ind&nbsp;is&nbsp;defined</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;l:list&nbsp;nat,&nbsp;contains0&nbsp;(1&nbsp;::&nbsp;l)&nbsp;-&gt;&nbsp;contains0&nbsp;l.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;l&nbsp;:&nbsp;list&nbsp;nat,&nbsp;contains0&nbsp;(1&nbsp;::&nbsp;l)&nbsp;-&gt;&nbsp;contains0&nbsp;l</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros&nbsp;l&nbsp;H;&nbsp;inversion&nbsp;H&nbsp;as&nbsp;[&nbsp;|&nbsp;l'&nbsp;p&nbsp;Hl'&nbsp;[Heqp&nbsp;Heql']&nbsp;].</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;l&nbsp;:&nbsp;list&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;contains0&nbsp;(1&nbsp;::&nbsp;l)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;l'&nbsp;:&nbsp;list&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;p&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;Hl'&nbsp;:&nbsp;contains0&nbsp;l</I></TT><BR>
+<TT><I>&nbsp;&nbsp;Heqp&nbsp;:&nbsp;p&nbsp;=&nbsp;1</I></TT><BR>
+<TT><I>&nbsp;&nbsp;Heql'&nbsp;:&nbsp;l'&nbsp;=&nbsp;l</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;contains0&nbsp;l</I></TT><BR>
+</DIV>
+<BR>
+<BR>
+<LI><TT>inversion</TT> <I><FONT COLOR=maroon>num</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I> <BR>
+<BR>
+This allows to name the hypotheses introduced by
+ <TT>inversion</TT> <I><FONT COLOR=maroon>num</FONT></I> in the context.<BR>
+<BR>
+<LI><A NAME="@default521"></A><A NAME="@tactic90"></A> <TT>inversion_clear</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I> <BR>
+<BR>
+This allows to name the hypotheses introduced by
+ <TT>inversion_clear</TT> in the context.<BR>
+<BR>
+<LI><A NAME="@default522"></A><A NAME="@tactic91"></A> <TT>inversion </TT> <I><FONT COLOR=maroon>ident</FONT></I>
+ <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+Let <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>, be identifiers in the local context. This
+ tactic behaves as generalizing <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>, and
+ then performing <TT>inversion</TT>.<BR>
+<BR>
+<LI><A NAME="@default523"></A><A NAME="@tactic92"></A> <TT>inversion </TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... 
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This allows to name the hypotheses introduced in the context by
+ <TT>inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... 
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>.<BR>
+<BR>
+<LI><A NAME="@default524"></A><A NAME="@tactic93"></A> <TT>inversion_clear</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+Let <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>, be identifiers in the local context. This
+ tactic behaves as generalizing <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>, and
+ then performing <TT>inversion_clear</TT>.<BR>
+<BR>
+<LI><A NAME="@default525"></A><A NAME="@tactic94"></A>
+ <TT>inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I>
+ <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This allows to name the hypotheses introduced in the context by
+ <TT>inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>.<BR>
+<BR>
+<LI><A NAME="@default526"></A><A NAME="@tactic95"></A> <TT>dependent inversion</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <BR>
+<BR>
+That must be used when <I><FONT COLOR=maroon>ident</FONT></I> appears in the current goal. It acts
+ like <TT>inversion</TT> and then substitutes <I><FONT COLOR=maroon>ident</FONT></I> for the
+ corresponding term in the goal.<BR>
+<BR>
+<LI><A NAME="@default527"></A><A NAME="@tactic96"></A> <TT>dependent
+ inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I> <BR>
+<BR>
+This allows to name the hypotheses introduced in the context by
+ <TT>dependent inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<LI><A NAME="@default528"></A><A NAME="@tactic97"></A> <TT>dependent
+ inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I> <BR>
+<BR>
+Like <TT>dependent inversion</TT>, except that <I><FONT COLOR=maroon>ident</FONT></I> is cleared
+ from the local context.<BR>
+<BR>
+<LI><A NAME="@default529"></A><A NAME="@tactic98"></A>
+ <TT>dependent inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I><TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I><BR>
+<BR>
+This allows to name the hypotheses introduced in the context by
+ <TT>dependent inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+<LI><A NAME="@default530"></A><A NAME="@tactic99"></A> <TT>dependent
+ inversion </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>This variant allow to give the good generalization of the goal. It
+ is useful when the system fails to generalize the goal automatically. If
+ <I><FONT COLOR=maroon>ident</FONT></I> has type (<I>I</I>&nbsp;<B><I>t</I></B>) and <I>I</I> has type
+ <I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>s</I>, then <I><FONT COLOR=maroon>term</FONT></I>&nbsp; must be of type
+ <I>I</I>:<I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>x</I></B>-&gt; <I>s</I>' where <I>s</I>' is the
+ type of the goal.<BR>
+<BR>
+<LI><A NAME="@default531"></A><A NAME="@tactic100"></A>
+ <TT>dependent inversion </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I>
+ <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>This allows to name the hypotheses introduced in the context by
+ <TT>dependent inversion </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+<LI><A NAME="@default532"></A><A NAME="@tactic101"></A>
+ <TT>dependent inversion_clear </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>Like <TT>dependent inversion ... with</TT> but clears <I><FONT COLOR=maroon>ident</FONT></I>from
+ the local context.<BR>
+<BR>
+<LI><A NAME="@default533"></A><A NAME="@tactic102"></A>
+ <TT>dependent inversion_clear </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT>
+ <I><FONT COLOR=maroon>intro_pattern</FONT></I> <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>This allows to name the hypotheses introduced in the context by
+ <TT>dependent inversion_clear </TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT> with </TT> <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+<LI><A NAME="@default534"></A><A NAME="@tactic103"></A> <TT>simple inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I><BR>
+<BR>
+It is a very primitive inversion tactic that derives all the necessary
+ equalities but it does not simplify the constraints as
+ <TT>inversion</TT> do.<BR>
+<BR>
+<LI><A NAME="@default535"></A><A NAME="@tactic104"></A> <TT>simple inversion</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>intro_pattern</FONT></I> <BR>
+<BR>
+This allows to name the hypotheses introduced in the context by
+ <TT>simple inversion</TT>.<BR>
+<BR>
+<LI><A NAME="@default536"></A><A NAME="@tactic105"></A> <TT>inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I><TT> using</TT> <I><FONT COLOR=maroon>ident</FONT></I>' <BR>
+<BR>
+Let <I><FONT COLOR=maroon>ident</FONT></I> have type (<I>I</I>&nbsp;<B><I>t</I></B>) (<I>I</I> an inductive
+ predicate) in the local context, and <I><FONT COLOR=maroon>ident</FONT></I>' be a (dependent) inversion
+ lemma. Then, this tactic refines the current goal with the specified
+ lemma.<BR>
+<BR>
+<LI><A NAME="@default537"></A><A NAME="@tactic106"></A> <TT>inversion</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I> <TT>using</TT> <I><FONT COLOR=maroon>ident</FONT></I>' <TT>in</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This tactic behaves as generalizing <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>,
+ then doing <TT>inversion</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>using</TT> <I><FONT COLOR=maroon>ident</FONT></I>'.</OL>
+<BR>
+<B>See also: </B>&nbsp;<A HREF="Reference-Manual012.html#inversion-examples">10.5</A> for detailed examples<BR>
+<BR>
+
+<H3><A NAME="htoc231">8.10.2</A>&nbsp;&nbsp;<TT>Derive Inversion </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> with
+ <I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>t</I></B> Sort </TT><I><FONT COLOR=maroon>sort</FONT></I><A NAME="Derive-Inversion"></A><TT>
+</TT><A NAME="@default538"></A><A NAME="@command150"></A></H3>
+This command generates an inversion principle for the
+<TT>inversion ... using</TT> tactic.
+Let <I>I</I> be an inductive predicate and <B><I>x</I></B> the variables
+occurring in <B><I>t</I></B>. This command generates and stocks the
+inversion lemma for the sort <I><FONT COLOR=maroon>sort</FONT></I>&nbsp; corresponding to the instance
+<I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>t</I></B> with the name <I><FONT COLOR=maroon>ident</FONT></I> in the <B>global</B> environment. When applied it is equivalent to have inverted
+the instance with the tactic <TT>inversion</TT>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Derive Inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>with</TT>
+ <A NAME="@default539"></A><A NAME="@command151"></A>
+ <I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>t</I></B> <TT>Sort</TT> <I><FONT COLOR=maroon>sort</FONT></I>&nbsp;<BR>
+<A NAME="@default540"></A>
+ When applied it is equivalent to having
+ inverted the instance with the tactic <TT>inversion</TT>
+ replaced by the tactic <TT>inversion_clear</TT>.
+<LI><TT>Derive Dependent Inversion</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>with</TT>
+ <I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>t</I></B> <TT>Sort</TT> <I><FONT COLOR=maroon>sort</FONT></I>&nbsp;<BR>
+<A NAME="@default541"></A><A NAME="@command152"></A>
+ When applied it is equivalent to having
+ inverted the instance with the tactic <TT>dependent inversion</TT>.
+<LI><TT>Derive Dependent Inversion_clear</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>with</TT>
+ <I>forall</I> (<B><I>x</I></B>:<B><I>T</I></B>), <I>I</I>&nbsp;<B><I>t</I></B> <TT>Sort</TT> <I><FONT COLOR=maroon>sort</FONT></I>&nbsp;<BR>
+<A NAME="@default542"></A><A NAME="@command153"></A>
+ When applied it is equivalent to having
+ inverted the instance with the tactic <TT>dependent inversion_clear</TT>.
+</OL>
+<BR>
+<B>See also: </B><A HREF="Reference-Manual012.html#inversion-examples">10.5</A> for examples<BR>
+<BR>
+
+<H3><A NAME="htoc232">8.10.3</A>&nbsp;&nbsp;<TT>quote </TT><I><FONT COLOR=maroon>ident</FONT></I><A NAME="@default543"></A><A NAME="@tactic107"></A><TT>
+</TT><A NAME="@default544"></A></H3>
+This kind of inversion has nothing to do with the tactic
+<TT>inversion</TT> above. This tactic does <TT>change (</TT><I><FONT COLOR=maroon>ident</FONT></I><TT>
+ t)</TT>, where <TT>t</TT> is a term build in order to ensure the
+convertibility. In other words, it does inversion of the function
+<I><FONT COLOR=maroon>ident</FONT></I>. This function must be a fixpoint on a simple recursive
+datatype: see&nbsp;<A HREF="Reference-Manual012.html#quote-examples">10.7</A> for the full details.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>quote: not a simple fixpoint</TT><A NAME="@error92"></A><BR>
+Happens when <TT>quote</TT> is not able to perform inversion properly.
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>quote </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> [ </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> ]</TT><BR>
+All terms that are build only with <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> will be
+ considered by <TT>quote</TT> as constants rather than variables.
+</OL>
+<A NAME="toc52"></A>
+<H2><A NAME="htoc233">8.11</A>&nbsp;&nbsp;Automatizing
+<A NAME="Automatizing"></A></H2>
+
+<H3><A NAME="htoc234">8.11.1</A>&nbsp;&nbsp;<TT>auto
+</TT><A NAME="auto"></A><TT>
+</TT><A NAME="@default545"></A><A NAME="@tactic108"></A></H3>
+This tactic implements a Prolog-like resolution procedure to solve the
+current goal. It first tries to solve the goal using the <TT>assumption</TT> tactic, then it reduces the goal to an atomic one using
+<TT>intros</TT> and introducing the newly generated hypotheses as hints.
+Then it looks at the list of tactics associated to the head symbol of
+the goal and tries to apply one of them (starting from the tactics
+with lower cost). This process is recursively applied to the generated
+subgoals. <BR>
+<BR>
+By default, <TT>auto</TT> only uses the hypotheses of the current goal and the
+hints of the database named <TT>core</TT>. <BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>auto </TT><I><FONT COLOR=maroon>num</FONT></I><BR>
+<BR>
+Forces the search depth to be <I><FONT COLOR=maroon>num</FONT></I>. The maximal search depth is 5 by
+ default. <BR>
+<BR>
+<LI><TT>auto with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><BR>
+<BR>
+Uses the hint databases <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> in addition to
+ the database <TT>core</TT>. See Section&nbsp;<A HREF="#Hints-databases">8.12</A> for the
+ list of pre-defined databases and the way to create or extend a
+ database. This option can be combined with the previous one.<BR>
+<BR>
+<LI><TT>auto with *</TT><BR>
+<BR>
+Uses all existing hint databases, minus the special database
+ <TT>v62</TT>. See Section&nbsp;<A HREF="#Hints-databases">8.12</A><BR>
+<BR>
+<LI><TT>trivial</TT><A NAME="@default546"></A><A NAME="@tactic109"></A><BR>
+<BR>
+This tactic is a restriction of <TT>auto</TT> that is not recursive and 
+ tries only hints which cost is 0. Typically it solves trivial
+ equalities like <I>X</I>=<I>X</I>.<BR>
+<BR>
+<LI><TT>trivial with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><BR>
+<BR>
+<LI><TT>trivial with *</TT></OL>
+<BR>
+<B>Remark: </B><TT>auto</TT> either solves completely the goal or else leave it
+intact. <TT>auto</TT> and <TT>trivial</TT> never fail.<BR>
+<BR>
+<BR>
+<B>See also: </B>Section&nbsp;<A HREF="#Hints-databases">8.12</A><BR>
+<BR>
+
+<H3><A NAME="htoc235">8.11.2</A>&nbsp;&nbsp;<TT>eauto
+</TT><A NAME="@default547"></A><A NAME="@tactic110"></A><TT>
+</TT><A NAME="eauto"></A></H3>
+This tactic generalizes <TT>auto</TT>. In contrast with 
+the latter, <TT>eauto</TT> uses unification of the goal
+against the hints rather than pattern-matching
+(in other words, it uses <TT>eapply</TT> instead of
+<TT>apply</TT>).
+As a consequence, <TT>eauto</TT> can solve such a goal:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Hint&nbsp;Resolve&nbsp;ex_intro.</TT><BR>
+<TT><I>Warning:&nbsp;the&nbsp;hint:&nbsp;eapply&nbsp;ex_intro&nbsp;will&nbsp;only&nbsp;be&nbsp;used&nbsp;by&nbsp;eauto</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;P:nat&nbsp;-&gt;&nbsp;Prop,&nbsp;P&nbsp;0&nbsp;-&gt;&nbsp;&nbsp;exists&nbsp;n,&nbsp;P&nbsp;n.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;P0&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Prop,&nbsp;P0&nbsp;0&nbsp;-&gt;&nbsp;exists&nbsp;n&nbsp;:&nbsp;nat,&nbsp;P0&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;eauto.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+Note that <TT>ex_intro</TT> should be declared as an
+hint.<BR>
+<BR>
+<BR>
+<B>See also: </B>Section&nbsp;<A HREF="#Hints-databases">8.12</A><BR>
+<BR>
+
+<H3><A NAME="htoc236">8.11.3</A>&nbsp;&nbsp;<TT>tauto
+</TT><A NAME="@default548"></A><A NAME="@tactic111"></A><TT>
+</TT><A NAME="tauto"></A></H3>
+This tactic implements a decision procedure for intuitionistic propositional
+calculus based on the contraction-free sequent calculi LJT* of Roy Dyckhoff
+[<A HREF="biblio.html#Dyc92"><CITE>49</CITE></A>]. Note that <TT>tauto</TT> succeeds on any instance of an
+intuitionistic tautological proposition. <TT>tauto</TT> unfolds negations
+and logical equivalence but does not unfold any other definition.<BR>
+<BR>
+The following goal can be proved by <TT>tauto</TT> whereas <TT>auto</TT>
+would fail:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;(x:nat)&nbsp;(P:nat&nbsp;-&gt;&nbsp;Prop),&nbsp;x&nbsp;=&nbsp;0&nbsp;\/&nbsp;P&nbsp;x&nbsp;-&gt;&nbsp;x&nbsp;&lt;&gt;&nbsp;0&nbsp;-&gt;&nbsp;P&nbsp;x.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;(x&nbsp;:&nbsp;nat)&nbsp;(P0&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Prop),&nbsp;x&nbsp;=&nbsp;0&nbsp;\/&nbsp;P0&nbsp;x&nbsp;-&gt;&nbsp;x&nbsp;&lt;&gt;&nbsp;0&nbsp;-&gt;&nbsp;P0&nbsp;x</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;intros.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;x&nbsp;:&nbsp;nat</I></TT><BR>
+<TT><I>&nbsp;&nbsp;P0&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Prop</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;x&nbsp;=&nbsp;0&nbsp;\/&nbsp;P0&nbsp;x</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H0&nbsp;:&nbsp;x&nbsp;&lt;&gt;&nbsp;0</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;P0&nbsp;x</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;tauto.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+Moreover, if it has nothing else to do, <TT>tauto</TT> performs
+introductions. Therefore, the use of <TT>intros</TT> in the previous
+proof is unnecessary. <TT>tauto</TT> can for instance prove the
+following:
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;(*&nbsp;auto&nbsp;would&nbsp;fail&nbsp;*)</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;(A:Prop)&nbsp;(P:nat&nbsp;-&gt;&nbsp;Prop),</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;\/&nbsp;(forall&nbsp;x:nat,&nbsp;~&nbsp;A&nbsp;-&gt;&nbsp;P&nbsp;x)&nbsp;-&gt;&nbsp;forall&nbsp;x:nat,&nbsp;~&nbsp;A&nbsp;-&gt;&nbsp;P&nbsp;x.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;(A&nbsp;:&nbsp;Prop)&nbsp;(P0&nbsp;:&nbsp;nat&nbsp;-&gt;&nbsp;Prop),</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;A&nbsp;\/&nbsp;(forall&nbsp;x&nbsp;:&nbsp;nat,&nbsp;~&nbsp;A&nbsp;-&gt;&nbsp;P0&nbsp;x)&nbsp;-&gt;&nbsp;forall&nbsp;x&nbsp;:&nbsp;nat,&nbsp;~&nbsp;A&nbsp;-&gt;&nbsp;P0&nbsp;x</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;tauto.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+<BR>
+<B>Remark: </B>In contrast, <TT>tauto</TT> cannot solve the following goal<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;(A:Prop)&nbsp;(P:nat&nbsp;-&gt;&nbsp;Prop),</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;\/&nbsp;(forall&nbsp;x:nat,&nbsp;~&nbsp;A&nbsp;-&gt;&nbsp;P&nbsp;x)&nbsp;-&gt;&nbsp;forall&nbsp;x:nat,&nbsp;~&nbsp;~&nbsp;(A&nbsp;\/&nbsp;P&nbsp;x).</TT><BR>
+</DIV>
+<BR>
+because <CODE>(forall x:nat, ~ A -&gt; P x)</CODE> cannot be treated as atomic and an
+instantiation of <CODE>x</CODE> is necessary.<BR>
+<BR>
+
+<H3><A NAME="htoc237">8.11.4</A>&nbsp;&nbsp;<TT>intuition </TT><I><FONT COLOR=maroon>tactic</FONT></I><TT>
+</TT><A NAME="@default549"></A><A NAME="@tactic112"></A><TT>
+</TT><A NAME="intuition"></A></H3>
+The tactic <TT>intuition</TT> takes advantage of the search-tree built
+by the decision procedure involved in the tactic <TT>tauto</TT>. It uses
+this information to generate a set of subgoals equivalent to the
+original one (but simpler than it) and applies the tactic 
+<I><FONT COLOR=maroon>tactic</FONT></I> to them [<A HREF="biblio.html#Mun94"><CITE>89</CITE></A>]. If this tactic fails on some goals then
+<TT>intuition</TT> fails. In fact, <TT>tauto</TT> is simply <TT>intuition
+ fail</TT>.<BR>
+<BR>
+For instance, the tactic <TT>intuition auto</TT> applied to the goal
+<PRE>
+(forall (x:nat), P x)/\B -&gt; (forall (y:nat),P y)/\ P O \/B/\ P O
+</PRE>internally replaces it by the equivalent one:
+<PRE>
+(forall (x:nat), P x), B |- P O
+</PRE>and then uses <TT>auto</TT> which completes the proof.<BR>
+<BR>
+Originally due to César&nbsp;Muñoz, these tactics (<TT>tauto</TT> and <TT>intuition</TT>)
+have been completely reengineered by David&nbsp;Delahaye using mainly the tactic
+language (see chapter&nbsp;<A HREF="Reference-Manual011.html#TacticLanguage">9</A>). The code is now quite shorter and
+a significant increase in performances has been noticed. The general behavior
+with respect to dependent types, unfolding and introductions has
+slightly changed to get clearer semantics. This may lead to some
+incompatibilities.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>intuition</TT><BR>
+Is equivalent to <TT>intuition auto with *</TT>.
+</OL>
+
+<H3><A NAME="htoc238">8.11.5</A>&nbsp;&nbsp;<TT>firstorder</TT>
+<A NAME="@default550"></A><A NAME="@tactic113"></A>
+<A NAME="firstorder"></A></H3>
+The tactic <TT>firstorder</TT> is an <I>experimental</I> extension of
+<TT>tauto</TT> to 
+first-order reasoning, written by Pierre Corbineau. 
+It is not restricted to usual logical connectives but
+instead may reason about any first-order class inductive definition.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+ <TT>firstorder </TT><I><FONT COLOR=maroon>tactic</FONT></I>
+ <A NAME="@default551"></A><A NAME="@tactic114"></A><BR>
+<BR>
+Tries to solve the goal with <I><FONT COLOR=maroon>tactic</FONT></I> when no logical rule may apply.<BR>
+<BR>
+<LI><TT>firstorder with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> </TT>
+ <A NAME="@default552"></A><A NAME="@tactic115"></A><BR>
+<BR>
+Adds lemmas <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> to the proof-search
+ environment.<BR>
+<BR>
+<LI><TT>firstorder using </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> </TT>
+ <A NAME="@default553"></A><A NAME="@tactic116"></A><BR>
+<BR>
+Adds lemmas in <TT>auto</TT> hints bases <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+ to the proof-search environment.
+</OL>
+Proof-search is bounded by a depth parameter which can be set by typing the
+<TT>Set Firstorder Depth <I>n</I></TT> <A NAME="@default554"></A><A NAME="@command154"></A> 
+vernacular command.<BR>
+<BR>
+
+<H3><A NAME="htoc239">8.11.6</A>&nbsp;&nbsp;<TT>congruence
+</TT><A NAME="@default555"></A><A NAME="@tactic117"></A><TT>
+</TT><A NAME="congruence"></A></H3>
+The tactic <TT>congruence</TT>, by Pierre Corbineau, implements the standard Nelson and Oppen
+congruence closure algorithm, which is a decision procedure for ground
+equalities with uninterpreted symbols. It also include the constructor theory
+(see <A HREF="#injection">8.9.4</A> and <A HREF="#discriminate">8.9.3</A>).
+If the goal is a non-quantified equality, <TT>congruence</TT> tries to
+prove it with non-quantified equalities in the context. Otherwise it
+tries to infer a discriminable equality from those in the context.<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Theorem&nbsp;T:&nbsp;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;a=(f&nbsp;a)&nbsp;-&gt;&nbsp;(g&nbsp;b&nbsp;(f&nbsp;a))=(f&nbsp;(f&nbsp;a))&nbsp;-&gt;&nbsp;(g&nbsp;a&nbsp;b)=(f&nbsp;(g&nbsp;b&nbsp;a))&nbsp;-&gt;&nbsp;(g&nbsp;a&nbsp;b)=a.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;a&nbsp;=&nbsp;f&nbsp;a&nbsp;-&gt;&nbsp;g&nbsp;b&nbsp;(f&nbsp;a)&nbsp;=&nbsp;f&nbsp;(f&nbsp;a)&nbsp;-&gt;&nbsp;g&nbsp;a&nbsp;b&nbsp;=&nbsp;f&nbsp;(g&nbsp;b&nbsp;a)&nbsp;-&gt;&nbsp;g&nbsp;a&nbsp;b&nbsp;=&nbsp;a</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;a&nbsp;=&nbsp;f&nbsp;a</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H0&nbsp;:&nbsp;g&nbsp;b&nbsp;(f&nbsp;a)&nbsp;=&nbsp;f&nbsp;(f&nbsp;a)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H1&nbsp;:&nbsp;g&nbsp;a&nbsp;b&nbsp;=&nbsp;f&nbsp;(g&nbsp;b&nbsp;a)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;g&nbsp;a&nbsp;b&nbsp;=&nbsp;a</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;congruence.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Theorem&nbsp;inj&nbsp;:&nbsp;f&nbsp;=&nbsp;pair&nbsp;a&nbsp;-&gt;&nbsp;Some&nbsp;(f&nbsp;c)&nbsp;=&nbsp;Some&nbsp;(f&nbsp;d)&nbsp;-&gt;&nbsp;c=d.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;f&nbsp;=&nbsp;pair&nbsp;(B:=A)&nbsp;a&nbsp;-&gt;&nbsp;Some&nbsp;(f&nbsp;c)&nbsp;=&nbsp;Some&nbsp;(f&nbsp;d)&nbsp;-&gt;&nbsp;c&nbsp;=&nbsp;d</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;f&nbsp;=&nbsp;pair&nbsp;(B:=A)&nbsp;a</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H0&nbsp;:&nbsp;Some&nbsp;(f&nbsp;c)&nbsp;=&nbsp;Some&nbsp;(f&nbsp;d)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;c&nbsp;=&nbsp;d</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;congruence.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+ <TT>I don't know how to handle dependent equality</TT><A NAME="@error93"></A><BR>
+The decision procedure managed to find a proof of the goal or of
+ a discriminable equality but this proof couldn't be built in Coq
+ because of dependently-typed functions.
+ <LI><TT>I couldn't solve goal</TT><A NAME="@error94"></A><BR>
+The decision procedure didn't managed to find a proof of the goal or of
+ a discriminable equality.
+</OL>
+
+<H3><A NAME="htoc240">8.11.7</A>&nbsp;&nbsp;<TT>omega
+</TT><A NAME="@default556"></A><A NAME="@tactic118"></A><TT>
+</TT><A NAME="omega"></A></H3>
+The tactic <TT>omega</TT>, due to Pierre Crégut,
+is an automatic decision procedure for Presburger
+arithmetic. It solves quantifier-free 
+formulas built with <CODE>~</CODE>, <CODE>\/</CODE>, <CODE>/\</CODE>,
+<CODE>-&gt;</CODE> on top of equalities and inequalities on
+both the type <TT>nat</TT> of natural numbers and <TT>Z</TT> of binary
+integers. This tactic must be loaded by the command <TT>Require Import
+ Omega</TT>. See the additional documentation about <TT>omega</TT>
+(chapter&nbsp;<A HREF="Reference-Manual020.html#OmegaChapter">17</A>).<BR>
+<BR>
+
+<H3><A NAME="htoc241">8.11.8</A>&nbsp;&nbsp;<TT>ring </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>
+</TT><A NAME="@default557"></A><A NAME="@tactic119"></A><TT>
+</TT><A NAME="@default558"></A><A NAME="@command155"></A><TT>
+</TT><A NAME="@default559"></A><A NAME="@command156"></A></H3>
+This tactic, written by Samuel Boutin and Patrick Loiseleur, applies
+associative commutative rewriting on every ring. The tactic must be
+loaded by <TT>Require Import Ring</TT>. The ring must be declared in
+the <TT>Add Ring</TT> command (see <A HREF="Reference-Manual022.html#ring">19</A>). The ring of booleans
+is predefined; if one wants to use the tactic on <TT>nat</TT> one must
+first require the module <TT>ArithRing</TT>; for <TT>Z</TT>, do
+<TT>Require Import ZArithRing</TT>; for <TT>N</TT>, do <TT>Require
+Import NArithRing</TT>.<BR>
+<BR>
+The terms <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> must be subterms of the goal
+conclusion. The tactic <TT>ring</TT> normalizes these terms
+w.r.t. associativity and commutativity and replace them by their
+normal form.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>ring</TT> When the goal is an equality <I>t</I><SUB><FONT SIZE=2>1</FONT></SUB>=<I>t</I><SUB><FONT SIZE=2>2</FONT></SUB>, it
+ acts like <TT>ring</TT> <I>t</I><SUB><FONT SIZE=2>1</FONT></SUB> <I>t</I><SUB><FONT SIZE=2>2</FONT></SUB> and then simplifies or solves
+ the equality.<BR>
+<BR>
+<LI><TT>ring_nat</TT> is a tactic macro for <TT>repeat rewrite
+ S_to_plus_one; ring</TT>. The theorem <TT>S_to_plus_one</TT> is a
+ proof that <TT>forall (n:nat), S n = plus (S O) n</TT>.</OL>
+<BR>
+<B>Example: </B>
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;ZArithRing.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;a&nbsp;b&nbsp;c:Z,</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;(a&nbsp;+&nbsp;b&nbsp;+&nbsp;c)&nbsp;*&nbsp;(a&nbsp;+&nbsp;b&nbsp;+&nbsp;c)&nbsp;=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;a&nbsp;*&nbsp;a&nbsp;+&nbsp;b&nbsp;*&nbsp;b&nbsp;+&nbsp;c&nbsp;*&nbsp;c&nbsp;+&nbsp;2&nbsp;*&nbsp;a&nbsp;*&nbsp;b&nbsp;+&nbsp;2&nbsp;*&nbsp;a&nbsp;*&nbsp;c&nbsp;+&nbsp;2&nbsp;*&nbsp;b&nbsp;*&nbsp;c.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;a&nbsp;b&nbsp;c&nbsp;:&nbsp;Z,</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;(a&nbsp;+&nbsp;b&nbsp;+&nbsp;c)&nbsp;*&nbsp;(a&nbsp;+&nbsp;b&nbsp;+&nbsp;c)&nbsp;=</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;a&nbsp;*&nbsp;a&nbsp;+&nbsp;b&nbsp;*&nbsp;b&nbsp;+&nbsp;c&nbsp;*&nbsp;c&nbsp;+&nbsp;2&nbsp;*&nbsp;a&nbsp;*&nbsp;b&nbsp;+&nbsp;2&nbsp;*&nbsp;a&nbsp;*&nbsp;c&nbsp;+&nbsp;2&nbsp;*&nbsp;b&nbsp;*&nbsp;c</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros;&nbsp;ring.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+You can have a look at the files <TT>Ring.v</TT>,
+<TT>ArithRing.v</TT>, <TT>ZArithRing.v</TT> to see examples of the
+<TT>Add Ring</TT> command.<BR>
+<BR>
+<BR>
+<B>See also: </B>Chapter&nbsp;<A HREF="Reference-Manual022.html#ring">19</A> for more detailed explanations about this tactic.<BR>
+<BR>
+
+<H3><A NAME="htoc242">8.11.9</A>&nbsp;&nbsp;<TT>field
+</TT><A NAME="@default560"></A><A NAME="@tactic120"></A></H3>
+This tactic written by David&nbsp;Delahaye and Micaela&nbsp;Mayero solves equalities
+using commutative field theory. Denominators have to be non equal to zero and,
+as this is not decidable in general, this tactic may generate side conditions
+requiring some expressions to be non equal to zero. This tactic must be loaded
+by <TT>Require Import Field</TT>. Field theories are declared (as for <TT>ring</TT>) with
+the <TT>Add Field</TT> command.<BR>
+<BR>
+<BR>
+<B>Example: </B>
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;Reals.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;x&nbsp;y:R,</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(x&nbsp;*&nbsp;y&nbsp;&gt;&nbsp;0)%R&nbsp;-&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(x&nbsp;*&nbsp;(1&nbsp;/&nbsp;x&nbsp;+&nbsp;x&nbsp;/&nbsp;(x&nbsp;+&nbsp;y)))%R&nbsp;=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((-&nbsp;1&nbsp;/&nbsp;y)&nbsp;*&nbsp;y&nbsp;*&nbsp;(-&nbsp;x&nbsp;*&nbsp;(x&nbsp;/&nbsp;(x&nbsp;+&nbsp;y))&nbsp;-&nbsp;1))%R.</TT><BR>
+</DIV>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;intros;&nbsp;field.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;x&nbsp;:&nbsp;R</I></TT><BR>
+<TT><I>&nbsp;&nbsp;y&nbsp;:&nbsp;R</I></TT><BR>
+<TT><I>&nbsp;&nbsp;H&nbsp;:&nbsp;(x&nbsp;*&nbsp;y&nbsp;&gt;&nbsp;0)%R</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;(x&nbsp;*&nbsp;((x&nbsp;+&nbsp;y)&nbsp;*&nbsp;y))%R&nbsp;&lt;&gt;&nbsp;0%R</I></TT><BR>
+</DIV>
+<BR>
+
+<H3><A NAME="htoc243">8.11.10</A>&nbsp;&nbsp;<TT>Add Field
+</TT><A NAME="@default561"></A><A NAME="@command157"></A></H3>
+This vernacular command adds a commutative field theory to the database for the
+tactic <TT>field</TT>. You must provide this theory as follows:
+<DIV ALIGN=left>
+<TT>Add Field <I>A</I> <I>Aplus</I> <I>Amult</I> <I>Aone</I> <I>Azero</I> <I>Aopp</I> <I>Aeq</I> <I>Ainv</I> <I>Rth</I> <I>Tinvl</I></TT>
+</DIV>
+where <TT><I>A</I></TT> is a term of type <TT>Type</TT>, <TT><I>Aplus</I></TT> is
+a term of type <TT>A-&gt;A-&gt;A</TT>, <TT><I>Amult</I></TT> is a term of type <TT>A-&gt;A-&gt;A</TT>, <TT><I>Aone</I></TT> is a term of type <TT>A</TT>, <TT><I>Azero</I></TT> is a term of type <TT>A</TT>, <TT><I>Aopp</I></TT> is a term of
+type <TT>A-&gt;A</TT>, <TT><I>Aeq</I></TT> is a term of type <TT>A-&gt;bool</TT>, <TT><I>Ainv</I></TT> is a term of type <TT>A-&gt;A</TT>, <TT><I>Rth</I></TT> is a term
+of type <TT>(Ring_Theory <I>A Aplus Amult Aone Azero Ainv Aeq</I>)</TT>,
+and <TT><I>Tinvl</I></TT> is a term of type <TT>forall n:<I>A</I>,
+ ~(n=<I>Azero</I>)-&gt;(<I>Amult</I> (<I>Ainv</I> n) n)=<I>Aone</I></TT>.
+To build a ring theory, refer to Chapter&nbsp;<A HREF="Reference-Manual022.html#ring">19</A> for more details.<BR>
+<BR>
+This command adds also an entry in the ring theory table if this theory is not
+already declared. So, it is useless to keep, for a given type, the <TT>Add
+Ring</TT> command if you declare a theory with <TT>Add Field</TT>, except if you plan
+to use specific features of <TT>ring</TT> (see Chapter&nbsp;<A HREF="Reference-Manual022.html#ring">19</A>). However, the
+module <TT>ring</TT> is not loaded by <TT>Add Field</TT> and you have to make a <TT>Require Import Ring</TT> if you want to call the <TT>ring</TT> tactic.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Add Field <I>A</I> <I>Aplus</I> <I>Amult</I> <I>Aone</I> <I>Azero</I>
+<I>Aopp</I> <I>Aeq</I> <I>Ainv</I> <I>Rth</I> <I>Tinvl</I></TT><BR>
+<TT>&nbsp;&nbsp;&nbsp;&nbsp;with minus:=<I>Aminus</I></TT><BR>
+<BR>
+Adds also the term <I>Aminus</I> which must be a constant expressed by
+means of <I>Aopp</I>.<BR>
+<BR>
+<LI><TT>Add Field <I>A</I> <I>Aplus</I> <I>Amult</I> <I>Aone</I> <I>Azero</I>
+<I>Aopp</I> <I>Aeq</I> <I>Ainv</I> <I>Rth</I> <I>Tinvl</I></TT><BR>
+<TT>&nbsp;&nbsp;&nbsp;&nbsp;with div:=<I>Adiv</I></TT><BR>
+<BR>
+Adds also the term <I>Adiv</I> which must be a constant expressed by
+means of <I>Ainv</I>.</OL>
+<BR>
+<B>See also: </B>file <TT>theories/Reals/Rbase.v</TT> for an example of instantiation,<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;theory <TT>theories/Reals</TT> for many examples of use of <TT>field</TT>.<BR>
+<BR>
+<BR>
+<B>See also: </B>[<A HREF="biblio.html#DelMay01"><CITE>37</CITE></A>] for more details regarding the implementation of <TT>field</TT>.<BR>
+<BR>
+
+<H3><A NAME="htoc244">8.11.11</A>&nbsp;&nbsp;<TT>fourier
+</TT><A NAME="@default562"></A><A NAME="@tactic121"></A></H3>
+This tactic written by Loïc Pottier solves linear inequations on
+real numbers using Fourier's method&nbsp;[<A HREF="biblio.html#Fourier"><CITE>58</CITE></A>]. This tactic must
+be loaded by <TT>Require Import Fourier</TT>.<BR>
+<BR>
+<BR>
+<B>Example: </B>
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;Reals.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;Fourier.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;x&nbsp;y:R,&nbsp;(x&nbsp;&lt;&nbsp;y)%R&nbsp;-&gt;&nbsp;(y&nbsp;+&nbsp;1&nbsp;&gt;=&nbsp;x&nbsp;-&nbsp;1)%R.</TT><BR>
+</DIV>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;intros;&nbsp;fourier.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+
+<H3><A NAME="htoc245">8.11.12</A>&nbsp;&nbsp;<TT>autorewrite with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT>.
+</TT><A NAME="@default563"></A><A NAME="@tactic122"></A></H3>
+This tactic <SUP><A NAME="text16" HREF="#note16">5</A></SUP> carries out rewritings according
+the rewriting rule bases <TT></TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>.<BR>
+<BR>
+Each rewriting rule of a base <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is applied to the main subgoal until
+it fails. Once all the rules have been processed, if the main subgoal has
+progressed (e.g., if it is distinct from the initial main goal) then the rules
+of this base are processed again. If the main subgoal has not progressed then
+the next base is processed. For the bases, the behavior is exactly similar to
+the processing of the rewriting rules.<BR>
+<BR>
+The rewriting rule bases are built with the <TT>Hint&nbsp;Rewrite</TT> vernacular
+command.<BR>
+<BR>
+<BR>
+<B>Warning: </B> This tactic may loop if you build non terminating rewriting systems.<BR>
+<BR>
+<BR>
+<B>Variant: </B><OL type=1><LI>
+<TT>autorewrite with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> using </TT><I><FONT COLOR=maroon>tactic</FONT></I><BR>
+Performs, in the same way, all the rewritings of the bases <TT><I>ident</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...
+<I>ident</I></TT><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> applying <TT></TT><I><FONT COLOR=maroon>tactic</FONT></I> to the main subgoal after each rewriting step.
+</OL>
+
+<H3><A NAME="htoc246">8.11.13</A>&nbsp;&nbsp;<TT>Hint Rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> : </TT><I><FONT COLOR=maroon>ident</FONT></I><A NAME="@default564"></A><A NAME="@command158"></A></H3>
+This vernacular command adds the terms <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB>
+(their types must be equalities) in the rewriting base <TT></TT><I><FONT COLOR=maroon>ident</FONT></I>
+with the default orientation (left to right). Notice that the
+rewriting bases are distinct from the <TT>auto</TT> hint bases and that
+<TT>auto</TT> does not take them into account.<BR>
+<BR>
+This command is synchronous with the section mechanism (see <A HREF="Reference-Manual004.html#Section">2.3</A>):
+when closing a section, all aliases created by <TT>Hint Rewrite</TT> in that
+section are lost. Conversely, when loading a module, all <TT>Hint Rewrite</TT>
+declarations at the global level of that module are loaded.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Hint Rewrite -&gt; </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> : </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+This is strictly equivalent to the command above (we only make explicit the
+orientation which otherwise defaults to <TT>-&gt;</TT>).<BR>
+<BR>
+<LI><TT>Hint Rewrite &lt;- </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> : </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+Adds the rewriting rules <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> with a right-to-left
+orientation in the base <TT></TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+<BR>
+<LI><TT>Hint Rewrite </TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB><TT> using </TT><I><FONT COLOR=maroon>tactic</FONT></I><TT> : </TT><I><FONT COLOR=maroon>ident</FONT></I><BR>
+When the rewriting rules <TT></TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ...</TT><I><FONT COLOR=maroon>term</FONT></I><SUB><TT><FONT SIZE=2><I>n</I></FONT></TT></SUB> in <TT></TT><I><FONT COLOR=maroon>ident</FONT></I> will
+be used, the tactic <TT></TT><I><FONT COLOR=maroon>tactic</FONT></I> will be applied to the generated subgoals, the
+main subgoal excluded.</OL>
+<BR>
+<B>See also: </B><A HREF="Reference-Manual012.html#autorewrite-example">10.6</A> for examples showing the use of
+this tactic. <BR>
+<BR>
+<A NAME="toc53"></A>
+<H2><A NAME="htoc247">8.12</A>&nbsp;&nbsp;The hints databases for <TT>auto</TT> and <TT>eauto</TT>
+<A NAME="@default565"></A>
+<A NAME="Hints-databases"></A>
+<A NAME="@default566"></A><A NAME="@command159"></A></H2>
+The hints for <TT>auto</TT> and <TT>eauto</TT> are stored in
+databases. Each database maps head symbols to a list of hints. One can
+use the command <TT>Print Hint </TT><I><FONT COLOR=maroon>ident</FONT></I> to display the hints
+associated to the head symbol <I><FONT COLOR=maroon>ident</FONT></I> (see <A HREF="#PrintHint">8.12.2</A>). Each
+hint has a cost that is an nonnegative integer, and a pattern. 
+The hints with lower cost are tried first. A hint is tried by 
+<TT>auto</TT> when the conclusion of the current goal
+matches its pattern. The general
+command to add a hint to some database <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> is:
+<TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP>
+ <TT>Hint</TT> <I><FONT COLOR=maroon>hint_definition</FONT></I> <TT>:</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+</TD>
+</TR></TABLE>
+where <I><FONT COLOR=maroon>hint_definition</FONT></I> is one of the following expressions:
+<UL><LI>
+<TT>Resolve</TT> <I><FONT COLOR=maroon>term</FONT></I> 
+ <A NAME="@default567"></A><A NAME="@command160"></A><BR>
+<BR>
+This command adds <TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I> to the hint list
+ with the head symbol of the type of <I><FONT COLOR=maroon>term</FONT></I>. The cost of that hint is
+ the number of subgoals generated by <TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+In case the inferred type of <I><FONT COLOR=maroon>term</FONT></I> does not start with a product the
+ tactic added in the hint list is <TT>exact </TT><I><FONT COLOR=maroon>term</FONT></I>. In case this
+ type can be reduced to a type starting with a product, the tactic <TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I> is also stored in the hints list.<BR>
+<BR>
+If the inferred type of <I><FONT COLOR=maroon>term</FONT></I> does contain a dependent
+ quantification on a predicate, it is added to the hint list of <TT>eapply</TT> instead of the hint list of <TT>apply</TT>. In this case, a
+ warning is printed since the hint is only used by the tactic <TT>eauto</TT> (see <A HREF="#eauto">8.11.2</A>). A typical example of hint that is used
+ only by <TT>eauto</TT> is a transitivity lemma.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+ <TT>Bound head variable</TT><A NAME="@error95"></A><BR>
+<BR>
+The head symbol of the type of <I><FONT COLOR=maroon>term</FONT></I> is a bound variable such
+ that this tactic cannot be associated to a constant.<BR>
+<BR>
+<LI><I><FONT COLOR=maroon>term</FONT></I> <TT>cannot be used as a hint</TT><A NAME="@error96"></A><BR>
+<BR>
+The type of <I><FONT COLOR=maroon>term</FONT></I> contains products over variables which do not
+ appear in the conclusion. A typical example is a transitivity axiom.
+ In that case the <TT>apply</TT> tactic fails, and thus is useless.</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Resolve</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB><BR>
+<BR>
+Adds each <TT>Resolve</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.</OL><BR>
+<BR>
+<LI><TT>Immediate </TT><I><FONT COLOR=maroon>term</FONT></I> 
+<A NAME="@default568"></A><A NAME="@command161"></A><BR>
+<BR>
+This command adds <TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I><TT>; trivial</TT> to the hint list
+ associated with the head symbol of the type of <I><FONT COLOR=maroon>ident</FONT></I>in the given
+ database. This tactic will fail if all the subgoals generated by
+ <TT>apply </TT><I><FONT COLOR=maroon>term</FONT></I> are not solved immediately by the <TT>trivial</TT>
+ tactic which only tries tactics with cost 0.<BR>
+<BR>
+This command is useful for theorems such that the symmetry of equality
+ or <I>n</I>+1=<I>m</I>+1 -&gt; <I>n</I>=<I>m</I> that we may like to introduce with a
+ limited use in order to avoid useless proof-search.<BR>
+<BR>
+The cost of this tactic (which never generates subgoals) is always 1,
+ so that it is not used by <TT>trivial</TT> itself.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><TT>Bound head variable</TT><A NAME="@error97"></A><BR>
+<BR>
+<LI><I><FONT COLOR=maroon>term</FONT></I> <TT>cannot be used as a hint</TT><A NAME="@error98"></A> </OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Immediate</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> <BR>
+<BR>
+Adds each <TT>Immediate</TT> <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.</OL><BR>
+<BR>
+<LI><TT>Constructors</TT> <I><FONT COLOR=maroon>ident</FONT></I>
+<A NAME="@default569"></A><A NAME="@command162"></A><BR>
+<BR>
+If <I><FONT COLOR=maroon>ident</FONT></I> is an inductive type, this command adds all its
+ constructors as hints of type <TT>Resolve</TT>. Then, when the
+ conclusion of current goal has the form <TT>(</TT><I><FONT COLOR=maroon>ident</FONT></I><TT> ...)</TT>,
+ <TT>auto</TT> will try to apply each constructor.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><I><FONT COLOR=maroon>ident</FONT></I> <TT>is not an inductive type</TT><A NAME="@error99"></A><BR>
+<BR>
+<LI><I><FONT COLOR=maroon>ident</FONT></I> <TT>not declared</TT><A NAME="@error100"></A></OL>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Constructors</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> <BR>
+<BR>
+Adds each <TT>Constructors</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.</OL><BR>
+<BR>
+<LI><TT>Unfold</TT> <I><FONT COLOR=maroon>qualid</FONT></I>
+<A NAME="@default570"></A><A NAME="@command163"></A><BR>
+<BR>
+This adds the tactic <TT>unfold </TT><I><FONT COLOR=maroon>qualid</FONT></I> to the hint list that
+ will only be used when the head constant of the goal is <I><FONT COLOR=maroon>ident</FONT></I>. Its
+ cost is 4.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Unfold</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ...<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB> <BR>
+<BR>
+Adds each <TT>Unfold</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.</OL><BR>
+<BR>
+<LI><TT>Extern </TT><I><FONT COLOR=maroon>num</FONT></I><TT> </TT><I><FONT COLOR=maroon>pattern</FONT></I><TT> =&gt; </TT><I><FONT COLOR=maroon>tactic</FONT></I>
+<A NAME="@default571"></A><A NAME="@command164"></A><BR>
+<BR>
+This hint type is to extend <TT>auto</TT> with tactics other than
+ <TT>apply</TT> and <TT>unfold</TT>. For that, we must specify a
+ cost, a pattern and a tactic to execute. Here is an example:
+<BLOCKQUOTE>
+<PRE>
+Hint Extern 4 ~(?=?) =&gt; discriminate.
+</PRE></BLOCKQUOTE>
+Now, when the head of the goal is a disequality, <TT>auto</TT> will
+ try <TT>discriminate</TT> if it does not succeed to solve the goal
+ with hints with a cost less than 4.<BR>
+<BR>
+One can even use some sub-patterns of the pattern in the tactic
+ script. A sub-pattern is a question mark followed by an ident, like
+ <TT>?X1</TT> or <TT>?X2</TT>. Here is an example:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;List.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Hint&nbsp;Extern&nbsp;5&nbsp;&nbsp;&nbsp;({?X1&nbsp;=&nbsp;?X2}&nbsp;+&nbsp;{?X1&nbsp;&lt;&gt;&nbsp;?X2})&nbsp;=&gt;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;generalize&nbsp;X1&nbsp;X2;&nbsp;decide&nbsp;equality&nbsp;:&nbsp;eqdec.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;forall&nbsp;a&nbsp;b:list&nbsp;(nat&nbsp;*&nbsp;nat),&nbsp;{a&nbsp;=&nbsp;b}&nbsp;+&nbsp;{a&nbsp;&lt;&gt;&nbsp;b}.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;a&nbsp;b&nbsp;:&nbsp;list&nbsp;(nat&nbsp;*&nbsp;nat),&nbsp;{a&nbsp;=&nbsp;b}&nbsp;+&nbsp;{a&nbsp;&lt;&gt;&nbsp;b}</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;info&nbsp;auto&nbsp;with&nbsp;eqdec.</TT><BR>
+<TT><I>&nbsp;==&nbsp;intro&nbsp;a;&nbsp;intro&nbsp;b;&nbsp;generalize&nbsp;a&nbsp;b;&nbsp;decide&nbsp;equality;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;generalize&nbsp;a0&nbsp;p;&nbsp;decide&nbsp;equality.</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;generalize&nbsp;b0&nbsp;n0;&nbsp;decide&nbsp;equality.</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;generalize&nbsp;a1&nbsp;n;&nbsp;decide&nbsp;equality.</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;</I></TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+</UL>
+<BR>
+<B>Remark: </B>There is currently (in the 8.0 release) no way to do
+pattern-matching on hypotheses.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Hint</TT> <I><FONT COLOR=maroon>hint_definition</FONT></I> <BR>
+<BR>
+No database name is given : the hint is registered in the <TT>core</TT> 
+ database. <BR>
+<BR>
+<LI><TT>Hint Local</TT> <I><FONT COLOR=maroon>hint_definition</FONT></I> <TT>:</TT>
+ <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+<BR>
+This is used to declare hints that must not be exported to the other
+ modules that require and import the current module. Inside a
+ section, the option <TT>Local</TT> is useless since hints do not
+ survive anyway to the closure of sections.<BR>
+<BR>
+<LI><TT>Hint Local</TT> <I><FONT COLOR=maroon>hint_definition</FONT></I> <BR>
+<BR>
+Idem for the <TT>core</TT> database.</OL>
+
+<H3><A NAME="htoc248">8.12.1</A>&nbsp;&nbsp;Hint databases defined in the <FONT COLOR=navy>Coq</FONT> standard library</H3>
+Several hint databases are defined in the <FONT COLOR=navy>Coq</FONT> standard library. The
+actual content of a database is the collection of the hints declared
+to belong to this database in each of the various modules currently
+loaded. Especially, requiring new modules potentially extend a
+database. At <FONT COLOR=navy>Coq</FONT> startup, only the <TT>core</TT> and <TT>v62</TT>
+databases are non empty and can be used.
+<DL COMPACT=compact><DT><B><TT>core</TT></B><DD> This special database is automatically used by
+ <TT>auto</TT>. It contains only basic lemmas about negation,
+ conjunction, and so on from. Most of the hints in this database come 
+ from the <TT>Init</TT> and <TT>Logic</TT> directories.<BR>
+<BR>
+<DT><B><TT>arith</TT></B><DD> This database contains all lemmas about Peano's
+ arithmetic proven in the directories <TT>Init</TT> and
+ <TT>Arith</TT><BR>
+<BR>
+<DT><B><TT>zarith</TT></B><DD> contains lemmas about binary signed integers from
+ the directories <TT>theories/ZArith</TT>. When required, the module
+ <TT>Omega</TT> also extends the database <TT>zarith</TT> with a high-cost
+ hint that calls <TT>omega</TT> on equations and inequations in <TT>nat</TT> or <TT>Z</TT>.<BR>
+<BR>
+<DT><B><TT>bool</TT></B><DD> contains lemmas about booleans, mostly from directory
+ <TT>theories/Bool</TT>.<BR>
+<BR>
+<DT><B><TT>datatypes</TT></B><DD> is for lemmas about lists, streams and so on that 
+ are mainly proven in the <TT>Lists</TT> subdirectory.<BR>
+<BR>
+<DT><B><TT>sets</TT></B><DD> contains lemmas about sets and relations from the 
+ directories <TT>Sets</TT> and <TT>Relations</TT>.
+</DL>
+There is also a special database called <TT>v62</TT>. It collects all
+hints that were declared in the versions of <FONT COLOR=navy>Coq</FONT> prior to version
+6.2.4 when the databases <TT>core</TT>, <TT>arith</TT>, and so on were
+introduced. The purpose of the database <TT>v62</TT> is to ensure
+compatibility with further versions of Coq for developments done in
+versions prior to 6.2.4 (<TT>auto</TT> being replaced by <TT>auto with v62</TT>).
+The database <TT>v62</TT> is intended not to be extended (!). It is not
+included in the hint databases list used in the <TT>auto with *</TT> tactic.<BR>
+<BR>
+Furthermore, you are advised not to put your own hints in the
+<TT>core</TT> database, but use one or several databases specific to your
+development.<BR>
+<BR>
+
+<H3><A NAME="htoc249">8.12.2</A>&nbsp;&nbsp;<TT>Print Hint
+</TT><A NAME="PrintHint"></A><TT>
+</TT><A NAME="@default572"></A><A NAME="@command165"></A></H3>
+This command displays all hints that apply to the current goal. It
+fails if no proof is being edited, while the two variants can be used at
+every moment.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI><TT>Print Hint </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT><BR>
+<BR>
+This command displays only tactics associated with <I><FONT COLOR=maroon>ident</FONT></I> in the
+ hints list. This is independent of the goal being edited, to this
+ command will not fail if no goal is being edited.<BR>
+<BR>
+<LI><TT>Print Hint *</TT><BR>
+<BR>
+This command displays all declared hints. <BR>
+<BR>
+<LI><TT>Print HintDb </TT><I><FONT COLOR=maroon>ident</FONT></I><TT> </TT>
+<A NAME="PrintHintDb"></A>
+<A NAME="@default573"></A><A NAME="@command166"></A><BR>
+<BR>
+This command displays all hints from database <I><FONT COLOR=maroon>ident</FONT></I>.</OL>
+
+<H3><A NAME="htoc250">8.12.3</A>&nbsp;&nbsp;Hints and sections
+<A NAME="Hint-and-Section"></A></H3>
+Hints provided by the <TT>Hint</TT> commands are erased when closing a
+section. Conversely, all hints of a module <TT>A</TT> that are not
+defined inside a section (and not defined with option <TT>Local</TT>) become
+available when the module <TT>A</TT> is imported (using
+e.g. <TT>Require Import A.</TT>).<BR>
+<BR>
+<A NAME="toc54"></A>
+<H2><A NAME="htoc251">8.13</A>&nbsp;&nbsp;Generation of induction principles with <TT>Scheme</TT>
+<A NAME="Scheme"></A>
+<A NAME="@default574"></A><A NAME="@command167"></A></H2>
+The <TT>Scheme</TT> command is a high-level tool for generating
+automatically (possibly mutual) induction principles for given types
+and sorts. Its syntax follows the schema:
+<TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP>
+<TT>Scheme </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := Induction for </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> Sort </TT><I><FONT COLOR=maroon>sort</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT><BR>
+with<BR>
+ ...<BR>
+with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT> := Induction for </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT> Sort
+ </TT><I><FONT COLOR=maroon>sort</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB>
+</TD>
+</TR></TABLE>
+<I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2><I>m</I></FONT></SUB> are different inductive type
+identifiers belonging to the same package of mutual inductive
+definitions. This command generates <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB>... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>m</I></FONT></SUB>
+to be mutually recursive definitions. Each term <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> proves a
+general principle of mutual induction for objects in type <I><FONT COLOR=maroon>term</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Scheme </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := Minimality for </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> Sort </TT><I><FONT COLOR=maroon>sort</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT><BR>
+with<BR>
+ ...<BR>
+with </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT> := Minimality for </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT> Sort
+ </TT><I><FONT COLOR=maroon>sort</FONT></I><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><BR>
+<BR>
+Same as before but defines a non-dependent elimination principle more
+ natural in case of inductively defined relations. 
+</OL>
+<BR>
+<B>See also: </B><A HREF="Reference-Manual012.html#Scheme-examples">10.3</A><BR>
+<BR>
+<BR>
+<B>See also: </B>Section&nbsp;<A HREF="Reference-Manual012.html#Scheme-examples">10.3</A><BR>
+<BR>
+<A NAME="toc55"></A>
+<H2><A NAME="htoc252">8.14</A>&nbsp;&nbsp;Generation of induction principles with <TT>Functional Scheme</TT>
+<A NAME="FunScheme"></A>
+<A NAME="@default575"></A><A NAME="@command168"></A></H2>
+The <TT>Functional Scheme</TT> command is a high-level experimental
+tool for generating automatically induction principles
+corresponding to (possibly mutually recursive) functions. Its
+syntax follows the schema:
+<TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP>
+<TT>Functional Scheme </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT> := Induction for
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2><I>i</I></FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ... </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2><I>m</I></FONT></TT></SUB><TT>.</TT>
+</TD>
+</TR></TABLE> 
+<I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2><I>m</I></FONT></SUB> are the names of mutually recursive
+functions (they must be in the same order as when they were defined),
+<I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2><I>i</I></FONT></SUB> being one of them. This command generates the induction
+principle <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>, following the recursive structure and case
+analyses of the functions <I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2><I>m</I></FONT></SUB>, and having
+<I><FONT COLOR=maroon>ident</FONT></I>'<SUB><FONT SIZE=2><I>i</I></FONT></SUB> as entry point.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Functional Scheme </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := Induction for </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>.</TT><BR>
+<BR>
+This command is a shortcut for:
+ <TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP> 
+ <TT>Functional Scheme </TT><I><FONT COLOR=maroon>ident</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> := Induction for
+ </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> with </TT><I><FONT COLOR=maroon>ident</FONT></I><TT>'</TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>.</TT>
+</TD>
+</TR></TABLE><BR>
+This variant can be used for non mutually recursive functions only.
+</OL>
+<BR>
+<B>See also: </B>Section&nbsp;<A HREF="Reference-Manual012.html#FunScheme-examples">10.4</A><BR>
+<BR>
+<A NAME="toc56"></A>
+<H2><A NAME="htoc253">8.15</A>&nbsp;&nbsp;Simple tactic macros
+<A NAME="@default576"></A>
+<A NAME="@default577"></A><A NAME="@command169"></A>
+<A NAME="TacticDefinition"></A></H2>
+A simple example has more value than a long explanation: <BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Ltac&nbsp;Solve&nbsp;:=&nbsp;simpl;&nbsp;intros;&nbsp;auto.</TT><BR>
+<TT><I>Solve&nbsp;is&nbsp;defined</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Ltac&nbsp;ElimBoolRewrite&nbsp;b&nbsp;H1&nbsp;H2&nbsp;:=</TT><BR>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;elim&nbsp;b;&nbsp;[&nbsp;intros;&nbsp;rewrite&nbsp;H1;&nbsp;eauto&nbsp;|&nbsp;intros;&nbsp;rewrite&nbsp;H2;&nbsp;eauto&nbsp;].</TT><BR>
+<TT><I>ElimBoolRewrite&nbsp;is&nbsp;defined</I></TT><BR>
+</DIV>
+<BR>
+The tactics macros are synchronous with the <FONT COLOR=navy>Coq</FONT> section mechanism:
+a tactic definition is deleted from the current environment
+when you close the section (see also <A HREF="Reference-Manual004.html#Section">2.3</A>) 
+where it was defined. If you want that a
+tactic macro defined in a module is usable in the modules that
+require it, you should put it outside of any section.<BR>
+<BR>
+The chapter&nbsp;<A HREF="Reference-Manual011.html#TacticLanguage">9</A> gives examples of more complex
+user-defined tactics.<BR>
+<BR>
+<HR WIDTH="50%" SIZE=1><DL><DT><A NAME="note12" HREF="#text12"><FONT SIZE=5>1</FONT></A><DD>but it does not rename the hypothesis in the
+ proof-term...
+<DT><A NAME="note13" HREF="#text13"><FONT SIZE=5>2</FONT></A><DD>Actually, only the second subgoal will be
+generated since the other one can be automatically checked.
+<DT><A NAME="note14" HREF="#text14"><FONT SIZE=5>3</FONT></A><DD>This corresponds to the
+ cut rule of sequent calculus.
+<DT><A NAME="note15" HREF="#text15"><FONT SIZE=5>4</FONT></A><DD>Recall: opaque
+ constants will not be expanded by delta reductions
+<DT><A NAME="note16" HREF="#text16"><FONT SIZE=5>5</FONT></A><DD>The behavior of this tactic has much changed compared to
+the versions available in the previous distributions (V6). This may cause
+significant changes in your theories to obtain the same result. As a drawback
+of the reengineering of the code, this tactic has also been completely revised
+to get a very compact and readable version.
+</DL>
+<HR>
+<A HREF="Reference-Manual009.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual011.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

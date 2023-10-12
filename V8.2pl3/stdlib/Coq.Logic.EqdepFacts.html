@@ -1,0 +1,572 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Standard Library | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+
+</head>
+
+<body>
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<h1 class="libtitle">Library Coq.Logic.EqdepFacts</h1>
+
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This file defines dependent equality and shows its equivalence with
+    equality on dependent pairs (inhabiting sigma-types). It derives
+    the consequence of axiomatizing the invariance by substitution of
+    reflexive equality proofs and shows the equivalence between the 4
+    following statements
+
+<br/> <br/>
+
+<ul>
+<li> Invariance by Substitution of Reflexive Equality Proofs.
+
+</li>
+<li> Injectivity of Dependent Equality
+
+</li>
+<li> Uniqueness of Identity Proofs
+
+</li>
+<li> Uniqueness of Reflexive Identity Proofs
+
+</li>
+<li> Streicher's Axiom K
+
+</li>
+</ul>
+
+  These statements are independent of the calculus of constructions <span class="inlinecode">2</span>.
+
+<br/> <br/>
+  References:
+
+<br/> <br/>
+  <span class="inlinecode">1</span> T. Streicher, Semantical Investigations into Intensional Type Theory,
+      Habilitationsschrift, LMU München, 1993.
+  <span class="inlinecode">2</span> M. Hofmann, T. Streicher, The groupoid interpretation of type theory,
+      Proceedings of the meeting Twenty-five years of constructive
+      type theory, Venice, Oxford University Press, 1998
+
+<br/> <br/>
+Table of contents:
+
+<br/> <br/>
+1. Definition of dependent equality and equivalence with equality
+
+<br/> <br/>
+2. Eq_rect_eq &lt;-&gt; Eq_dep_eq &lt;-&gt; UIP &lt;-&gt; UIP_refl &lt;-&gt; K
+
+<br/> <br/>
+3. Definition of the functor that builds properties of dependent
+   equalities assuming axiom eq_rect_eq
+
+<br/> <br/>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab41"></a><h1 class="section">Definition of dependent equality and equivalence with equality of dependent pairs</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Section</span> <a name="Dependent_Equality"><span class="id" type="section">Dependent_Equality</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Variable</span> <a name="Dependent_Equality.U"><span class="id" type="variable">U</span></a> : <span class="id" type="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Variable</span> <a name="Dependent_Equality.P"><span class="id" type="variable">P</span></a> : <span class="id" type="var">U</span> -&gt; <span class="id" type="keyword">Type</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Dependent equality 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Inductive</span> <a name="eq_dep"><span class="id" type="inductive">eq_dep</span></a> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) : <span class="id" type="keyword">forall</span> <span class="id" type="var">q</span>:U, <span class="id" type="var">P</span> <span class="id" type="var">q</span> -&gt; <span class="id" type="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="eq_dep_intro"><span class="id" type="constructor">eq_dep_intro</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Hint</span> <span class="id" type="var">Constructors</span> <span class="id" type="var">eq_dep</span>: <span class="id" type="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_refl"><span class="id" type="lemma">eq_dep_refl</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_sym"><span class="id" type="lemma">eq_dep_sym</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span> <span class="id" type="var">q</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">q</span> <span class="id" type="var">y</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Hint</span> <span class="id" type="keyword">Immediate</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep_sym"><span class="id" type="lemma">eq_dep_sym</span></a>: <span class="id" type="var">core</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_trans"><span class="id" type="lemma">eq_dep_trans</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span> <span class="id" type="var">q</span> <span class="id" type="var">r</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>) (<span class="id" type="var">z</span>:P <span class="id" type="var">r</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">q</span> <span class="id" type="var">y</span> <span class="id" type="var">r</span> <span class="id" type="var">z</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">r</span> <span class="id" type="var">z</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Scheme</span> <span class="id" type="var">eq_indd</span> := <span class="id" type="keyword">Induction</span> <span class="id" type="keyword">for</span> <span class="id" type="var">eq</span> <span class="id" type="keyword">Sort</span> <span class="id" type="keyword">Prop</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Equivalent definition of dependent equality expressed as a non
+      dependent inductive type 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Inductive</span> <a name="eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">q</span>:U) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>) : <span class="id" type="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="eq_dep1_intro"><span class="id" type="constructor">eq_dep1_intro</span></a> : <span class="id" type="keyword">forall</span> <span class="id" type="var">h</span>:q = <span class="id" type="var">p</span>, <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" type="definition">eq_rect</span></a> <span class="id" type="var">q</span> <span class="id" type="var">P</span> <span class="id" type="var">y</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep1_dep"><span class="id" type="lemma">eq_dep1_dep</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">q</span>:U) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_dep1"><span class="id" type="lemma">eq_dep_dep1</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span> <span class="id" type="var">q</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#Dependent_Equality"><span class="id" type="section">Dependent_Equality</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> [<span class="id" type="var">U</span> <span class="id" type="var">P</span>].<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> [<span class="id" type="var">U</span> <span class="id" type="var">P</span>].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Dependent equality is equivalent to equality on dependent pairs 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_sigT_eq_dep"><span class="id" type="lemma">eq_sigT_eq_dep</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">U</span>:Type) (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">p</span> <span class="id" type="var">q</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="eq_sigS_eq_dep"><span class="id" type="abbreviation">eq_sigS_eq_dep</span></a> := <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_sigT_eq_dep"><span class="id" type="lemma">eq_sigT_eq_dep</span></a> (<span class="id" type="var">only</span> <span class="id" type="var">parsing</span>). 
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="equiv_eqex_eqdep"><span class="id" type="lemma">equiv_eqex_eqdep</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">U</span>:Type) (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">p</span> <span class="id" type="var">q</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>),<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> &lt;-&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_dep_eq_sigT"><span class="id" type="lemma">eq_dep_eq_sigT</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">U</span>:Type) (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">p</span> <span class="id" type="var">q</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">y</span>:P <span class="id" type="var">q</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span> -&gt; <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">q</span> <span class="id" type="var">y</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Exported hints 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Hint</span> <span class="id" type="keyword">Resolve</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep_intro"><span class="id" type="constructor">eq_dep_intro</span></a>: <span class="id" type="var">core</span>.<br/>
+<span class="id" type="keyword">Hint</span> <span class="id" type="keyword">Immediate</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep_sym"><span class="id" type="lemma">eq_dep_sym</span></a>: <span class="id" type="var">core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab42"></a><h1 class="section">Eq_rect_eq &lt;-&gt; Eq_dep_eq &lt;-&gt; UIP &lt;-&gt; UIP_refl &lt;-&gt; K</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Section</span> <a name="Equivalences"><span class="id" type="section">Equivalences</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Variable</span> <a name="Equivalences.U"><span class="id" type="variable">U</span></a>:Type.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Invariance by Substitution of Reflexive Equality Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Eq_rect_eq"><span class="id" type="definition">Eq_rect_eq</span></a> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">Q</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">x</span>:Q <span class="id" type="var">p</span>) (<span class="id" type="var">h</span>:p = <span class="id" type="var">p</span>), <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" type="definition">eq_rect</span></a> <span class="id" type="var">p</span> <span class="id" type="var">Q</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Eq_dep_eq"><span class="id" type="definition">Eq_dep_eq</span></a> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">P</span>:U-&gt;Type) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:P <span class="id" type="var">p</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span> = <span class="id" type="var">y</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Identity Proofs (UIP) 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="UIP_"><span class="id" type="definition">UIP_</span></a> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:U) (<span class="id" type="var">p1</span> <span class="id" type="var">p2</span>:x = <span class="id" type="var">y</span>), <span class="id" type="var">p1</span> = <span class="id" type="var">p2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Reflexive Identity Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="UIP_refl_"><span class="id" type="definition">UIP_refl_</span></a> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span>:U) (<span class="id" type="var">p</span>:x = <span class="id" type="var">x</span>), <span class="id" type="var">p</span> = <a class="idref" href="Coq.Init.Logic.html#refl_equal"><span class="id" type="constructor">refl_equal</span></a> <span class="id" type="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Streicher's axiom K 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Streicher_K_"><span class="id" type="definition">Streicher_K_</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span>:U) (<span class="id" type="var">P</span>:x = <span class="id" type="var">x</span> -&gt; <span class="id" type="keyword">Prop</span>), <span class="id" type="var">P</span> (<a class="idref" href="Coq.Init.Logic.html#refl_equal"><span class="id" type="constructor">refl_equal</span></a> <span class="id" type="var">x</span>) -&gt; <span class="id" type="keyword">forall</span> <span class="id" type="var">p</span>:x = <span class="id" type="var">x</span>, <span class="id" type="var">P</span> <span class="id" type="var">p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality is a consequence of 
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+Invariance by Substitution of Reflexive Equality Proof 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_rect_eq__eq_dep1_eq"><span class="id" type="lemma">eq_rect_eq__eq_dep1_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_rect_eq"><span class="id" type="definition">Eq_rect_eq</span></a> -&gt; <span class="id" type="keyword">forall</span> (<span class="id" type="var">P</span>:U-&gt;Type) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:P <span class="id" type="var">p</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span> = <span class="id" type="var">y</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_rect_eq__eq_dep_eq"><span class="id" type="lemma">eq_rect_eq__eq_dep_eq</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_rect_eq"><span class="id" type="definition">Eq_rect_eq</span></a> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_dep_eq"><span class="id" type="definition">Eq_dep_eq</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Identity Proofs (UIP) is a consequence of 
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_eq__UIP"><span class="id" type="lemma">eq_dep_eq__UIP</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_dep_eq"><span class="id" type="definition">Eq_dep_eq</span></a> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#UIP_"><span class="id" type="definition">UIP_</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Reflexive Identity Proofs is a direct instance of UIP 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="UIP__UIP_refl"><span class="id" type="lemma">UIP__UIP_refl</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#UIP_"><span class="id" type="definition">UIP_</span></a> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#UIP_refl_"><span class="id" type="definition">UIP_refl_</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Streicher's axiom K is a direct consequence of Uniqueness of
+      Reflexive Identity Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="UIP_refl__Streicher_K"><span class="id" type="lemma">UIP_refl__Streicher_K</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#UIP_refl_"><span class="id" type="definition">UIP_refl_</span></a> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#Streicher_K_"><span class="id" type="definition">Streicher_K_</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We finally recover from K the Invariance by Substitution of
+      Reflexive Equality Proofs 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="Streicher_K__eq_rect_eq"><span class="id" type="lemma">Streicher_K__eq_rect_eq</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#Streicher_K_"><span class="id" type="definition">Streicher_K_</span></a> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_rect_eq"><span class="id" type="definition">Eq_rect_eq</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Remark: It is reasonable to think that <span class="inlinecode"><span class="id" type="var">eq_rect_eq</span></span> is strictly
+    stronger than <span class="inlinecode"><span class="id" type="var">eq_rec_eq</span></span> (which is <span class="inlinecode"><span class="id" type="var">eq_rect_eq</span></span> restricted on <span class="inlinecode"><span class="id" type="keyword">Set</span></span>):
+
+<br/> <br/>
+   <span class="inlinecode"><span class="id" type="keyword">Definition</span> <span class="id" type="var">Eq_rec_eq</span> :=
+      <span class="id" type="keyword">forall</span> (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Set</span>) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span>:P <span class="id" type="var">p</span>) (<span class="id" type="var">h</span>:p = <span class="id" type="var">p</span>), <span class="id" type="var">x</span> = <span class="id" type="var">eq_rec</span> <span class="id" type="var">p</span> <span class="id" type="var">P</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span>.</span>
+
+<br/> <br/>
+    Typically, <span class="inlinecode"><span class="id" type="var">eq_rect_eq</span></span> allows to prove UIP and Streicher's K what
+    does not seem possible with <span class="inlinecode"><span class="id" type="var">eq_rec_eq</span></span>. In particular, the proof of <span class="inlinecode"><span class="id" type="var">UIP</span></span>
+    requires to use <span class="inlinecode"><span class="id" type="var">eq_rect_eq</span></span> on <span class="inlinecode"><span class="id" type="keyword">fun</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span>=y</span> which is in <span class="inlinecode"><span class="id" type="keyword">Type</span></span> but not
+    in <span class="inlinecode"><span class="id" type="keyword">Set</span></span>.  
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#Equivalences"><span class="id" type="section">Equivalences</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Section</span> <a name="Corollaries"><span class="id" type="section">Corollaries</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Variable</span> <a name="Corollaries.U"><span class="id" type="variable">U</span></a>:Type.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+UIP implies the injectivity of equality on dependent pairs in Type 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;<span class="id" type="keyword">Definition</span> <a name="Inj_dep_pair"><span class="id" type="definition">Inj_dep_pair</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:P <span class="id" type="var">p</span>), <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span> = <span class="id" type="var">y</span>.<br/>
+
+<br/>
+&nbsp;<span class="id" type="keyword">Lemma</span> <a name="eq_dep_eq__inj_pair2"><span class="id" type="lemma">eq_dep_eq__inj_pair2</span></a> : <a class="idref" href="Coq.Logic.EqdepFacts.html#Eq_dep_eq"><span class="id" type="definition">Eq_dep_eq</span></a> <span class="id" type="var">U</span> -&gt; <a class="idref" href="Coq.Logic.EqdepFacts.html#Inj_dep_pair"><span class="id" type="definition">Inj_dep_pair</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#Corollaries"><span class="id" type="section">Corollaries</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="Inj_dep_pairS"><span class="id" type="abbreviation">Inj_dep_pairS</span></a> := <a class="idref" href="Coq.Logic.EqdepFacts.html#Inj_dep_pair"><span class="id" type="definition">Inj_dep_pair</span></a>.<br/>
+<span class="id" type="keyword">Notation</span> <a name="Inj_dep_pairT"><span class="id" type="abbreviation">Inj_dep_pairT</span></a> := <a class="idref" href="Coq.Logic.EqdepFacts.html#Inj_dep_pair"><span class="id" type="definition">Inj_dep_pair</span></a>.<br/>
+<span class="id" type="keyword">Notation</span> <a name="eq_dep_eq__inj_pairT2"><span class="id" type="abbreviation">eq_dep_eq__inj_pairT2</span></a> := <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep_eq__inj_pair2"><span class="id" type="lemma">eq_dep_eq__inj_pair2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab43"></a><h1 class="section">Definition of the functor that builds properties of dependent equalities assuming axiom eq_rect_eq</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Module</span> <span class="id" type="keyword">Type</span> <a name="EqdepElimination"><span class="id" type="module">EqdepElimination</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Axiom</span> <a name="EqdepElimination.eq_rect_eq"><span class="id" type="axiom">eq_rect_eq</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">U</span>:Type) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">Q</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">x</span>:Q <span class="id" type="var">p</span>) (<span class="id" type="var">h</span>:p = <span class="id" type="var">p</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" type="definition">eq_rect</span></a> <span class="id" type="var">p</span> <span class="id" type="var">Q</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#EqdepElimination"><span class="id" type="module">EqdepElimination</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Module</span> <a name="EqdepTheory"><span class="id" type="module">EqdepTheory</span></a> (<span class="id" type="var">M</span>:EqdepElimination).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Section</span> <a name="EqdepTheory.Axioms"><span class="id" type="section">Axioms</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">Variable</span> <a name="EqdepTheory.Axioms.U"><span class="id" type="variable">U</span></a>:Type.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Invariance by Substitution of Reflexive Equality Proofs 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.eq_rect_eq"><span class="id" type="lemma">eq_rect_eq</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">Q</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">x</span>:Q <span class="id" type="var">p</span>) (<span class="id" type="var">h</span>:p = <span class="id" type="var">p</span>), <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Logic.html#eq_rect"><span class="id" type="definition">eq_rect</span></a> <span class="id" type="var">p</span> <span class="id" type="var">Q</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span>.<br/>
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.eq_rec_eq"><span class="id" type="lemma">eq_rec_eq</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">p</span>:U) (<span class="id" type="var">Q</span>:U -&gt; <span class="id" type="keyword">Set</span>) (<span class="id" type="var">x</span>:Q <span class="id" type="var">p</span>) (<span class="id" type="var">h</span>:p = <span class="id" type="var">p</span>), <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Logic.html#eq_rec"><span class="id" type="definition">eq_rec</span></a> <span class="id" type="var">p</span> <span class="id" type="var">Q</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">h</span>.<br/>
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.eq_dep_eq"><span class="id" type="lemma">eq_dep_eq</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">P</span>:U-&gt;Type) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:P <span class="id" type="var">p</span>), <a class="idref" href="Coq.Logic.EqdepFacts.html#EqdepTheory.eq_dep"><span class="id" type="inductive">eq_dep</span></a> <span class="id" type="var">p</span> <span class="id" type="var">x</span> <span class="id" type="var">p</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span> = <span class="id" type="var">y</span>.<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Identity Proofs (UIP) is a consequence of 
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+Injectivity of Dependent Equality 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.UIP"><span class="id" type="lemma">UIP</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:U) (<span class="id" type="var">p1</span> <span class="id" type="var">p2</span>:x = <span class="id" type="var">y</span>), <span class="id" type="var">p1</span> = <span class="id" type="var">p2</span>.<br/>
+</div>
+
+<div class="doc">
+Uniqueness of Reflexive Identity Proofs is a direct instance of UIP 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.UIP_refl"><span class="id" type="lemma">UIP_refl</span></a> : <span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span>:U) (<span class="id" type="var">p</span>:x = <span class="id" type="var">x</span>), <span class="id" type="var">p</span> = <a class="idref" href="Coq.Init.Logic.html#refl_equal"><span class="id" type="constructor">refl_equal</span></a> <span class="id" type="var">x</span>.<br/>
+</div>
+
+<div class="doc">
+Streicher's axiom K is a direct consequence of Uniqueness of
+    Reflexive Identity Proofs 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.Streicher_K"><span class="id" type="lemma">Streicher_K</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">x</span>:U) (<span class="id" type="var">P</span>:x = <span class="id" type="var">x</span> -&gt; <span class="id" type="keyword">Prop</span>), <span class="id" type="var">P</span> (<a class="idref" href="Coq.Init.Logic.html#refl_equal"><span class="id" type="constructor">refl_equal</span></a> <span class="id" type="var">x</span>) -&gt; <span class="id" type="keyword">forall</span> <span class="id" type="var">p</span>:x = <span class="id" type="var">x</span>, <span class="id" type="var">P</span> <span class="id" type="var">p</span>.<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#EqdepTheory.Axioms"><span class="id" type="section">Axioms</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+UIP implies the injectivity of equality on dependent pairs in Type 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="EqdepTheory.inj_pair2"><span class="id" type="lemma">inj_pair2</span></a> :<br/>
+&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">U</span>:Type) (<span class="id" type="var">P</span>:U -&gt; <span class="id" type="keyword">Type</span>) (<span class="id" type="var">p</span>:U) (<span class="id" type="var">x</span> <span class="id" type="var">y</span>:P <span class="id" type="var">p</span>),<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">x</span> = <a class="idref" href="Coq.Init.Specif.html#existT"><span class="id" type="constructor">existT</span></a> <span class="id" type="var">P</span> <span class="id" type="var">p</span> <span class="id" type="var">y</span> -&gt; <span class="id" type="var">x</span> = <span class="id" type="var">y</span>.<br/>
+<span class="id" type="keyword">Notation</span> <a name="EqdepTheory.inj_pairT2"><span class="id" type="abbreviation">inj_pairT2</span></a> := <a class="idref" href="Coq.Logic.EqdepFacts.html#EqdepTheory.inj_pair2"><span class="id" type="lemma">inj_pair2</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#EqdepTheory"><span class="id" type="module">EqdepTheory</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep"><span class="id" type="inductive">eq_dep</span></a> [].<br/>
+<span class="id" type="keyword">Implicit Arguments</span> <a class="idref" href="Coq.Logic.EqdepFacts.html#eq_dep1"><span class="id" type="inductive">eq_dep1</span></a> [].<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf">Standard Library
+  <ul class="menu">
+  <li><a href="index.html">Table of contents</a></li>
+  <li><a href="genindex.html">Index</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
+

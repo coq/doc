@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 29  Polymorphic Universes</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec882" class="chapter">Chapter 29  Polymorphic Universes</h1>
+<ul>
+<li><a href="universes.html#sec883">29.1  General Presentation</a>
+</li><li><a href="universes.html#sec884">29.2  <span style="font-family:monospace">Polymorphic, Monomorphic</span></a>
+</li><li><a href="universes.html#sec885">29.3  <span style="font-family:monospace">Cumulative, NonCumulative</span></a>
+</li><li><a href="universes.html#sec887">29.4  Global and local universes</a>
+</li><li><a href="universes.html#sec888">29.5  Conversion and unification</a>
+</li><li><a href="universes.html#sec889">29.6  Minimization</a>
+</li><li><a href="universes.html#sec890">29.7  Explicit Universes</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Matthieu Sozeau</span></span> <br>
+<br>
+</p><p><a id="Universes-full"></a>
+<a id="hevea_default1148"></a></p>
+<h2 id="sec883" class="section">29.1  General Presentation</h2>
+<div class="flushleft">
+<em>The status of Universe Polymorphism is experimental.
+</em></div><p>This section describes the universe polymorphic extension of Coq.
+Universe polymorphism makes it possible to write generic definitions making use of
+universes and reuse them at different and sometimes incompatible universe levels.</p><p>A standard example of the difference between universe <em>polymorphic</em> and
+<em>monomorphic</em> definitions is given by the identity function:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition identity {A : Type} (a : A) := a.</span></span><span style="font-size:small"><br>
+</span></div><p>By default, constant declarations are monomorphic, hence the identity
+function declares a global universe (say <span style="font-family:monospace">Top.1</span>) for its
+domain. Subsequently, if we try to self-apply the identity, we will get
+an error:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fail Definition selfid := identity (@identity).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The command has indeed failed with message:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The term "@identity" has type "forall A : Type@{Top.1}, A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> A"</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">while it is expected to have type "?A"</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(unable to find a well-typed instantiation for </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">"?A": cannot ensure that "Type@{Top.1+1}" is a subtype of</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">"Type@{Top.1}").</span></span></span><span style="font-size:small"><br>
+</span></div><p>Indeed, the global level <span style="font-family:monospace">Top.1</span> would have to be strictly smaller than itself
+for this self-application to typecheck, as the type of <span style="font-family:monospace">(@identity)</span> is
+<span style="font-family:monospace">forall (A : Type@</span><span style="font-family:monospace">Top.1</span><span style="font-family:monospace">), A -&gt; A</span> whose type is itself <span style="font-family:monospace">Type@</span><span style="font-family:monospace">Top.1+1</span>.</p><p>A universe polymorphic identity function binds its domain universe level
+at the definition level instead of making it global.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Definition pidentity {A : Type} (a : A) := a.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> About pidentity.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity@{Top.2} : forall A : Type@{Top.2}, A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> A</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.2 |=  *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity is universe polymorphic</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument A is implicit and maximally inserted</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scopes are [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">]</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity is transparent</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Expands to: Constant Top.pidentity</span></span></span><span style="font-size:small"><br>
+</span></div><p>It is then possible to reuse the constant at different levels, like so:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition selfpid := pidentity (@pidentity).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">selfpid is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>Of course, the two instances of <span style="font-family:monospace">pidentity</span> in this definition
+are different. This can be seen when <span style="font-family:monospace">Set Printing Universes</span> is
+on:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print selfpid.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">selfpid = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity@{Top.3} (@pidentity@{Top.4})</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : forall A : Type@{Top.4}, A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> A</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.3 Top.4 |= Top.4 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Top.3</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                   *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scopes are [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">]</span></span></span><span style="font-size:small"><br>
+</span></div><p>Now <span style="font-family:monospace">pidentity</span> is used at two different levels: at the head of
+the application it is instantiated at <span style="font-family:monospace">Top.3</span> while in the
+argument position it is instantiated at <span style="font-family:monospace">Top.4</span>. This definition
+is only valid as long as <span style="font-family:monospace">Top.4</span> is strictly smaller than
+<span style="font-family:monospace">Top.3</span>, as show by the constraints. Note that this definition is
+monomorphic (not universe polymorphic), so the two universes
+(in this case <span style="font-family:monospace">Top.3</span> and <span style="font-family:monospace">Top.4</span>) are actually global levels.</p><p>Inductive types can also be declared universes polymorphic on universes
+appearing in their parameters or fields. A typical example is given by
+monoids:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Record Monoid := { mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car :</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type; mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">unit : mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car; </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">op : mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car }.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Monoid is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">unit is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">op is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print Monoid.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Polymorphic NonCumulative Record Monoid : Type@{Top.6+1}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  := Build</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Monoid</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  { mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car : Type@{Top.6};</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">unit : mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">op : mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car }</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For Build</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Monoid: Argument scopes are [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> function</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span></div><p>The <span style="font-family:monospace">Monoid</span>’s carrier universe is polymorphic, hence it is
+possible to instantiate it for example with <span style="font-family:monospace">Monoid</span> itself.
+First we build the trivial unit monoid in <span style="font-family:monospace">Set</span>:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition unit</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">monoid : Monoid := </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        {| mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">car := unit; mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">unit := tt; mon</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">op x y := tt |}.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">unit</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">monoid is defined</span></span></span><span style="font-size:small"><br>
+</span></div><p>From this we can build a definition for the monoid of
+<span style="font-family:monospace">Set</span>-monoids (where multiplication would be given by the product
+of monoids).</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Definition monoid</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">monoid : Monoid.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   refine (@Build</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">Monoid Monoid unit</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">monoid (fun x y =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x)).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Defined.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print monoid</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">monoid.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Polymorphic monoid</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">monoid@{Top.10} = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">{|</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">car := Monoid@{Set};</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">unit := unit</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">monoid;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">mon</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">op := fun x </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> : Monoid@{Set} =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x |}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Monoid@{Top.10}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.10 |= Set </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Top.10</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">              *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">monoid</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">monoid is universe polymorphic</span></span></span><span style="font-size:small"><br>
+</span></div><p>As one can see from the constraints, this monoid is “large”, it lives
+in a universe strictly higher than <span style="font-family:monospace">Set</span>.</p>
+<h2 id="sec884" class="section">29.2  <span style="font-family:monospace">Polymorphic, Monomorphic</span></h2>
+<p>
+<a id="hevea_default1149"></a><a id="hevea_command308"></a>
+<a id="hevea_default1150"></a><a id="hevea_command309"></a>
+<a id="hevea_default1151"></a><a id="hevea_option115"></a></p><p>As shown in the examples, polymorphic definitions and inductives can be
+declared using the <span style="font-family:monospace">Polymorphic</span> prefix. There also exists an
+option <span style="font-family:monospace">Set Universe Polymorphism</span> which will implicitly prepend
+it to any definition of the user. In that case, to make a definition
+producing global universe constraints, one can use the
+<span style="font-family:monospace">Monomorphic</span> prefix. Many other commands support the
+<span style="font-family:monospace">Polymorphic</span> flag, including:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">Lemma</span>, <span style="font-family:monospace">Axiom</span>, and all the other “definition”
+keywords support polymorphism.
+</li><li class="li-itemize"><span style="font-family:monospace">Variables</span>, <span style="font-family:monospace">Context</span>, <span style="font-family:monospace">Universe</span> and
+<span style="font-family:monospace">Constraint</span> in a section support polymorphism. This means
+that the universe variables (and associated constraints) are
+discharged polymorphically over definitions that use them. In other
+words, two definitions in the section sharing a common variable will
+both get parameterized by the universes produced by the variable
+declaration. This is in contrast to a “mononorphic” variable which
+introduces global universes and constraints, making the two
+definitions depend on the <em>same</em> global universes associated to
+the variable.
+</li><li class="li-itemize"><span style="font-family:monospace">Hint {Resolve, Rewrite}</span> will use the auto/rewrite hint
+polymorphically, not at a single instance.
+</li></ul>
+<h2 id="sec885" class="section">29.3  <span style="font-family:monospace">Cumulative, NonCumulative</span></h2>
+<p>
+<a id="hevea_default1152"></a><a id="hevea_command310"></a>
+<a id="hevea_default1153"></a><a id="hevea_command311"></a>
+<a id="hevea_default1154"></a><a id="hevea_option116"></a></p><p>Polymorphic inductive types, coinductive types, variants and records can be
+declared cumulative using the <span style="font-family:monospace">Cumulative</span>. Alternatively,
+there is an option <span style="font-family:monospace">Set Polymorphic Inductive Cumulativity</span> which when set,
+makes all subsequent <em>polymorphic</em> inductive definitions cumulative. When set,
+inductive types and the like can be enforced to be
+<em>non-cumulative</em> using the <span style="font-family:monospace">NonCumulative</span> prefix. Consider the examples below.
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Cumulative Inductive list {A : Type} :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      | nil : list</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">      | cons : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> list -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> list.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print list.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Polymorphic Cumulative Inductive</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">list@{Top.13} (A : Type@{Top.13}) : Type@{max(Set, Top.13)} :=</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    nil : list@{Top.13} | cons : A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> list@{Top.13} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> list@{Top.13}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.13 |= </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">~</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">@{Top.13} </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">~</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">@{Top.15} iff </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For list: Argument A is implicit and maximally inserted</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For nil: Argument A is implicit and maximally inserted</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For cons: Argument A is implicit and maximally inserted</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For list: Argument scope is [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For nil: Argument scope is [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For cons: Argument scopes are [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">]</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+When printing <span style="font-family:monospace">list</span>, the part of the output of the form
+<span style="font-family:monospace">∼</span><span style="font-family:monospace">@{i} &lt;= </span><span style="font-family:monospace">∼</span><span style="font-family:monospace">@{j} iff </span>
+indicates the universe constraints in order to have the subtyping
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-family:monospace"><span style="font-style:italic">list</span></span><span style="font-family:monospace">@{</span><span style="font-family:monospace"><span style="font-style:italic">i</span></span><span style="font-family:monospace">}</span> <span style="font-style:italic">A</span> ≤<sub>βδιζη</sub> <span style="font-family:monospace"><span style="font-style:italic">list</span></span><span style="font-family:monospace">@{</span><span style="font-family:monospace"><span style="font-style:italic">j</span></span><span style="font-family:monospace">}</span> <span style="font-style:italic">B</span>
+(for fully applied instances of <span style="font-family:monospace">list</span>) whenever <span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">A</span> =<sub>βδιζη</sub> <span style="font-style:italic">B</span>.
+In the case of <span style="font-family:monospace">list</span> there is no constraint!
+This also means that any two instances of <span style="font-family:monospace">list</span> are convertible:
+<span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-family:monospace"><span style="font-style:italic">list</span></span><span style="font-family:monospace">@{</span><span style="font-family:monospace"><span style="font-style:italic">i</span></span><span style="font-family:monospace">}</span> <span style="font-style:italic">A</span> =<sub>βδιζη</sub> <span style="font-family:monospace"><span style="font-style:italic">list</span></span><span style="font-family:monospace">@{</span><span style="font-family:monospace"><span style="font-style:italic">j</span></span><span style="font-family:monospace">}</span> <span style="font-style:italic">B</span> whenever <span style="font-style:italic">E</span>[Γ] ⊢ <span style="font-style:italic">A</span> =<sub>βδιζη</sub> <span style="font-style:italic">B</span> and
+furthermore their corresponding (when fully applied to convertible arguments) constructors.
+See Chapter <a href="cic.html#Cic">4</a> for more details on convertibility and subtyping.
+The following is an example of a record with non-trivial subtyping relation:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Cumulative Record packType := {pk : Type}.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print packType.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Polymorphic Cumulative Record packType : Type@{Top.20+1}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  := Build</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">packType</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  { pk : Type@{Top.20} }</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.20 |= </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">~</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">@{Top.20} </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">~</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">@{Top.21} iff </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">   Top.20 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= Top.21</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">    *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">For Build</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">packType: Argument scope is [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+Notice that as expected, <span style="font-family:monospace">packType@{i}</span> and <span style="font-family:monospace">packType@{j}</span> are
+convertible if and only if <span style="font-family:monospace">i </span>=<span style="font-family:monospace"> j</span>.</p><p>Cumulative inductive types, coninductive types, variants and records
+only make sense when they are universe polymorphic. Therefore, an
+error is issued whenever the user uses the <span style="font-family:monospace">Cumulative</span> or
+<span style="font-family:monospace">NonCumulative</span> prefix in a monomorphic context.
+Notice that this is not the case for the option <span style="font-family:monospace">Set Polymorphic Inductive Cumulativity</span>.
+That is, this option, when set, makes all subsequent <em>polymorphic</em>
+inductive declarations cumulative (unless, of course the <span style="font-family:monospace">NonCumulative</span> prefix is used)
+but has no effect on <em>monomorphic</em> inductive declarations.
+Consider the following examples.
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Monomorphic Cumulative Inductive Unit := unit.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Toplevel input, characters 0-46:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Monomorphic Cumulative Inductive Unit := unit.</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Error: The Cumulative prefix can only be used in a polymorphic context.</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Monomorphic NonCumulative Inductive Unit := unit.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Toplevel input, characters 0-49:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Monomorphic NonCumulative Inductive Unit := unit.</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">^</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Error: The NonCumulative prefix can only be used in a polymorphic context.</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Polymorphic Inductive Cumulativity.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive Unit := unit.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print Unit.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Inductive Unit : Prop :=  unit : Unit</span></span></span><span style="font-size:small"><br>
+</span></div><h3 id="sec886" class="subsection">An example of a proof using cumulativity</h3>
+<div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Universe Polymorphism.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Polymorphic Inductive Cumulativity.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Inductive eq@{i} {A : Type@{i}} (x : A) : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type@{i} := eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">refl : eq x x.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">eq is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">eq</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rect is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">eq</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ind is defined</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">eq</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">rec is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition funext</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">type@{a b e} (A : Type@{a}) (B : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type@{b})</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        := forall f g : (forall a, B a),</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          (forall x, eq@{e} (f x) (g x))</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> eq@{e} f g.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Section down.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Universes a b e e</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Constraint e</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> e.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Lemma funext</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">down {A B}</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          (H : @funext</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">type@{a b e} A B) : @funext</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">type@{a b e</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">} A B.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  A : Type@{Top.41}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  B : A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.42}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  H : funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type@{a b e} A B</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type@{a b e</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">} A B</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Proof.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  A : Type@{Top.41}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  B : A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.42}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  H : funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type@{a b e} A B</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">type@{a b e</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">} A B</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">     exact H.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Defined.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">funext</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">down is defined</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h2 id="sec887" class="section">29.4  Global and local universes</h2>
+<p>Each universe is declared in a global or local environment before it can
+be used. To ensure compatibility, every <em>global</em> universe is set to
+be strictly greater than <span style="font-family:sans-serif">Set</span> when it is introduced, while every
+<em>local</em> (i.e. polymorphically quantified) universe is introduced as
+greater or equal to <span style="font-family:sans-serif">Set</span>.</p>
+<h2 id="sec888" class="section">29.5  Conversion and unification</h2>
+<p>The semantics of conversion and unification have to be modified a little
+to account for the new universe instance arguments to polymorphic
+references. The semantics respect the fact that definitions are
+transparent, so indistinguishable from their bodies during conversion.</p><p>This is accomplished by changing one rule of unification, the
+first-order approximation rule, which applies when two applicative terms
+with the same head are compared. It tries to short-cut unfolding by
+comparing the arguments directly. In case the constant is universe
+polymorphic, we allow this rule to fire only when unifying the universes
+results in instantiating a so-called flexible universe variables (not
+given by the user). Similarly for conversion, if such an equation of
+applicative terms fail due to a universe comparison not being satisfied,
+the terms are unfolded. This change implies that conversion and
+unification can have different unfolding behaviors on the same
+development with universe polymorphism switched on or off.</p>
+<h2 id="sec889" class="section">29.6  Minimization</h2>
+<p>
+<a id="hevea_default1155"></a><a id="hevea_option117"></a></p><p>Universe polymorphism with cumulativity tends to generate many useless
+inclusion constraints in general. Typically at each application of a
+polymorphic constant <span style="font-style:italic">f</span>, if an argument has expected type
+<code>Type@{i}</code> and is given a term of type <code>Type@{j}</code>, a <span style="font-style:italic">j</span> ≤ <span style="font-style:italic">i</span>
+constraint will be generated. It is however often the case that an
+equation <span style="font-style:italic">j</span> = <span style="font-style:italic">i</span> would be more appropriate, when <span style="font-style:italic">f</span>’s
+universes are fresh for example. Consider the following example:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition id0 := @pidentity nat 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id0 is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print id0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id0@{} = pidentity@{Set} 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id0 is universe polymorphic</span></span></span><span style="font-size:small"><br>
+</span></div><p>This definition is elaborated by minimizing the universe of id to level
+<span style="font-family:sans-serif">Set</span> while the more general definition would keep the fresh level i
+generated at the application of id and a constraint that <span style="font-family:sans-serif">Set</span> ≤ <span style="font-style:italic">i</span>.
+This minimization process is applied only to fresh universe
+variables. It simply adds an equation between the variable and its lower
+bound if it is an atomic universe (i.e. not an algebraic <span style="font-family:monospace">max()</span>
+universe).</p><p>The option <span style="font-family:monospace">Unset Universe Minimization ToSet</span> disallows
+minimization to the sort <span style="font-family:sans-serif">Set</span> and only collapses floating universes
+between themselves.</p>
+<h2 id="sec890" class="section">29.7  Explicit Universes</h2>
+<p>The syntax has been extended to allow users to explicitly bind names to
+universes and explicitly instantiate polymorphic definitions.</p>
+<h3 id="UniverseCmd" class="subsection">29.7.1  <span style="font-family:monospace">Universe </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">.
+</span><a id="hevea_default1156"></a><a id="hevea_command312"></a><span style="font-family:monospace">
+</span></h3>
+<p>In the monorphic case, this command declares a new global universe named
+<span style="font-style:oblique">ident</span>. It supports the polymorphic flag only in sections, meaning the
+universe quantification will be discharged on each section definition
+independently. One cannot mix polymorphic and monomorphic declarations
+in the same section.</p>
+<h3 id="ConstraintCmd" class="subsection">29.7.2  <span style="font-family:monospace">Constraint </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-family:monospace"><span style="font-style:italic">ord</span></span><span style="font-family:monospace"> </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">.
+</span><a id="hevea_default1157"></a><a id="hevea_command313"></a><span style="font-family:monospace">
+</span></h3>
+<p>This command declares a new constraint between named universes.
+The order relation can be one of &lt;, ≤ or =. If consistent, 
+the constraint is then enforced in the global environment. Like
+<span style="font-family:monospace">Universe</span>, it can be used with the <span style="font-family:monospace">Polymorphic</span> prefix
+in sections only to declare constraints discharged at section closing time.
+One cannot declare a global constraint on polymorphic universes.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Undeclared universe </span><span style="font-style:oblique">ident</span><a id="hevea_error174"></a>.
+</li><li class="li-enumerate"><span style="font-family:monospace">Universe inconsistency</span><a id="hevea_error175"></a>
+</li></ol>
+<h3 id="sec893" class="subsection">29.7.3  Polymorphic definitions</h3>
+<p>
+For polymorphic definitions, the declaration of (all) universe levels
+introduced by a definition uses the following syntax:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Polymorphic Definition le@{i j} (A : Type@{i}) : Type@{j} := A.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print le.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">le@{i j} = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fun A : Type@{i} =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> A</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{i} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{j}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* i j |= i </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= j</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">           *)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">le is universe polymorphic</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scope is [type</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope]</span></span></span><span style="font-size:small"><br>
+</span></div><p>During refinement we find that <span style="font-style:italic">j</span> must be larger or equal than <span style="font-style:italic">i</span>, as
+we are using <span style="font-style:italic">A</span> : <span style="font-style:italic">Type</span>@<span style="font-style:italic">i</span> &lt;= <span style="font-style:italic">Type</span>@<span style="font-style:italic">j</span>, hence the generated
+constraint. At the end of a definition or proof, we check that the only
+remaining universes are the ones declared. In the term and in general in
+proof mode, introduced universe names can be referred to in
+terms. Note that local universe names shadow global universe names.
+During a proof, one can use <span style="font-family:monospace">Show Universes</span> to display
+the current context of universes.</p><p>Definitions can also be instantiated explicitly, giving their full instance:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (pidentity@{Set}).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">pidentity@{Set}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : ?A -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> ?A</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">where</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">?A : [ |- Set] </span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Universes k l.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (le@{k l}).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">le@{k l}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{k} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{l}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(*  |= k </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= l</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">        *)</span></span></span><span style="font-size:small"><br>
+</span></div><p>User-named universes and the anonymous universe implicitly attached to
+an explicit <span style="font-style:italic">Type</span> are considered rigid for unification and are never
+minimized. Flexible anonymous universes can be produced with an
+underscore or by omitting the annotation to a polymorphic definition.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Check (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x) : Type -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(fun x : Type@{Top.48} =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x) : Type@{Top.48} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.49}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{Top.48} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.49}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.48 Top.49 |= Top.48 </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">= Top.49</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">                     *)</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Check (fun x =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x) : Type -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type@{</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">}.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(fun x : Type@{Top.50} =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x) : Type@{Top.50} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.50}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{Top.50} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.50}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.50 |=  *)</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Check le@{k </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">}.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">le@{k k}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{k} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{k}</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Check le.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">le@{Top.53 Top.53}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Type@{Top.53} -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type@{Top.53}</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(* Top.53 |=  *)</span></span></span><span style="font-size:small"><br>
+</span></div>
+<h3 id="StrictUniverseDeclaration" class="subsection">29.7.4  <span style="font-family:monospace">Unset Strict Universe Declaration.
+</span><a id="hevea_default1158"></a><a id="hevea_option118"></a><span style="font-family:monospace">
+</span></h3>
+<p>The command <span style="font-family:monospace">Unset Strict Universe Declaration</span> allows one to
+freely use identifiers for universes without declaring them first, with
+the semantics that the first use declares it. In this mode, the universe
+names are not associated with the definition or proof once it has been
+defined. This is meant mainly for debugging purposes.</p>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 18  Implicit Coercions</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec654" class="chapter">Chapter 18  Implicit Coercions</h1>
+<ul>
+<li><a href="Reference-Manual021.html#sec655">18.1  General Presentation</a>
+</li><li><a href="Reference-Manual021.html#sec656">18.2  Classes</a>
+</li><li><a href="Reference-Manual021.html#sec657">18.3  Coercions</a>
+</li><li><a href="Reference-Manual021.html#sec658">18.4  Identity Coercions</a>
+</li><li><a href="Reference-Manual021.html#sec659">18.5  Inheritance Graph</a>
+</li><li><a href="Reference-Manual021.html#sec660">18.6  Declaration of Coercions</a>
+</li><li><a href="Reference-Manual021.html#sec663">18.7  Displaying Available Coercions</a>
+</li><li><a href="Reference-Manual021.html#sec668">18.8  Activating the Printing of Coercions</a>
+</li><li><a href="Reference-Manual021.html#sec671">18.9  Classes as Records</a>
+</li><li><a href="Reference-Manual021.html#sec672">18.10  Coercions and Sections</a>
+</li><li><a href="Reference-Manual021.html#sec673">18.11  Coercions and Modules</a>
+</li><li><a href="Reference-Manual021.html#sec674">18.12  Examples</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Amokrane Saïbi</span></span> <br>
+<br>
+</p><p><a id="Coercions-full"></a>
+<a id="hevea_default917"></a></p>
+<h2 id="sec655" class="section">18.1  General Presentation</h2>
+<p>This section describes the inheritance mechanism of <span style="font-variant:small-caps">Coq</span>. In <span style="font-variant:small-caps">Coq</span> with
+inheritance, we are not interested in adding any expressive power to
+our theory, but only convenience. Given a term, possibly not typable,
+we are interested in the problem of determining if it can be well
+typed modulo insertion of appropriate coercions. We allow to write:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-style:italic">f</span> <span style="font-style:italic">a</span> where <span style="font-style:italic">f</span>:<span style="font-style:italic">forall</span>  <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>, <span style="font-style:italic">B</span> and <span style="font-style:italic">a</span>:<span style="font-style:italic">A</span>′ when <span style="font-style:italic">A</span>′ can 
+be seen in some sense as a subtype of <span style="font-style:italic">A</span>.
+</li><li class="li-itemize"><span style="font-style:italic">x</span>:<span style="font-style:italic">A</span> when <span style="font-style:italic">A</span> is not a type, but can be seen in 
+a certain sense as a type: set, group, category etc.
+</li><li class="li-itemize"><span style="font-style:italic">f</span> <span style="font-style:italic">a</span> when <span style="font-style:italic">f</span> is not a function, but can be seen in a certain sense
+as a function: bijection, functor, any structure morphism etc.
+</li></ul>
+<h2 id="sec656" class="section">18.2  Classes</h2>
+<p>
+<a id="hevea_default918"></a>
+A class with <span style="font-style:italic">n</span> parameters is any defined name with a type
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">A</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>:<span style="font-style:italic">A</span><sub><span style="font-style:italic">n</span></sub>), <span style="font-style:italic">s</span> where <span style="font-style:italic">s</span> is a sort. Thus a class with
+parameters is considered as a single class and not as a family of
+classes. An object of a class <span style="font-style:italic">C</span> is any term of type <span style="font-style:italic">C</span> <span style="font-style:italic">t</span><sub>1</sub>
+.. <span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub>. In addition to these user-classes, we have two abstract
+classes:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">Sortclass</span>, the class of sorts; 
+its objects are the terms whose type is a sort.
+</li><li class="li-itemize"><span style="font-family:monospace">Funclass</span>, the class of functions; 
+its objects are all the terms with a functional 
+type, i.e. of form <span style="font-style:italic">forall</span>  <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>, <span style="font-style:italic">B</span>.
+</li></ul><p>Formally, the syntax of a classes is defined on Figure <a href="#fig%3Aclasses">18.1</a>.
+</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">class</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">qualid</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Sortclass</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Funclass</span> 
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 18.1: Syntax of classes</td></tr>
+</table></div>
+<a id="fig:classes"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote>
+<h2 id="sec657" class="section">18.3  Coercions</h2>
+<p>
+<a id="hevea_default919"></a>
+<a id="hevea_default920"></a>
+A name <span style="font-style:italic">f</span> can be declared as a coercion between a source user-class
+<span style="font-style:italic">C</span> with <span style="font-style:italic">n</span> parameters and a target class <span style="font-style:italic">D</span> if one of these
+conditions holds:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-style:italic">D</span> is a user-class, then the type of <span style="font-style:italic">f</span> must have the form
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub> : <span style="font-style:italic">A</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> : <span style="font-style:italic">A</span><sub><span style="font-style:italic">n</span></sub>)(<span style="font-style:italic">y</span>: <span style="font-style:italic">C</span> <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>), <span style="font-style:italic">D</span> <span style="font-style:italic">u</span><sub>1</sub>..<span style="font-style:italic">u</span><sub><span style="font-style:italic">m</span></sub> where <span style="font-style:italic">m</span>
+is the number of parameters of <span style="font-style:italic">D</span>.
+</li><li class="li-itemize"><span style="font-style:italic">D</span> is <span style="font-family:monospace">Funclass</span>, then the type of <span style="font-style:italic">f</span> must have the form
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub>: <span style="font-style:italic">A</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>: <span style="font-style:italic">A</span><sub><span style="font-style:italic">n</span></sub>)(<span style="font-style:italic">y</span>: <span style="font-style:italic">C</span> <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>)(<span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>), <span style="font-style:italic">B</span>. 
+</li><li class="li-itemize"><span style="font-style:italic">D</span> is <span style="font-family:monospace">Sortclass</span>, then the type of <span style="font-style:italic">f</span> must have the form
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub>: <span style="font-style:italic">A</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>: <span style="font-style:italic">A</span><sub><span style="font-style:italic">n</span></sub>)(<span style="font-style:italic">y</span>: <span style="font-style:italic">C</span> <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>), <span style="font-style:italic">s</span> with <span style="font-style:italic">s</span> a sort. 
+</li></ul><p>We then write <span style="font-style:italic">f</span>:<span style="font-style:italic">C</span> <span style="font-family:monospace">&gt;-&gt;</span> <span style="font-style:italic">D</span>. The restriction on the type
+of coercions is called <em>the uniform inheritance condition</em>.
+Remark that the abstract classes <span style="font-family:monospace">Funclass</span> and <span style="font-family:monospace">Sortclass</span>
+cannot be source classes.</p><p>To coerce an object <span style="font-style:italic">t</span>:<span style="font-style:italic">C</span> <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub> of <span style="font-style:italic">C</span> towards <span style="font-style:italic">D</span>, we have to
+apply the coercion <span style="font-style:italic">f</span> to it; the obtained term <span style="font-style:italic">f</span> <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">n</span></sub> <span style="font-style:italic">t</span> is
+then an object of <span style="font-style:italic">D</span>.</p>
+<h2 id="sec658" class="section">18.4  Identity Coercions</h2>
+<p>
+<a id="hevea_default921"></a></p><p>Identity coercions are special cases of coercions used to go around
+the uniform inheritance condition. Let <span style="font-style:italic">C</span> and <span style="font-style:italic">D</span> be two classes
+with respectively <span style="font-style:italic">n</span> and <span style="font-style:italic">m</span> parameters and
+<span style="font-style:italic">f</span>:<span style="font-style:italic">forall</span> (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>)(<span style="font-style:italic">y</span>:<span style="font-style:italic">C</span> <span style="font-style:italic">u</span><sub>1</sub>..<span style="font-style:italic">u</span><sub><span style="font-style:italic">n</span></sub>), <span style="font-style:italic">D</span> <span style="font-style:italic">v</span><sub>1</sub>..<span style="font-style:italic">v</span><sub><span style="font-style:italic">m</span></sub> a function which
+does not verify the uniform inheritance condition. To declare <span style="font-style:italic">f</span> as
+coercion, one has first to declare a subclass <span style="font-style:italic">C</span>′ of <span style="font-style:italic">C</span>:</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-style:italic">C</span>′ := <span style="font-style:italic">fun</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>) =&gt; <span style="font-style:italic">C</span> <span style="font-style:italic">u</span><sub>1</sub>..<span style="font-style:italic">u</span><sub><span style="font-style:italic">n</span></sub></td></tr>
+</table><p>We then define an <em>identity coercion</em> between <span style="font-style:italic">C</span>′ and <span style="font-style:italic">C</span>:
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span style="font-style:italic">Id</span>_<span style="font-style:italic">C</span>′_<span style="font-style:italic">C</span></td><td style="text-align:center;white-space:nowrap" >:=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">fun</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>)(<span style="font-style:italic">y</span>:<span style="font-style:italic">C</span>′ <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>) =&gt; (<span style="font-style:italic">y</span>:<span style="font-style:italic">C</span> <span style="font-style:italic">u</span><sub>1</sub>..<span style="font-style:italic">u</span><sub><span style="font-style:italic">n</span></sub>)</td></tr>
+</table></td></tr>
+</table><p>We can now declare <span style="font-style:italic">f</span> as coercion from <span style="font-style:italic">C</span>′ to <span style="font-style:italic">D</span>, since we can
+“cast” its type as
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">k</span></sub>)(<span style="font-style:italic">y</span>:<span style="font-style:italic">C</span>′ <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">k</span></sub>),<span style="font-style:italic">D</span> <span style="font-style:italic">v</span><sub>1</sub>..<span style="font-style:italic">v</span><sub><span style="font-style:italic">m</span></sub>.<br>
+The identity
+coercions have a special status: to coerce an object <span style="font-style:italic">t</span>:<span style="font-style:italic">C</span>′ <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">k</span></sub>
+of <span style="font-style:italic">C</span>′ towards <span style="font-style:italic">C</span>, we does not have to insert explicitly <span style="font-style:italic">Id</span>_<span style="font-style:italic">C</span>′_<span style="font-style:italic">C</span>
+since <span style="font-style:italic">Id</span>_<span style="font-style:italic">C</span>′_<span style="font-style:italic">C</span> <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">k</span></sub> <span style="font-style:italic">t</span> is convertible with <span style="font-style:italic">t</span>. However we
+“rewrite” the type of <span style="font-style:italic">t</span> to become an object of <span style="font-style:italic">C</span>; in this case,
+it becomes <span style="font-style:italic">C</span> <span style="font-style:italic">u</span><sub>1</sub><sup>*</sup>..<span style="font-style:italic">u</span><sub><span style="font-style:italic">k</span></sub><sup>*</sup> where each <span style="font-style:italic">u</span><sub><span style="font-style:italic">i</span></sub><sup>*</sup> is the result of the
+substitution in <span style="font-style:italic">u</span><sub><span style="font-style:italic">i</span></sub> of the variables <span style="font-style:italic">x</span><sub><span style="font-style:italic">j</span></sub> by <span style="font-style:italic">t</span><sub><span style="font-style:italic">j</span></sub>.</p>
+<h2 id="sec659" class="section">18.5  Inheritance Graph</h2>
+<p>
+<a id="hevea_default922"></a>
+Coercions form an inheritance graph with classes as nodes. We call
+<em>coercion path</em> an ordered list of coercions between two nodes of
+the graph. A class <span style="font-style:italic">C</span> is said to be a subclass of <span style="font-style:italic">D</span> if there is a
+coercion path in the graph from <span style="font-style:italic">C</span> to <span style="font-style:italic">D</span>; we also say that <span style="font-style:italic">C</span>
+inherits from <span style="font-style:italic">D</span>. Our mechanism supports multiple inheritance since a
+class may inherit from several classes, contrary to simple inheritance
+where a class inherits from at most one class. However there must be
+at most one path between two classes. If this is not the case, only
+the <em>oldest</em> one is valid and the others are ignored. So the order
+of declaration of coercions is important.</p><p>We extend notations for coercions to coercion paths. For instance
+[<span style="font-style:italic">f</span><sub>1</sub>;..;<span style="font-style:italic">f</span><sub><span style="font-style:italic">k</span></sub>]:<span style="font-style:italic">C</span> <span style="font-family:monospace">&gt;-&gt;</span> <span style="font-style:italic">D</span> is the coercion path composed
+by the coercions <span style="font-style:italic">f</span><sub>1</sub>..<span style="font-style:italic">f</span><sub><span style="font-style:italic">k</span></sub>. The application of a coercion path to a
+term consists of the successive application of its coercions.</p>
+<h2 id="sec660" class="section">18.6  Declaration of Coercions</h2>
+<h3 id="sec661" class="subsection">18.6.1  <span style="font-family:monospace">Coercion </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> : </span><span style="font-style:oblique">class</span><sub>1</sub><span style="font-family:monospace"> &gt;-&gt; </span><span style="font-style:oblique">class</span><sub>2</sub><span style="font-family:monospace">.</span></h3>
+<p>
+<a id="hevea_default923"></a><a id="hevea_command239"></a></p><p>Declares the construction denoted by <span style="font-style:oblique">qualid</span> as a coercion between
+<span style="font-style:oblique">class</span><sub>1</sub> and <span style="font-style:oblique">class</span><sub>2</sub>.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-style:oblique">qualid</span> <span style="font-family:monospace">not declared</span><a id="hevea_error141"></a>
+</li><li class="li-enumerate"><span style="font-style:oblique">qualid</span> <span style="font-family:monospace">is already a coercion</span><a id="hevea_error142"></a>
+</li><li class="li-enumerate"><span style="font-family:monospace">Funclass cannot be a source class</span><a id="hevea_error143"></a>
+</li><li class="li-enumerate"><span style="font-family:monospace">Sortclass cannot be a source class</span><a id="hevea_error144"></a>
+</li><li class="li-enumerate"><span style="font-style:oblique">qualid</span> <span style="font-family:monospace">is not a function</span><a id="hevea_error145"></a>
+</li><li class="li-enumerate"><span style="font-family:monospace">Cannot find the source class of </span><span style="font-style:oblique">qualid</span><a id="hevea_error146"></a>
+</li><li class="li-enumerate"><span style="font-family:monospace">Cannot recognize </span><span style="font-style:oblique">class</span><sub>1</sub><span style="font-family:monospace"> as a source class of </span><span style="font-style:oblique">qualid</span><a id="hevea_error147"></a>
+</li><li class="li-enumerate"><span style="font-style:oblique">qualid</span> <span style="font-family:monospace">does not respect the uniform inheritance condition</span><a id="hevea_error148"></a>
+</li><li class="li-enumerate"><span style="font-family:monospace">Found target class </span><span style="font-style:oblique">class</span><span style="font-family:monospace"> instead of </span><span style="font-style:oblique">class</span><sub>2</sub><a id="hevea_error149"></a></li></ol><p>When the coercion <span style="font-style:oblique">qualid</span> is added to the inheritance graph, non
+valid coercion paths are ignored; they are signaled by a warning.
+<br>
+<span style="font-weight:bold">Warning :</span>
+</p><ol class="enumerate" type=1><li class="li-enumerate">
+<table style="border:0;border-spacing:0" class="cellpadding0"><tr><td style="text-align:left;white-space:nowrap" >
+<span style="font-family:monospace">Ambiguous paths: </span></td><td style="text-align:left;white-space:nowrap" >[<span style="font-style:italic">f</span><sub>1</sub><sup>1</sup>;..;<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span><sub>1</sub></sub><sup>1</sup>] : <span style="font-style:italic">C</span><sub>1</sub><span style="font-family:monospace">&gt;-&gt;</span><span style="font-style:italic">D</span><sub>1</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > </td><td style="text-align:left;white-space:nowrap" >… </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > </td><td style="text-align:left;white-space:nowrap" >[<span style="font-style:italic">f</span><sub>1</sub><sup><span style="font-style:italic">m</span></sup>;..;<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span><sub><span style="font-style:italic">m</span></sub></sub><sup><span style="font-style:italic">m</span></sup>] : <span style="font-style:italic">C</span><sub><span style="font-style:italic">m</span></sub><span style="font-family:monospace">&gt;-&gt;</span><span style="font-style:italic">D</span><sub><span style="font-style:italic">m</span></sub>
+</td></tr>
+</table>
+</li></ol><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Local Coercion </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace"> : </span><span style="font-style:oblique">class</span><sub>1</sub><span style="font-family:monospace"> &gt;-&gt; </span><span style="font-style:oblique">class</span><sub>2</sub><span style="font-family:monospace">.</span>
+<a id="hevea_default924"></a><a id="hevea_command240"></a><br>
+ Declares the construction denoted by <span style="font-style:oblique">qualid</span> as a coercion local to
+the current section.</li><li class="li-enumerate"><span style="font-family:monospace">Coercion </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">term</span><a id="hevea_default925"></a><a id="hevea_command241"></a><br>
+ This defines <span style="font-style:oblique">ident</span> just like <span style="font-family:monospace">Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> :=
+</span><span style="font-style:oblique">term</span>, and then declares <span style="font-style:oblique">ident</span> as a coercion between it
+source and its target.</li><li class="li-enumerate"><span style="font-family:monospace">Coercion </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">term</span><span style="font-family:monospace"> : </span><span style="font-style:oblique">type</span><br>
+ This defines <span style="font-style:oblique">ident</span> just like 
+<span style="font-family:monospace">Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> : </span><span style="font-style:oblique">type</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">term</span>, and then
+declares <span style="font-style:oblique">ident</span> as a coercion between it source and its target. </li><li class="li-enumerate"><span style="font-family:monospace">Local Coercion </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">term</span><a id="hevea_default926"></a><a id="hevea_command242"></a><br>
+ This defines <span style="font-style:oblique">ident</span> just like <span style="font-family:monospace">Let </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> :=
+</span><span style="font-style:oblique">term</span>, and then declares <span style="font-style:oblique">ident</span> as a coercion between it
+source and its target.</li><li class="li-enumerate">Assumptions can be declared as coercions at declaration
+time. This extends the grammar of assumptions from 
+Figure <a href="Reference-Manual003.html#sentences-syntax">1.3</a> as follows:
+<a id="hevea_default927"></a><a id="hevea_command243"></a>
+<a id="hevea_default928"></a><a id="hevea_command244"></a>
+<a id="hevea_default929"></a><a id="hevea_command245"></a>
+<a id="hevea_default930"></a><a id="hevea_command246"></a><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">assumption</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">assumption_keyword</span> <span style="font-style:oblique">assums</span> <span style="font-family:monospace">.</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">assums</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">simple_assums</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(</span> <span style="font-style:oblique">simple_assums</span><span style="font-family:monospace">)</span>  …  <span style="font-family:monospace">(</span> <span style="font-style:oblique">simple_assums</span><span style="font-family:monospace">)</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">simple_assums</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ident</span>  …  <span style="font-style:oblique">ident</span> <span style="font-family:monospace">:</span><span style="font-style:oblique">[</span><span style="font-family:monospace">&gt;</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">term</span></td></tr>
+</table><p>If the extra <span style="font-family:monospace">&gt;</span> is present before the type of some assumptions, these
+assumptions are declared as coercions.</p></li><li class="li-enumerate">Constructors of inductive types can be declared as coercions at
+definition time of the inductive type. This extends and modifies the
+grammar of inductive types from Figure <a href="Reference-Manual003.html#sentences-syntax">1.3</a> as follows: 
+<a id="hevea_default931"></a><a id="hevea_command247"></a>
+<a id="hevea_default932"></a><a id="hevea_command248"></a><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">inductive</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-family:monospace">Inductive</span> <span style="font-style:oblique">ind_body</span> <span style="font-family:monospace">with</span> … <span style="font-family:monospace">with</span> <span style="font-style:oblique">ind_body</span> <span style="font-family:monospace">.</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">CoInductive</span> <span style="font-style:oblique">ind_body</span> <span style="font-family:monospace">with</span> … <span style="font-family:monospace">with</span> <span style="font-style:oblique">ind_body</span> <span style="font-family:monospace">.</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ind_body</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">ident</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">binders</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">term</span> <span style="font-family:monospace">:=</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >   <span style="font-style:oblique">[</span><span style="font-style:oblique">[</span><span style="font-family:monospace">|</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span><span style="font-style:oblique">constructor</span><span style="font-family:monospace"> </span><span style="font-family:monospace">|</span><span style="font-family:monospace"> </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> </span><span style="font-family:monospace">|</span><span style="font-family:monospace"> </span><span style="font-style:oblique">constructor</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">constructor</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ident</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">binders</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">[</span><span style="font-family:monospace">:</span><span style="font-style:oblique">[</span><span style="font-family:monospace">&gt;</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span></td></tr>
+</table>
+</div><p>Especially, if the extra <span style="font-family:monospace">&gt;</span> is present in a constructor
+declaration, this constructor is declared as a coercion.
+</p></li></ol>
+<h3 id="sec662" class="subsection">18.6.2  <span style="font-family:monospace">Identity Coercion </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">:</span><span style="font-style:oblique">class</span><sub>1</sub><span style="font-family:monospace"> &gt;-&gt; </span><span style="font-style:oblique">class</span><sub>2</sub><span style="font-family:monospace">.</span></h3>
+<p> 
+<a id="hevea_default933"></a><a id="hevea_command249"></a></p><p>We check that <span style="font-style:oblique">class</span><sub>1</sub> is a constant with a value of the form
+<span style="font-style:italic">fun</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub>) =&gt; (<span style="font-style:oblique">class</span><sub>2</sub> <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub>) where <span style="font-style:italic">m</span> is the
+number of parameters of <span style="font-style:oblique">class</span><sub>2</sub>. Then we define an identity
+function with the type
+<span style="font-style:italic">forall</span>  (<span style="font-style:italic">x</span><sub>1</sub>:<span style="font-style:italic">T</span><sub>1</sub>)..(<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>:<span style="font-style:italic">T</span><sub><span style="font-style:italic">n</span></sub>)(<span style="font-style:italic">y</span>:<span style="font-style:oblique">class</span><sub>1</sub> <span style="font-style:italic">x</span><sub>1</sub>..<span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub>),
+<span style="font-style:oblique">class</span><sub>2</sub> <span style="font-style:italic">t</span><sub>1</sub>..<span style="font-style:italic">t</span><sub><span style="font-style:italic">m</span></sub>, and we declare it as an identity
+coercion between <span style="font-style:oblique">class</span><sub>1</sub> and <span style="font-style:oblique">class</span><sub>2</sub>.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-style:oblique">class</span><sub>1</sub> <span style="font-family:monospace">must be a transparent constant</span><a id="hevea_error150"></a> 
+</li></ol><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Local Identity Coercion </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">:</span><span style="font-style:oblique">ident</span><sub>1</sub><span style="font-family:monospace"> &gt;-&gt; </span><span style="font-style:oblique">ident</span><sub>2</sub><span style="font-family:monospace">.</span> <br>
+Idem but locally to the current section.</li><li class="li-enumerate"><span style="font-family:monospace">SubClass </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">type</span><span style="font-family:monospace">.</span> <br>
+<a id="hevea_default934"></a><a id="hevea_command250"></a>
+If <span style="font-style:oblique">type</span> is a class
+<span style="font-style:oblique">ident</span>’ applied to some arguments then <span style="font-style:oblique">ident</span> is defined and an
+identity coercion of name <span style="font-family:monospace">Id_</span><span style="font-style:oblique">ident</span><span style="font-family:monospace">_</span><span style="font-style:oblique">ident</span><span style="font-family:monospace">’</span> is
+declared. Otherwise said, this is an abbreviation for <p><span style="font-family:monospace">Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">type</span><span style="font-family:monospace">.</span> </p><p>followed by</p><p><span style="font-family:monospace">Identity Coercion Id_</span><span style="font-style:oblique">ident</span><span style="font-family:monospace">_</span><span style="font-style:oblique">ident</span><span style="font-family:monospace">’</span><span style="font-family:monospace">:</span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> &gt;-&gt; </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">’</span>.</p></li><li class="li-enumerate"><span style="font-family:monospace">Local SubClass </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">type</span><span style="font-family:monospace">.</span> <br>
+Same as before but locally to the current section.</li></ol>
+<h2 id="sec663" class="section">18.7  Displaying Available Coercions</h2>
+<h3 id="sec664" class="subsection">18.7.1  <span style="font-family:monospace">Print Classes.</span></h3>
+<p> 
+<a id="hevea_default935"></a><a id="hevea_command251"></a>
+Print the list of declared classes in the current context.</p>
+<h3 id="sec665" class="subsection">18.7.2  <span style="font-family:monospace">Print Coercions.</span></h3>
+<p>
+<a id="hevea_default936"></a><a id="hevea_command252"></a>
+Print the list of declared coercions in the current context.</p>
+<h3 id="sec666" class="subsection">18.7.3  <span style="font-family:monospace">Print Graph.</span></h3>
+<p> 
+<a id="hevea_default937"></a><a id="hevea_command253"></a>
+Print the list of valid coercion paths in the current context.</p>
+<h3 id="sec667" class="subsection">18.7.4  <span style="font-family:monospace">Print Coercion Paths </span><span style="font-style:oblique">class</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-style:oblique">class</span><sub>2</sub><span style="font-family:monospace">.</span></h3>
+<p> 
+<a id="hevea_default938"></a><a id="hevea_command254"></a>
+Print the list of valid coercion paths from <span style="font-style:oblique">class</span><sub>1</sub> to <span style="font-style:oblique">class</span><sub>2</sub>.</p>
+<h2 id="sec668" class="section">18.8  Activating the Printing of Coercions</h2>
+<h3 id="sec669" class="subsection">18.8.1  <span style="font-family:monospace">Set Printing Coercions.</span></h3>
+<p>
+<a id="hevea_default939"></a><a id="hevea_option54"></a></p><p>This command forces all the coercions to be printed.
+Conversely, to skip the printing of coercions, use
+<span style="font-family:monospace">Unset Printing Coercions</span>.
+By default, coercions are not printed.</p>
+<h3 id="sec670" class="subsection">18.8.2  <span style="font-family:monospace">Add Printing Coercion </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace">.</span></h3>
+<p>
+<a id="hevea_default940"></a><a id="hevea_command255"></a>
+<a id="hevea_default941"></a><a id="hevea_command256"></a></p><p>This command forces coercion denoted by <span style="font-style:oblique">qualid</span> to be printed.
+To skip the printing of coercion <span style="font-style:oblique">qualid</span>, use
+<span style="font-family:monospace">Remove Printing Coercion </span><span style="font-style:oblique">qualid</span>.
+By default, a coercion is never printed.</p>
+<h2 id="sec671" class="section">18.9  Classes as Records</h2>
+<p>
+<a id="Coercions-and-records"></a>
+<a id="hevea_default942"></a>
+We allow the definition of <em>Structures with Inheritance</em> (or
+classes as records) by extending the existing <span style="font-family:monospace">Record</span> macro
+(see Section <a href="Reference-Manual004.html#Record">2.1</a>). Its new syntax is:</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Record </span><span style="font-family:monospace"><span style="font-style:oblique">[</span></span><span style="font-family:monospace">&gt;</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-family:monospace"><span style="font-style:oblique">[</span></span><span style="font-style:oblique">binders</span><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> : </span><span style="font-style:oblique">sort</span><span style="font-family:monospace"> := </span><span style="font-family:monospace"><span style="font-style:oblique">[</span></span><span style="font-style:oblique">ident</span><sub>0</sub><span style="font-family:monospace"><span style="font-style:oblique">]</span></span><span style="font-family:monospace"> </span><code><span style="font-family:monospace">{</span></code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >    <table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">ident</span><sub>1</sub><span style="font-family:monospace"> </span>[<span style="font-family:monospace">:</span>|<span style="font-family:monospace">:&gt;</span>]<span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> ;</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > ... </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace"> </span>[<span style="font-family:monospace">:</span>|<span style="font-family:monospace">:&gt;</span>]<span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace"> </span><code><span style="font-family:monospace">}</span></code><span style="font-family:monospace">. </span>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</div><p>
+The identifier <span style="font-style:oblique">ident</span> is the name of the defined record and <span style="font-style:oblique">sort</span>
+is its type. The identifier <span style="font-style:oblique">ident</span><sub>0</sub> is the name of its
+constructor. The identifiers <span style="font-style:oblique">ident</span><sub>1</sub>, .., <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> are the
+names of its fields and <span style="font-style:oblique">term</span><sub>1</sub>, .., <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub> their respective
+types. The alternative [<span style="font-family:monospace">:</span>|<span style="font-family:monospace">:&gt;</span>] is “<span style="font-family:monospace">:</span>” or “<span style="font-family:monospace">:&gt;</span>”. If <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub><span style="font-family:monospace">:&gt;</span><span style="font-style:oblique">term</span><sub><span style="font-style:italic">i</span></sub>, then <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub> is
+automatically declared as coercion from <span style="font-style:oblique">ident</span> to the class of
+<span style="font-style:oblique">term</span><sub><span style="font-style:italic">i</span></sub>. Remark that <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub> always verifies the uniform
+inheritance condition. If the optional “<span style="font-family:monospace">&gt;</span>” before <span style="font-style:oblique">ident</span> is
+present, then <span style="font-style:oblique">ident</span><sub>0</sub> (or the default name <span style="font-family:monospace">Build_</span><span style="font-style:oblique">ident</span>
+if <span style="font-style:oblique">ident</span><sub>0</sub> is omitted) is automatically declared as a coercion
+from the class of <span style="font-style:oblique">term</span><sub><span style="font-style:italic">n</span></sub> to <span style="font-style:oblique">ident</span> (this may fail if the
+uniform inheritance condition is not satisfied).</p><p><br>
+<span style="font-weight:bold">Remark: </span>The keyword <span style="font-family:monospace">Structure</span><a id="hevea_default943"></a><a id="hevea_command257"></a> is a synonym of <span style="font-family:monospace">Record</span>.</p>
+<h2 id="sec672" class="section">18.10  Coercions and Sections</h2>
+<p>
+<a id="hevea_default944"></a>
+The inheritance mechanism is compatible with the section
+mechanism. The global classes and coercions defined inside a section
+are redefined after its closing, using their new value and new
+type. The classes and coercions which are local to the section are
+simply forgotten.
+Coercions with a local source class or a local target class, and 
+coercions which do not verify the uniform inheritance condition any longer
+are also forgotten.</p>
+<h2 id="sec673" class="section">18.11  Coercions and Modules</h2>
+<p>
+<a id="hevea_default945"></a></p><p>From Coq version 8.3, the coercions present in a module are activated
+only when the module is explicitly imported. Formerly, the coercions
+were activated as soon as the module was required, whatever it was
+imported or not.</p><p>To recover the behavior of the versions of Coq prior to 8.3, use the
+following command:</p><p><a id="hevea_default946"></a><a id="hevea_option55"></a>
+</p><pre class="verbatim">Set Automatic Coercions Import.
+</pre><p>To cancel the effect of the option, use instead:</p><pre class="verbatim">Unset Automatic Coercions Import.
+</pre>
+<h2 id="sec674" class="section">18.12  Examples</h2>
+<p>There are three situations:</p><ul class="itemize"><li class="li-itemize">
+<span style="font-style:italic">f</span> <span style="font-style:italic">a</span> is ill-typed where <span style="font-style:italic">f</span>:<span style="font-style:italic">forall</span> <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>,<span style="font-style:italic">B</span> and <span style="font-style:italic">a</span>:<span style="font-style:italic">A</span>′. If there is a
+coercion path between <span style="font-style:italic">A</span>′ and <span style="font-style:italic">A</span>, <span style="font-style:italic">f</span> <span style="font-style:italic">a</span> is transformed into
+<span style="font-style:italic">f</span> <span style="font-style:italic">a</span>′ where <span style="font-style:italic">a</span>′ is the result of the application of this
+coercion path to <span style="font-style:italic">a</span>.<p>We first give an example of coercion between atomic inductive types</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition bool</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">in</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">nat (b:bool) := if b then 0 else 1.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">bool</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">in</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">nat is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion bool</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">in</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">nat : bool </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">bool</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">in</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">nat is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (0 = true).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">0 = true</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (0 = true).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">0 = bool</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">in</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">nat true</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Prop</span></span></span><span style="font-size:small"><br>
+</span></div><p><br>
+<span style="font-weight:bold">Warning: </span>“<code>Check true=O.</code>” fails. This is “normal” behaviour of
+coercions. To validate <code>true=O</code>, the coercion is searched from
+<code>nat</code> to <code>bool</code>. There is none.</p><p>We give an example of coercion between classes with parameters.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameters</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">         (C : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set) (D : nat -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> bool -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set) (E : bool -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">C is assumed</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">D is assumed</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">E is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter f : forall n:nat, C n -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> D (S n) true.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">f is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion f : C </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> D.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">f is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter g : forall (n:nat) (b:bool), D n b -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> E b.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">g is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion g : D </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> E.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">g is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter c : C 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">c is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter T : E true -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">T is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (T c).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">T c</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (T c).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">T (g 1 true (f 0 c))</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>We give now an example using identity coercions.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Definition D</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> (b:bool) := D 1 b.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Identity Coercion IdD</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">D : D</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> D.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print IdD</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">D.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">IdD</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">D = </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(fun (b : bool) (x : D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> b) =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x) : forall b : bool, D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> b -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> D 1 b</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : forall b : bool, D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> b -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> D 1 b</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Argument scopes are [bool</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">scope </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">]</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter d</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> : D</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> true.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">d</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (T d</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">T d</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (T d</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">T (g 1 true d</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>In the case of functional arguments, we use the monotonic rule of
+sub-typing. Approximatively, to coerce <span style="font-style:italic">t</span>:<span style="font-style:italic">forall</span> <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>, <span style="font-style:italic">B</span> towards
+<span style="font-style:italic">forall</span> <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>′,<span style="font-style:italic">B</span>′, one have to coerce <span style="font-style:italic">A</span>′ towards <span style="font-style:italic">A</span> and <span style="font-style:italic">B</span> towards
+<span style="font-style:italic">B</span>′. An example is given below:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameters (A B : Set) (h : A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> B).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">A is assumed</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">B is assumed</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">h is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion h : A </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> B.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">h is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter U : (A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> E true) -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter t : B -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> C 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">t is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (U t).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U (fun x : A =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> t x)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (U t).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U (fun x : A =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> g 1 true (f 0 (t (h x))))</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>Remark the changes in the result following the modification of the
+previous example.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter U</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> : (C 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> B) -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> nat.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter t</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> : E true -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> A.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">t</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (U</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> t</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (fun x : C 0 =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> t</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (U</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace"> t</span></span><span style="font-size:small"><span style="font-family:monospace">'</span></span><span style="font-size:small"><span style="font-family:monospace">).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">U</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (fun x : C 0 =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> h (t</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (g 1 true (f 0 x))))</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div></li><li class="li-itemize">An assumption <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span> when <span style="font-style:italic">A</span> is not a type, is ill-typed. It is
+replaced by <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>′ where <span style="font-style:italic">A</span>′ is the result of the application
+to <span style="font-style:italic">A</span> of the coercion path between the class of <span style="font-style:italic">A</span> and <span style="font-family:monospace">Sortclass</span> if it exists. This case occurs in the abstraction
+<span style="font-style:italic">fun</span>  <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span> =&gt; <span style="font-style:italic">t</span>, universal quantification <span style="font-style:italic">forall</span> <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>, <span style="font-style:italic">B</span>,
+global variables and parameters of (co-)inductive definitions
+and functions. In <span style="font-style:italic">forall</span> <span style="font-style:italic">x</span>:<span style="font-style:italic">A</span>, <span style="font-style:italic">B</span>, such a coercion path may be
+applied to <span style="font-style:italic">B</span> also if necessary.<div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter Graph : Type.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Graph is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter Node : Graph -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Node is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion Node : Graph </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Sortclass.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Node is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter G : Graph.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">G is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter Arrows : G -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> G -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Type.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Arrows is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check Arrows.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Arrows</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : G -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> G -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Type</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter fg : G -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> G.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fg is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check fg.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fg</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : G -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> G</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check fg.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">fg</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : Node G -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Node G</span></span></span><span style="font-size:small"><br>
+</span></div></li><li class="li-itemize"><span style="font-style:italic">f</span> <span style="font-style:italic">a</span> is ill-typed because <span style="font-style:italic">f</span>:<span style="font-style:italic">A</span> is not a function. The term
+<span style="font-style:italic">f</span> is replaced by the term obtained by applying to <span style="font-style:italic">f</span> the
+coercion path between <span style="font-style:italic">A</span> and <span style="font-family:monospace">Funclass</span> if it exists.<div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter bij : Set -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">bij is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter ap : forall A B:Set, bij A B -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> A -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> B.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ap is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Coercion ap : bij </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">-</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Funclass.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ap is now a coercion</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Parameter b : bij nat nat.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">b is assumed</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (b 0).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">b 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Set Printing Coercions.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Check (b 0).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">ap nat nat b 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">     : nat</span></span></span><span style="font-size:small"><br>
+</span></div><p>Let us see the resulting graph of this session.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Print Graph.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[bool</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">in</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">_</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">nat] : bool </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[f] : C </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> D</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[f; g] : C </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> E</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[g] : D </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> E</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[IdD</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">D] : D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> D</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[IdD</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">D; g] : D</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">'</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> E</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[h] : A </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> B</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[Node] : Graph </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Sortclass</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">[ap] : bij </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">-</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> Funclass</span></span></span><span style="font-size:small"><br>
+</span></div></li></ul>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

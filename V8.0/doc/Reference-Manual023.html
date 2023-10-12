@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+The setoid_replace tactic
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual022.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="biblio.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc401">Chapter&nbsp;20</A>&nbsp;&nbsp;The <TT>setoid_replace</TT> tactic</H1>
+<FONT SIZE=5><B>Clément Renard</B></FONT> <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+
+<A NAME="setoid_replace"></A>
+<A NAME="@default734"></A><A NAME="@tactic144"></A><BR>
+<BR>
+This chapter presents the <TT>setoid_replace</TT> tactic.<BR>
+<BR>
+<A NAME="toc129"></A>
+<H2><A NAME="htoc402">20.1</A>&nbsp;&nbsp;Description of <TT>setoid_replace</TT></H2>
+Working on user-defined structures in <FONT COLOR=navy>Coq</FONT> is not very easy if
+Leibniz equality does not denote the intended equality. For example
+using lists to denote finite sets drive to difficulties since two
+non convertible terms can denote the same set.<BR>
+<BR>
+We present here a <FONT COLOR=navy>Coq</FONT> module, <TT>setoid_replace</TT>, which allows to
+structure and automate some parts of the work. In particular, if
+everything has been registered a simple
+tactic can do replacement just as if the two terms were equal.<BR>
+<BR>
+<A NAME="toc130"></A>
+<H2><A NAME="htoc403">20.2</A>&nbsp;&nbsp;Adding new setoid or morphisms</H2>
+Under the toplevel
+load the <TT>setoid_replace</TT> files with the command:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;&nbsp;&nbsp;Require&nbsp;Setoid.</TT><BR>
+</DIV>
+<BR>
+A setoid is just a type <CODE>A</CODE> and an equivalence relation on <CODE>A</CODE>.<BR>
+<BR>
+The specification of a setoid can be found in the file
+<BLOCKQUOTE>
+<PRE>
+theories/Setoids/Setoid.v
+</PRE></BLOCKQUOTE>
+It looks like :
+
+<DIV ALIGN=left>
+<PRE>
+Section Setoid.
+
+Variable A : Type.
+Variable Aeq : A -&gt; A -&gt; Prop.
+
+Record Setoid_Theory : Prop :=
+{ Seq_refl : (x:A) (Aeq x x);
+  Seq_sym : (x,y:A) (Aeq x y) -&gt; (Aeq y x);
+  Seq_trans : (x,y,z:A) (Aeq x y) -&gt; (Aeq y z) -&gt; (Aeq x z)
+}.
+</PRE></DIV>
+<BR>
+To define a setoid structure on <CODE>A</CODE>, you must provide a relation
+<CODE>Aeq</CODE> on <CODE>A</CODE> and prove that <CODE>Aeq</CODE> is an equivalence
+relation. That is, you have to define an object of type
+<CODE>(Setoid_Theory A Aeq)</CODE>.<BR>
+<BR>
+Finally to register a setoid the syntax is:<BR>
+<BR>
+<A NAME="@default735"></A><A NAME="@command231"></A>
+<BLOCKQUOTE>
+ <TT>Add Setoid</TT> <I> A Aeq ST</I>
+</BLOCKQUOTE>
+where <I>Aeq</I> is a term of type <TT>A-&gt;A-&gt;Prop</TT> and
+<I>ST</I> is a term of type 
+<TT>(Setoid_Theory </TT><I>A Aeq</I><TT>)</TT>.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not a valid setoid theory</TT><A NAME="@error135"></A>.<BR>
+That happens when the typing condition does not hold.
+<LI><TT>A Setoid Theory is already declared for <I>A</I></TT><A NAME="@error136"></A>.<BR>
+That happens when you try to declare a second setoid theory for the
+ same type.
+</OL>
+Currently, only one setoid structure
+may be declared for a given type.
+This allows automatic detection of the theory used to achieve the
+replacement.<BR>
+<BR>
+The table of setoid theories is compatible with the <FONT COLOR=navy>Coq</FONT> 
+sectioning mechanism. If you declare a setoid inside a section, the
+declaration will be thrown away when closing the section.
+And when you load a compiled file, all the <TT>Add Setoid</TT>
+commands of this file that are not inside a section will be loaded.<BR>
+<BR>
+<BR>
+<B>Warning: </B>Only the setoid on <TT>Prop</TT> is loaded by default with the
+<TT>setoid_replace</TT> module. The equivalence relation used is
+<TT>iff</TT> <I>i.e.</I> the logical equivalence.<BR>
+<BR>
+<A NAME="toc131"></A>
+<H2><A NAME="htoc404">20.3</A>&nbsp;&nbsp;Adding new morphisms</H2>
+A morphism is nothing else than a function compatible with the
+equivalence relation. 
+You can only replace a term by an equivalent in position of argument
+of a morphism. That's why each morphism has to be
+declared to the system, which will ask you to prove the accurate
+compatibility lemma.<BR>
+<BR>
+The syntax is the following :
+<A NAME="@default736"></A><A NAME="@command232"></A>
+<BLOCKQUOTE>
+ <TT>Add Morphism</TT> <I> f </I>:<I> ident</I>
+</BLOCKQUOTE>
+where f is the name of a term which type is a non dependent
+product (the term you want to declare as a morphism) and
+<I>ident</I> is a new identifier which will denote the
+compatibility lemma.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>The term </TT><I><FONT COLOR=maroon>term</FONT></I><TT> is already declared as a morphism</TT><A NAME="@error137"></A>
+<LI><TT>The term </TT><I><FONT COLOR=maroon>term</FONT></I><TT> is not a product</TT><A NAME="@error138"></A>
+<LI><TT>The term </TT><I><FONT COLOR=maroon>term</FONT></I><TT> should not be a dependent product</TT><A NAME="@error139"></A>
+</OL>
+The compatibility lemma generated depends on the setoids already
+declared.<BR>
+<BR>
+<A NAME="toc132"></A>
+<H2><A NAME="htoc405">20.4</A>&nbsp;&nbsp;The tactic itself</H2>
+<A NAME="@default737"></A><A NAME="@tactic145"></A>
+<A NAME="@default738"></A><A NAME="@tactic146"></A>
+After having registered all the setoids and morphisms you need, you can
+use the tactic called <TT>setoid_replace</TT>. The syntax is
+<BLOCKQUOTE>
+<TT>setoid_replace</TT> <I>term</I><SUB><FONT SIZE=2>1</FONT></SUB> with <I>term</I><SUB><FONT SIZE=2>2</FONT></SUB>
+</BLOCKQUOTE>
+The effect is similar to the one of <TT>replace</TT>.<BR>
+<BR>
+You also have a tactic called <TT>setoid_rewrite</TT> which is the
+equivalent of <TT>rewrite</TT> for setoids. The syntax is 
+<BLOCKQUOTE>
+<TT>setoid_rewrite</TT> <I><FONT COLOR=maroon>term</FONT></I></BLOCKQUOTE>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+ <TT>setoid_rewrite -&gt;</TT> <I><FONT COLOR=maroon>term</FONT></I><LI><TT>setoid_rewrite &lt;-</TT> <I><FONT COLOR=maroon>term</FONT></I></OL>
+The arrow tells the system in which direction the rewriting has to be
+done. Moreover, you can use <TT>rewrite</TT> for setoid
+rewriting. In that case the system will check if the term you give is
+an equality or a setoid equivalence and do the appropriate work.<BR>
+<BR>
+
+
+<HR>
+<A HREF="Reference-Manual022.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="biblio.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

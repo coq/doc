@@ -1,0 +1,1278 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Reference Manual | The Coq Proof Assistant</title>
+
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="all">@import "/modules/node/node.css";</style>
+
+<style type="text/css" media="all">@import "/modules/system/defaults.css";</style>
+<style type="text/css" media="all">@import "/modules/system/system.css";</style>
+<style type="text/css" media="all">@import "/modules/user/user.css";</style>
+
+<style type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</style>
+<style type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</style>
+<TITLE>The C-zar mathematical proof language</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc313">Chapter 11</A>  The C-zar mathematical proof language<A NAME="DPL"></A><A NAME="@default754"></A></H1><UL>
+<LI><A HREF="Reference-Manual014.html#toc76">Introduction</A>
+</LI><LI><A HREF="Reference-Manual014.html#toc77">Syntax</A>
+</LI><LI><A HREF="Reference-Manual014.html#toc78">Language description</A>
+</LI><LI><A HREF="Reference-Manual014.html#toc79">More details and Formal Semantics</A>
+</LI></UL>
+<H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc314">11.1</A>  Introduction</H2><H3 CLASS="subsection"><A NAME="htoc315">11.1.1</A>  Foreword</H3><P>In this chapter, we describe an alternative language that may be used
+to do proofs using the Coq proof assistant. The language described
+here uses the same objects (proof-terms) as Coq, but it differs in the
+way proofs are described. This language was created by Pierre
+Corbineau at the Radboud University of Nijmegen, The Netherlands.</P><P>The intent is to provide a language where proofs are less formalism-
+and implementation-sensitive, and in the process to ease a bit the
+learning of computer-aided proof verification.</P><H3 CLASS="subsection"><A NAME="htoc316">11.1.2</A>  What is a declarative proof ?</H3><P>
+In vanilla Coq, proofs are written in the imperative style: the user
+issues commands that transform a so called proof state until it
+reaches a state where the proof is completed. In the process, the user
+mostly described the transitions of this system rather than the
+intermediate states it goes through.</P><P>The purpose of a declarative proof language is to take the opposite
+approach where intermediate states are always given by the user, but
+the transitions of the system are automated as much as possible.</P><P>While not being a purely declarative language, the C-zar mathematical proof language aims at
+providing a solution for users who wish to edit Coq proofs following
+the declarative philosophy.</P><H3 CLASS="subsection"><A NAME="htoc317">11.1.3</A>  Well-formedness and Completeness</H3><P>The C-zar mathematical proof language introduces a notion of well-formed
+proofs which are weaker than correct (and complete)
+proofs. Well-formed proofs are actually proof script where only the
+reasoning is incomplete. All the other aspects of the proof are
+correct:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+All objects referred to exist where they are used
+</LI><LI CLASS="li-itemize">Conclusion steps actually prove something related to the
+conclusion of the theorem (the <TT>thesis</TT>.
+</LI><LI CLASS="li-itemize">Hypothesis introduction steps are done when the goal is an
+implication with a corresponding assumption.
+</LI><LI CLASS="li-itemize">Sub-objects in the elimination steps for tuples are correct
+sub-objects of the tuple being decomposed.
+</LI><LI CLASS="li-itemize">Patterns in case analysis are type-correct, and induction is well guarded.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc318">11.1.4</A>  Note for tactics users</H3><P>This section explain what differences the casual Coq user will
+experience using the C-zar mathematical proof language.
+</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+The focusing mechanism is constrained so that only one goal at
+a time is visible.
+</LI><LI CLASS="li-enumerate">Giving a statement that Coq cannot prove does not produce an
+error, only a warning: this allows to go on with the proof and fill
+the gap later.
+</LI><LI CLASS="li-enumerate">Tactics can still be used for justifications and after
+<TT>escape</TT>.
+</LI></OL><H3 CLASS="subsection"><A NAME="htoc319">11.1.5</A>  Compatibility</H3><P>The C-zar mathematical proof language is available for all Coq interfaces that use
+text-based interaction, including:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+the command-line toplevel <TT>coqtop</TT>
+</LI><LI CLASS="li-itemize">the native GUI <TT>coqide</TT>
+</LI><LI CLASS="li-itemize">the Proof-General emacs mode
+</LI><LI CLASS="li-itemize">Cezary Kaliszyk&#X2019;s Web interface
+</LI><LI CLASS="li-itemize">L.E. Mamane&#X2019;s tmEgg TeXmacs plugin
+</LI></UL><P>However it is not supported by structured editors such as PCoq.</P><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc320">11.2</A>  Syntax</H2><P>Here is a complete formal description of the syntax for C-zar commands.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP> instruction</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><TT>proof</TT></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>assume </TT> statement <TT>and</TT> &#X2026; <TT>and</TT> statement
+<I><FONT COLOR=maroon>[</FONT></I>[<TT>and </TT> {<TT>we have</TT>}-clause]<I><FONT COLOR=maroon>]</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>{<TT>let</TT>,<TT>be</TT>}-clause</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>{<TT>given</TT>}-clause</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>{<TT>consider</TT>}-clause <TT>from</TT> term</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>(<TT>have</TT> | <TT>then</TT> | <TT>thus</TT> | <TT>hence</TT>]) statement
+justification</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>[</FONT></I><TT>thus</TT><TT><I><FONT COLOR=maroon>]</FONT></I></TT><TT> (</TT><TT>&#X223C;</TT><TT>=</TT><TT>|</TT><TT>=</TT><TT>&#X223C;</TT><TT>) </TT><TT><I><FONT COLOR=maroon>[</FONT></I></TT><I><FONT COLOR=maroon>ident</FONT></I><TT>:</TT><TT><I><FONT COLOR=maroon>]</FONT></I></TT><I><FONT COLOR=maroon>term</FONT></I><TT>justification</TT></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>suffices</TT> ({<TT>to have</TT>}-clause |
+statement <TT>and </TT> &#X2026; <TT>and </TT> statement <I><FONT COLOR=maroon>[</FONT></I><TT>and</TT> {<TT>to have</TT>}-clause<I><FONT COLOR=maroon>]</FONT></I>)</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><TT>to show</TT> statement justification</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>(<TT>claim</TT> | <TT>focus on</TT>) statement</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>take</TT> <I><FONT COLOR=maroon>term</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>define</TT> <I><FONT COLOR=maroon>ident</FONT></I><I><FONT COLOR=maroon>[</FONT></I>var <TT>,</TT> &#X2026; <TT>,</TT> var<I><FONT COLOR=maroon>]</FONT></I> <TT>as</TT> <I><FONT COLOR=maroon>term</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>reconsider</TT> (<I><FONT COLOR=maroon>ident</FONT></I>| <TT>thesis</TT>) <TT>as</TT> type</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP> <TT>per</TT> (<TT>cases</TT>|<TT>induction</TT>) <TT>on</TT> <I><FONT COLOR=maroon>term</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>per cases of</TT> type justification</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>suppose</TT> <I><FONT COLOR=maroon>[</FONT></I>ident <TT>,</TT> &#X2026; <TT>,</TT> ident <TT>and</TT><I><FONT COLOR=maroon>]</FONT></I> 
+<TT>it is </TT>pattern</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>[</FONT></I><TT>such that</TT> statement <TT>and</TT> &#X2026; <TT>and</TT> statement <I><FONT COLOR=maroon>[</FONT></I><TT>and</TT> {<TT>we have</TT>}-clause<I><FONT COLOR=maroon>]</FONT></I><I><FONT COLOR=maroon>]</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>end</TT> 
+(<TT>proof</TT> | <TT>claim</TT> | <TT>focus</TT> | <TT>cases</TT> | <TT>induction</TT>)</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>escape</TT></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>return</TT> <BR></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP> {&#X3B1;,&#X3B2;}-clause</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP>&#X3B1; var <TT>,</TT> &#X2026; <TT>,</TT> var 
+&#X3B2; <TT>such that</TT> statement <TT>and </TT> &#X2026; <TT>and </TT> statement</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>[</FONT></I><TT>and </TT> {&#X3B1;,&#X3B2;}-clause<I><FONT COLOR=maroon>]</FONT></I> <BR></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP> statement</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>ident</FONT></I><TT>:</TT><I><FONT COLOR=maroon>]</FONT></I> type</TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>thesis</TT></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>thesis for</TT> <I><FONT COLOR=maroon>ident</FONT></I><BR></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP> var</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I><I><FONT COLOR=maroon>[</FONT></I><TT>:</TT> type<I><FONT COLOR=maroon>]</FONT></I> <BR></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+<TR><TD ALIGN=left NOWRAP> justification</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP> <I><FONT COLOR=maroon>[</FONT></I><TT>by</TT> (<TT>*</TT> | <I><FONT COLOR=maroon>term</FONT></I> <TT>,</TT> &#X2026; <TT>,</TT> <I><FONT COLOR=maroon>term</FONT></I>)<I><FONT COLOR=maroon>]</FONT></I>
+ <I><FONT COLOR=maroon>[</FONT></I><TT>using</TT> tactic<I><FONT COLOR=maroon>]</FONT></I></TD><TD VALIGN=top ALIGN=center NOWRAP>    </TD></TR>
+</TABLE>
+</DIV>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 11.1: Syntax of mathematical proof commands</TD></TR>
+</TABLE></DIV>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>The lexical conventions used here follows those of section <A HREF="Reference-Manual003.html#lexical">1.1</A>.</P><P>Conventions:</P><UL CLASS="itemize"><LI CLASS="li-itemize"><TT>&lt;tactic&gt;</TT> stands for an Coq tactic.</LI></UL><H3 CLASS="subsection"><A NAME="htoc321">11.2.1</A>  Temporary names</H3><P>In proof commands where an optional name is asked for, omitting the
+name will trigger the creation of a fresh temporary name (e.g. for a
+hypothesis). Temporary names always start with an underscore &#X2019;_&#X2019;
+character (e.g. <TT>_hyp0</TT>). Temporary names have a lifespan of one
+command: they get erased after the next command. They can however be used safely in the step after their creation.</P><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc322">11.3</A>  Language description</H2><H3 CLASS="subsection"><A NAME="htoc323">11.3.1</A>  Starting and Ending a mathematical proof</H3><P>The standard way to use the C-zar mathematical proof language is to first state a <TT>Lemma/Theorem/Definition</TT> and then use the <TT>proof</TT> command to switch the current subgoal to mathematical mode. After the proof is completed, the <TT>end proof</TT> command will close the mathematical proof. If any subgoal remains to be proved, they will be displayed using the usual Coq display.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Theorem this_is_trivial: True.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> proof.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   thus thesis.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end proof.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed.</TT><BR>
+<TT><I>proof.</I></TT><BR>
+<TT><I>     thus thesis.</I></TT><BR>
+<TT><I>end proof.</I></TT><BR>
+<TT><I>this_is_trivial is defined</I></TT><BR>
+</DIV><P>The <TT>proof</TT> command only applies to <EM>one subgoal</EM>, thus
+if several sub-goals are already present, the <TT>proof .. end
+proof</TT> sequence has to be used several times.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>   Show.</TT><BR>
+<TT><I>3 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> True</I></TT><BR>
+<TT><I>subgoal 3 is:</I></TT><BR>
+<TT><I> True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   proof. (* first subgoal *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     thus thesis.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end proof.</TT><BR>
+<TT><I>2 subgoals</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<TT><I>subgoal 2 is:</I></TT><BR>
+<TT><I> True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   trivial. (* second subgoal *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   proof. (* third subgoal *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>     thus thesis.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   end proof.</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+</DIV><P>As with all other block structures, the <TT>end proof</TT> command
+assumes that your proof is complete. If not, executing it will be
+equivalent to admitting that the statement is proved: A warning will
+be issued and you will not be able to run the <TT>Qed</TT>
+command. Instead, you can run <TT>Admitted</TT> if you wish to start
+another theorem and come back
+later.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Theorem this_is_not_so_trivial: False.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   False</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> proof.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   False</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end proof. (* here a warning is issued *)</TT><BR>
+<TT><I>Proof completed.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Qed. (* fails : the proof in incomplete *)</TT><BR>
+<TT><I>proof.</I></TT><BR>
+<TT><I>(* Some proof has been skipped here *)</I></TT><BR>
+<TT><I>end proof.</I></TT><BR>
+<TT><I>Error: Attempt to save an incomplete proof</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Admitted. (* Oops! *)</TT><BR>
+<TT><I>this_is_not_so_trivial is assumed</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc324">11.3.2</A>  Switching modes</H3><P>When writing a mathematical proof, you may wish to use procedural
+tactics at some point. One way to do so is to write a using-phrase
+in a deduction step (see section <A HREF="#justifications">11.3.14</A>). The other way
+is to use an <TT>escape...return</TT> block.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>  Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  escape.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>   True</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  auto.</TT><BR>
+<TT><I>Subgoal proved</I></TT><BR>
+<TT><I>Subproof completed, now type "return".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  return.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><P>The return statement expects all subgoals to be closed, otherwise a
+warning is issued and the proof cannot be saved anymore.</P><P>It is possible to use the <TT>proof</TT> command inside an
+<TT>escape...return</TT> block, thus nesting a mathematical proof
+inside a procedural proof inside a mathematical proof ...</P><H3 CLASS="subsection"><A NAME="htoc325">11.3.3</A>  Computation steps</H3><P>The <TT>reconsider ... as</TT> command allows to change the type of a hypothesis or of <TT>thesis</TT> to a convertible one.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>  Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  a := false : bool</I></TT><BR>
+<TT><I>  b := true : bool</I></TT><BR>
+<TT><I>  H : if a then True else False</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   if b then True else False</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  reconsider H as False.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  a := false : bool</I></TT><BR>
+<TT><I>  b := true : bool</I></TT><BR>
+<TT><I>  H : False</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   if b then True else False</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  reconsider thesis as True.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  a := false : bool</I></TT><BR>
+<TT><I>  b := true : bool</I></TT><BR>
+<TT><I>  H : False</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   True</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc326">11.3.4</A>  Deduction steps</H3><P>The most common instruction in a mathematical proof is the deduction step:
+it asserts a new statement (a formula/type of the p<SPAN STYLE="font-variant:small-caps">Cic</SPAN>) and tries to prove it using a user-provided indication : the justification. The asserted statement is then added as a hypothesis to the proof context.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>  Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   2 + x = 4</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  have H&#X2019;:(2+x=2+2) by H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  H&#X2019; : 2 + x = 2 + 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   2 + x = 4</I></TT><BR>
+</DIV><P>It is very often the case that the justifications uses the last hypothesis introduced in the context, so the <TT>then</TT> keyword can be used as a shortcut, e.g. if we want to do the same as the last example :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>  Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   2 + x = 4</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  then (2+x=2+2).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  _fact : 2 + x = 2 + 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   2 + x = 4</I></TT><BR>
+</DIV><P>In this example, you can also see the creation of a temporary name <TT>_fact</TT>.</P><H3 CLASS="subsection"><A NAME="htoc327">11.3.5</A>  Iterated equalities</H3><P>A common proof pattern when doing a chain of deductions, is to do
+multiple rewriting steps over the same term, thus proving the
+corresponding equalities. The iterated equalities are a syntactic
+support for this kind of reasoning:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT>  Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>  have (4 = 4).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  _fact : 4 = 4</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         </TT><TT>~</TT><TT>= (2 * 2).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  _eq : 4 = 2 * 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         </TT><TT>~</TT><TT>= (x * x) by H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  _eq0 : 4 = x * x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         =</TT><TT>~</TT><TT> (2 + 2).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  _eq : 2 + 2 = x * x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>         =</TT><TT>~</TT><TT> H&#X2019;:(x + x) by H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 2</I></TT><BR>
+<TT><I>  H&#X2019; : x + x = x * x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+</DIV><P>Notice that here we use temporary names heavily.</P><H3 CLASS="subsection"><A NAME="htoc328">11.3.6</A>  Subproofs</H3><P>When an intermediate step in a proof gets too complicated or involves a well contained set of intermediate deductions, it can be useful to insert its proof as a subproof of the current proof. this is done by using the <TT>claim ... end claim</TT> pair of commands. </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x + x = x * x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x = 0 </I></TT><TT><I>\</I></TT><TT><I>/ x = 2</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> claim H&#X2019;:((x - 2) * x = 0).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x + x = x * x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   (x - 2) * x = 0</I></TT><BR>
+</DIV><P>A few steps later ...</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> thus thesis. </TT><BR>
+<TT><I>Warning: Insufficient justification.</I></TT><BR>
+<TT><I>Subproof completed, now type "end claim".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end claim.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x + x = x * x</I></TT><BR>
+<TT><I>  H&#X2019; : (x - 2) * x = 0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x = 0 </I></TT><TT><I>\</I></TT><TT><I>/ x = 2</I></TT><BR>
+</DIV><P>Now the rest of the proof can happen.</P><H3 CLASS="subsection"><A NAME="htoc329">11.3.7</A>  Conclusion steps</H3><P>The commands described above have a conclusion counterpart, where the
+new hypothesis is used to refine the conclusion.</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=1><TR><TD ALIGN=center NOWRAP> X</TD><TD ALIGN=center NOWRAP> simple </TD><TD ALIGN=center NOWRAP> with previous step </TD><TD ALIGN=center NOWRAP>  opens sub-proof </TD><TD ALIGN=center NOWRAP> iterated equality </TD></TR>
+<TR><TD ALIGN=center NOWRAP>intermediate step</TD><TD ALIGN=center NOWRAP><TT>have</TT></TD><TD ALIGN=center NOWRAP><TT>then</TT></TD><TD ALIGN=center NOWRAP> <TT>claim</TT></TD><TD ALIGN=center NOWRAP><TT>&#X223C;</TT><TT>=/=</TT><TT>&#X223C;</TT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>conclusion step</TD><TD ALIGN=center NOWRAP><TT>thus</TT></TD><TD ALIGN=center NOWRAP><TT>hence</TT></TD><TD ALIGN=center NOWRAP> <TT>focus on</TT></TD><TD ALIGN=center NOWRAP><TT>thus </TT><TT>&#X223C;</TT><TT>=/=</TT><TT>&#X223C;</TT></TD></TR>
+</TABLE>
+<DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 11.2: Correspondence between basic forward steps and conclusion steps</TD></TR>
+</TABLE></DIV>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></DIV></BLOCKQUOTE><P>Let us begin with simple examples :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> hence B.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  _fact : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A</I></TT><BR>
+</DIV><P>In the next example, we have to use <TT>thus</TT> because <TT>HB</TT> is no longer
+the last hypothesis.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  HC : C</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> B /</I></TT><TT><I>\</I></TT><TT><I> C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> thus B by HB.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  HC : C</I></TT><BR>
+<TT><I>  _fact : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> C</I></TT><BR>
+</DIV><P>The command fails the refinement process cannot find a place to fit
+the object in a proof of the conclusion.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  HC : C</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> hence C. (* fails *)</TT><BR>
+<TT><I>Error: I could not relate this statement to the thesis.</I></TT><BR>
+</DIV><P>The refinement process may induce non
+reversible choices, e.g. when proving a disjunction it may <I>choose</I> one side of the disjunction.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> hence B.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><P>In this example you can see that the right branch was chosen since <TT>D</TT> remains to be proved.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  D : Prop</I></TT><BR>
+<TT><I>  HC : C</I></TT><BR>
+<TT><I>  HD : D</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> B </I></TT><TT><I>\</I></TT><TT><I>/ C /</I></TT><TT><I>\</I></TT><TT><I> D</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> thus C by HC.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  D : Prop</I></TT><BR>
+<TT><I>  HC : C</I></TT><BR>
+<TT><I>  HD : D</I></TT><BR>
+<TT><I>  _fact : C</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   D</I></TT><BR>
+</DIV><P>Now for existential statements, we can use the <TT>take</TT> command to
+choose <TT>2</TT> as an explicit witness of existence.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   exists x : nat, P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> take 2.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P 2</I></TT><BR>
+</DIV><P>It is also possible to prove the existence directly.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   exists x : nat, P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> hence (P 2).</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><P>Here a more involved example where the choice of <TT>P 2</TT> propagates
+the choice of <TT>2</TT> to another part of the formula.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  R : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HR : R 0 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   exists x : nat, exists y : nat, P y /</I></TT><TT><I>\</I></TT><TT><I> R x y</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> thus (P 2) by HP.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  R : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HR : R 0 2</I></TT><BR>
+<TT><I>  _fact : P 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   exists n : nat, R n 2</I></TT><BR>
+</DIV><P>Now, an example with the <TT>suffices</TT> command. <TT>suffices</TT>
+is a sort of dual for <TT>have</TT>: it allows to replace the conclusion
+(or part of it) by a sufficient condition. </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> B</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suffices to have x such that HP&#X2019;:(P x) to show B by HP,HP&#X2019;.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> B</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  _cofact : forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> (exists n : nat, P n)</I></TT><BR>
+</DIV><P>Finally, an example where <TT>focus</TT> is handy : local assumptions. </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A /</I></TT><TT><I>\</I></TT><TT><I> (forall x : nat, x = 2 -</I></TT><TT><I>&gt;</I></TT><TT><I> P x)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> focus on (forall x, x = 2 -</TT><TT>&gt;</TT><TT> P x).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   forall x : nat, x = 2 -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> let x be such that (x = 2).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  _hyp : x = 2</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> hence thesis by HP.</TT><BR>
+<TT><I>Subproof completed, now type "end focus".</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end focus.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : P 2</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  _claim : forall x : nat, x = 2 -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc330">11.3.8</A>  Declaring an Abbreviation</H3><P>In order to shorten long expressions, it is possible to use the <TT>define ... as ...</TT> command to give a name to recurring expressions.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 0</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> define sqr x as (x * x).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 0</I></TT><BR>
+<TT><I>  sqr := fun x : nat =</I></TT><TT><I>&gt;</I></TT><TT><I> x * x : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = x * x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> reconsider thesis as (x + x = sqr x).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  H : x = 0</I></TT><BR>
+<TT><I>  sqr := fun x : nat =</I></TT><TT><I>&gt;</I></TT><TT><I> x * x : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x + x = sqr x</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc331">11.3.9</A>  Introduction steps</H3><P>When the <TT>thesis</TT> consists of a hypothetical formula (implication
+or universal quantification (e.g. <CODE>A -&gt; B</CODE>) , it is possible to
+assume the hypothetical part <TT>A</TT> and then prove <TT>B</TT>. In the
+C-zar mathematical proof language, this comes in two syntactic flavors that are semantically
+equivalent : <TT>let</TT> and <TT>assume</TT>. Their syntax is designed so that <TT>let</TT> works better for universal quantifiers and <TT>assume</TT> for implications.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> let x:nat.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> assume HP:(P x).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  HP : P x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x</I></TT><BR>
+</DIV><P>In the <TT>let</TT> variant, the type of the assumed object is optional
+provided it can be deduced from the command. The objects introduced by
+let can be followed by assumptions using <TT>such that</TT>.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> let x. (* fails because x&#X2019;s type is not clear *) </TT><BR>
+<TT><I>Toplevel input, characters 4-5:</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I> let x.</I></TT><BR>
+<TT><I>&gt;</I></TT><TT><I>     </I></TT><TT><I>^</I></TT><BR>
+<TT><I>Error: Cannot infer the type of x.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> let x be such that HP:(P x). (* here x&#X2019;s type is inferred from (P x) *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  HP : P x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x</I></TT><BR>
+</DIV><P>In the <TT>assume </TT> variant, the type of the assumed object is mandatory but the name is optional :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> assume (P x). (* temporary name created *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  _hyp : P x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+</DIV><P>After <TT>such that</TT>, it is also the case :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   forall x : nat, P x -</I></TT><TT><I>&gt;</I></TT><TT><I> P x</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> let x be such that (P x). (* temporary name created *)</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  _hyp : P x</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P x</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc332">11.3.10</A>  Tuple elimination steps</H3><P>In the p<SPAN STYLE="font-variant:small-caps">Cic</SPAN>, many objects dealt with in simple proofs are tuples :
+pairs , records, existentially quantified formulas. These are so
+common that the C-zar mathematical proof language provides a mechanism to extract members of
+those tuples, and also objects in tuples within tuples within
+tuples...</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  H : exists x : nat, P x /</I></TT><TT><I>\</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> consider x such that HP:(P x) and HA:A from H.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  H : exists x : nat, P x /</I></TT><TT><I>\</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  HP : P x</I></TT><BR>
+<TT><I>  HA : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A</I></TT><BR>
+</DIV><P>Here is an example with pairs:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  p : nat * nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   fst p </I></TT><TT><I>&gt;</I></TT><TT><I>= snd p </I></TT><TT><I>\</I></TT><TT><I>/ fst p </I></TT><TT><I>&lt;</I></TT><TT><I> snd p</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> consider x:nat,y:nat from p.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  p : nat * nat</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  y : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   fst (x, y) </I></TT><TT><I>&gt;</I></TT><TT><I>= snd (x, y) </I></TT><TT><I>\</I></TT><TT><I>/ fst (x, y) </I></TT><TT><I>&lt;</I></TT><TT><I> snd (x, y)</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> reconsider thesis as (x </TT><TT>&gt;</TT><TT>= y </TT><TT>\</TT><TT>/ x </TT><TT>&lt;</TT><TT> y). </TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  p : nat * nat</I></TT><BR>
+<TT><I>  x : nat</I></TT><BR>
+<TT><I>  y : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   x </I></TT><TT><I>&gt;</I></TT><TT><I>= y </I></TT><TT><I>\</I></TT><TT><I>/ x </I></TT><TT><I>&lt;</I></TT><TT><I> y</I></TT><BR>
+</DIV><P>It is sometimes desirable to combine assumption and tuple
+decomposition. This can be done using the <TT>given</TT> command.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Show.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : forall n : nat, P n -</I></TT><TT><I>&gt;</I></TT><TT><I> P (n - 1)</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   (exists m : nat, P m) -</I></TT><TT><I>&gt;</I></TT><TT><I> P 0</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> given m such that Hm:(P m).  </TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  P : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> Prop</I></TT><BR>
+<TT><I>  HP : forall n : nat, P n -</I></TT><TT><I>&gt;</I></TT><TT><I> P (n - 1)</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  Hm : P m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   P 0</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc333">11.3.11</A>  Disjunctive reasoning</H3><P>In some proofs (most of them usually) one has to consider several
+cases and prove that the <TT>thesis</TT> holds in all the cases. This is
+done by first specifying which object will be subject to case
+distinction (usually a disjunction) using <TT>per cases</TT>, and then specifying which case is being proved by using <TT>suppose</TT>.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> per cases on HAB.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HBC : B -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HAB : A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose A.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HBC : B -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HAB : A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<TT><I>  _hyp : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   hence thesis by HAC.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose HB:B.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HBC : B -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HAB : A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<TT><I>  HB : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   thus thesis by HB,HBC.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end cases.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><P>The proof is well formed (but incomplete) even if you type <TT>end
+cases</TT> or the next <TT>suppose</TT> before the previous case is proved.</P><P>If the disjunction is derived from a more general principle, e.g. the
+excluded middle axiom), it is desirable to just specify which instance
+of it is being used :</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Hypothesis EM : forall P:Prop, P </TT><TT>\</TT><TT>/ </TT><TT>~</TT><TT> P.</TT><BR>
+<TT><I>EM is assumed</I></TT><BR>
+</DIV><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> per cases of (A </TT><TT>\</TT><TT>/ </TT><TT>~</TT><TT>A) by EM.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  EM : forall P : Prop, P </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> P</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HNAC : </I></TT><TT><I>~</I></TT><TT><I> A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  anonymous_matched : A </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose (</TT><TT>~</TT><TT>A).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  EM : forall P : Prop, P </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> P</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HNAC : </I></TT><TT><I>~</I></TT><TT><I> A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  anonymous_matched : A </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  _hyp : </I></TT><TT><I>~</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   hence thesis by HNAC.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose A.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  EM : forall P : Prop, P </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> P</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HNAC : </I></TT><TT><I>~</I></TT><TT><I> A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  anonymous_matched : A </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  _hyp : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   hence thesis by HAC.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end cases.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc334">11.3.12</A>  Proofs per cases</H3><P>If the case analysis is to be made on a particular object, the script
+is very similar: it starts with <TT>per cases on </TT><EM>object</EM> instead.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> per cases on (EM A).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  EM : forall P : Prop, P </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> P</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HNAC : </I></TT><TT><I>~</I></TT><TT><I> A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose (</TT><TT>~</TT><TT>A).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  EM : forall P : Prop, P </I></TT><TT><I>\</I></TT><TT><I>/ </I></TT><TT><I>~</I></TT><TT><I> P</I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  C : Prop</I></TT><BR>
+<TT><I>  HAC : A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  HNAC : </I></TT><TT><I>~</I></TT><TT><I> A -</I></TT><TT><I>&gt;</I></TT><TT><I> C</I></TT><BR>
+<TT><I>  _hyp : </I></TT><TT><I>~</I></TT><TT><I> A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   C</I></TT><BR>
+</DIV><P>If the object on which a case analysis occurs in the statement to be
+proved, the command <TT>suppose it is </TT><EM>pattern</EM> is better
+suited than <TT>suppose</TT>. <EM>pattern</EM> may contain nested patterns
+with <TT>as</TT> clauses. A detailed description of patterns is to be
+found in figure <A HREF="Reference-Manual003.html#term-syntax-aux">1.2</A>. here is an example.</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> per cases on x.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  x : bool</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   (if x then A else B) -</I></TT><TT><I>&gt;</I></TT><TT><I> A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose it is true.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  x : bool</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A -</I></TT><TT><I>&gt;</I></TT><TT><I> A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   assume A.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  x : bool</I></TT><BR>
+<TT><I>  _hyp : A</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   hence A.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose it is false.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  x : bool</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   B -</I></TT><TT><I>&gt;</I></TT><TT><I> A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   assume B.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  A : Prop</I></TT><BR>
+<TT><I>  B : Prop</I></TT><BR>
+<TT><I>  x : bool</I></TT><BR>
+<TT><I>  _hyp : B</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   A </I></TT><TT><I>\</I></TT><TT><I>/ B</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   hence B.</TT><BR>
+<TT><I>Subproof completed, now type "end cases" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end cases.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc335">11.3.13</A>  Proofs by induction</H3><P>Proofs by induction are very similar to proofs per cases: they start
+with <TT>per induction on </TT><TT>object</TT> and proceed with <TT>suppose
+it is </TT><EM>pattern</EM><TT>and </TT><EM>induction hypothesis</EM>. The
+induction hypothesis can be given explicitly or identified by the
+sub-object <I>m</I> it refers to using <TT>thesis for </TT><EM>m</EM>. </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> per induction on n.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   n + 0 = n</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose it is 0.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   0 + 0 = 0</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   thus (0 + 0 = 0).</TT><BR>
+<TT><I>Subproof completed, now type "end induction" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> suppose it is (S m) and H:thesis for m.</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : m + 0 = m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   S m + 0 = S m</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   then (S (m + 0) = S m).</TT><BR>
+<TT><I>1 subgoal</I></TT><BR>
+<TT><I>     *** Declarative Mode ***</I></TT><BR>
+<TT><I>  </I></TT><BR>
+<TT><I>  n : nat</I></TT><BR>
+<TT><I>  m : nat</I></TT><BR>
+<TT><I>  H : m + 0 = m</I></TT><BR>
+<TT><I>  _fact : S (m + 0) = S m</I></TT><BR>
+<TT><I>  ============================</I></TT><BR>
+<TT><I>  thesis := </I></TT><BR>
+<TT><I>   S m + 0 = S m</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   thus =</TT><TT>~</TT><TT> (S m + 0).</TT><BR>
+<TT><I>Subproof completed, now type "end induction" or start a new case.</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> end induction.</TT><BR>
+<TT><I>Subproof completed, now type "end proof".</I></TT><BR>
+</DIV><H3 CLASS="subsection"><A NAME="htoc336">11.3.14</A>  Justifications</H3><P><A NAME="justifications"></A></P><P>Intuitively, justifications are hints for the system to understand how
+to prove the statements the user types in. In the case of this
+language justifications are made of two components:</P><P>Justification objects : <TT>by</TT> followed by a comma-separated
+list of objects that will be used by a selected tactic to prove the
+statement. This defaults to the empty list (the statement should then
+be tautological). The * wildcard provides the usual tactics behavior:
+use all statements in local context. However, this wildcard should be
+avoided since it reduces the robustness of the script.</P><P>Justification tactic : <TT>using</TT> followed by a Coq tactic that
+is executed to prove the statement. The default is a solver for
+(intuitionistic) first-order with equality.</P><H2 CLASS="section"><A NAME="toc79"></A><A NAME="htoc337">11.4</A>  More details and Formal Semantics</H2><P>The users looking for more information should have a look at the
+paper [<A HREF="biblio.html#corbineau08types">33</A>]. This paper features a formal
+semantics of proof state transitions corresponding to the mathematical
+commands.
+</P>
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

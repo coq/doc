@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 22  Micromega: tactics for solving arithmetic goals over ordered rings</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec705" class="chapter">Chapter 22  Micromega: tactics for solving arithmetic goals over ordered rings</h1>
+<ul>
+<li><a href="Reference-Manual025.html#sec706">22.1  Short description of the tactics</a>
+</li><li><a href="Reference-Manual025.html#sec707">22.2  <em>Positivstellensatz</em> refutations</a>
+</li><li><a href="Reference-Manual025.html#sec708">22.3  <span style="font-family:monospace">lra</span>: a decision procedure for linear real and rational arithmetic</a>
+</li><li><a href="Reference-Manual025.html#sec709">22.4  <span style="font-family:monospace">psatz</span>: a proof procedure for non-linear arithmetic</a>
+</li><li><a href="Reference-Manual025.html#sec710">22.5  <span style="font-family:monospace">lia</span>: a tactic for linear integer arithmetic</a>
+</li><li><a href="Reference-Manual025.html#sec714">22.6  <span style="font-family:monospace">nia</span>: a proof procedure for non-linear integer arithmetic</a>
+</li></ul>
+<p>
+<span style="font-size:x-large"><span style="font-weight:bold">Frédéric Besson and Evgeny Makarov</span></span> <br>
+<br>
+
+</p>
+<h2 id="sec706" class="section">22.1  Short description of the tactics</h2>
+<p>
+<a id="hevea_default962"></a><a id="hevea_tactic221"></a> <a id="hevea_default963"></a><a id="hevea_tactic222"></a> 
+<a id="sec:psatz-hurry"></a>
+The <span style="font-family:monospace">Psatz</span> module (<span style="font-family:monospace">Require Import Psatz.</span>) gives access to
+several tactics for solving arithmetic goals over <span style="font-family:monospace">Z</span>, <span style="font-family:monospace">Q</span>, and
+<span style="font-family:monospace">R</span>:<sup><a id="text21" href="#note21">1</a></sup>
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">lia</span> is a decision procedure for linear integer arithmetic (see Section <a href="#sec%3Alia">22.5</a>);
+</li><li class="li-itemize"><span style="font-family:monospace">nia</span> is an incomplete proof procedure for integer non-linear arithmetic (see Section <a href="#sec%3Ania">22.6</a>);
+</li><li class="li-itemize"><span style="font-family:monospace">lra</span> is a decision procedure for linear (real or rational) arithmetic goals (see Section <a href="#sec%3Alra">22.3</a>);
+</li><li class="li-itemize"><span style="font-family:monospace">psatz D n</span> where <span style="font-family:monospace">D</span> is <span style="font-family:monospace">Z</span> or <span style="font-family:monospace">Q</span> or <span style="font-family:monospace">R</span>, and
+<span style="font-family:monospace">n</span> is an optional integer limiting the proof search depth is is an
+incomplete proof procedure for non-linear arithmetic. It is based on
+John Harrison’s HOL Light driver to the external prover <span style="font-family:monospace">csdp</span><sup><a id="text22" href="#note22">2</a></sup>. Note that the <span style="font-family:monospace">csdp</span>
+driver is generating a <em>proof cache</em> which makes it possible to
+rerun scripts even without <span style="font-family:monospace">csdp</span> (see Section <a href="#sec%3Apsatz">22.4</a>).
+</li></ul><p>The tactics solve propositional formulas parameterized by atomic arithmetic expressions
+interpreted over a domain <span style="font-style:italic">D</span> ∈ {ℤ, ℚ, ℝ }.
+The syntax of the formulas is the following:
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > <span style="font-style:italic">F</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">A</span> ∣ <span style="font-style:italic">P</span> ∣ <span style="font-style:italic">True</span> ∣ <span style="font-style:italic">False</span> ∣ <span style="font-style:italic">F</span><sub>1</sub> ∧ <span style="font-style:italic">F</span><sub>2</sub> ∣ <span style="font-style:italic">F</span><sub>1</sub> ∨ <span style="font-style:italic">F</span><sub>2</sub> ∣ <span style="font-style:italic">F</span><sub>1</sub> ↔ <span style="font-style:italic">F</span><sub>2</sub> ∣ <span style="font-style:italic">F</span><sub>1</sub> → <span style="font-style:italic">F</span><sub>2</sub> ∣ ¬ <span style="font-style:italic">F</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > <span style="font-style:italic">A</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">p</span><sub>1</sub> = <span style="font-style:italic">p</span><sub>2</sub> ∣  <span style="font-style:italic">p</span><sub>1</sub> &gt; <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span><sub>1</sub> &lt; <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span><sub>1</sub> ≥ <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span><sub>1</sub> ≤ <span style="font-style:italic">p</span><sub>2</sub> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > <span style="font-style:italic">p</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">c</span> ∣ <span style="font-style:italic">x</span> ∣ −<span style="font-style:italic">p</span> ∣ <span style="font-style:italic">p</span><sub>1</sub> − <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span><sub>1</sub> + <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span><sub>1</sub> × <span style="font-style:italic">p</span><sub>2</sub> ∣ <span style="font-style:italic">p</span> <code>^</code> <span style="font-style:italic">n</span>
+</td></tr>
+</table></td></tr>
+</table><p>
+where <span style="font-style:italic">c</span> is a numeric constant, <span style="font-style:italic">x</span>∈ <span style="font-style:italic">D</span> is a numeric variable, the
+operators −, +, × are respectively subtraction, addition,
+product, <span style="font-style:italic">p</span> <code>^</code><span style="font-style:italic">n</span>  is exponentiation by a constant <span style="font-style:italic">n</span>, <span style="font-style:italic">P</span> is an
+arbitrary proposition.
+For <span style="font-family:monospace">Q</span>, equality is not Leibniz equality <span style="font-family:monospace">=</span> but the equality of rationals <span style="font-family:monospace">==</span>.</p><p>For <span style="font-family:monospace">Z</span> (resp. <span style="font-family:monospace">Q</span> ), <span style="font-style:italic">c</span> ranges over integer constants (resp. rational constants).
+For <span style="font-family:monospace">R</span>, the tactic recognizes as real constants the following expressions:
+</p><pre class="verbatim">c ::= R0 | R1 | Rmul(c,c) | Rplus(c,c) | Rminus(c,c) | IZR z | IQR q
+    | Rdiv(c,c) | Rinv c
+</pre><p>where <span style="font-family:monospace">z</span> is a constant in <span style="font-family:monospace">Z</span> and <span style="font-family:monospace">q</span> is a constant in <span style="font-family:monospace">Q</span>.
+This includes integer constants written using the decimal notation <em>i.e.,</em> <span style="font-family:monospace">c%R</span>.</p>
+<h2 id="sec707" class="section">22.2  <em>Positivstellensatz</em> refutations</h2>
+<p>
+<a id="sec:psatz-back"></a></p><p>The name <span style="font-family:monospace">psatz</span> is an abbreviation for <em>positivstellensatz</em> – literally positivity theorem – which
+generalizes Hilbert’s <em>nullstellensatz</em>.
+It relies on the notion of <span style="font-style:italic">Cone</span>. Given a (finite) set of
+polynomials <span style="font-style:italic">S</span>, <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>) is inductively defined as the
+smallest set of polynomials closed under the following rules:
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><table class="display"><tr style="vertical-align:middle"><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span> ∈ <span style="font-style:italic">S</span></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span> ∈ <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)</td></tr>
+</table></td><td class="dcell">   
+</td><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"></td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span><sup>2</sup> ∈ <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)</td></tr>
+</table></td><td class="dcell">   
+</td><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span><sub>1</sub> ∈ <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)    <span style="font-style:italic">p</span><sub>2</sub> ∈ <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)   
+⑅ ∈ {+,*}</td></tr>
+<tr><td class="hbar"></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span><sub>1</sub> ⑅ <span style="font-style:italic">p</span><sub>2</sub> ∈ <span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)</td></tr>
+</table></td></tr>
+</table></td></tr>
+</table></td></tr>
+</table><p>
+The following theorem provides a proof principle for checking that a set
+of polynomial inequalities does not have solutions.<sup><a id="text23" href="#note23">3</a></sup>
+</p><div class="theorem"><span style="font-weight:bold">Theorem 1</span>  <em>
+</em><a id="thm:psatz"></a><em>
+Let </em><span style="font-style:italic">S</span><em> be a set of polynomials.<br>
+ If </em>−1<em> belongs to </em><span style="font-style:italic">Cone</span>(<span style="font-style:italic">S</span>)<em> then the conjunction
+</em>∧<sub><span style="font-style:italic">p</span> ∈ <span style="font-style:italic">S</span></sub> <span style="font-style:italic">p</span>≥ 0<em> is unsatisfiable.
+</em></div><p>
+A proof based on this theorem is called a <em>positivstellensatz</em> refutation.
+The tactics work as follows. Formulas are normalized into conjunctive normal form ∧<sub><span style="font-style:italic">i</span></sub> <span style="font-style:italic">C</span><sub><span style="font-style:italic">i</span></sub> where
+<span style="font-style:italic">C</span><sub><span style="font-style:italic">i</span></sub> has the general form (∧<sub><span style="font-style:italic">j</span>∈ <span style="font-style:italic">S</span><sub><span style="font-style:italic">i</span></sub></sub> <span style="font-style:italic">p</span><sub><span style="font-style:italic">j</span></sub> ⑅ 0) → <span style="font-style:italic">False</span>) and ⑅ ∈ {&gt;,≥,=} for <span style="font-style:italic">D</span>∈
+{ℚ,ℝ} and ⑅ ∈ {≥, =} for ℤ.
+For each conjunct <span style="font-style:italic">C</span><sub><span style="font-style:italic">i</span></sub>, the tactic calls a oracle which searches for −1 within the cone.
+Upon success, the oracle returns a <em>cone expression</em> that is normalized by the <span style="font-family:monospace">ring</span> tactic (see chapter <a href="Reference-Manual028.html#ring">25</a>) and checked to be
+−1.</p>
+<h2 id="sec708" class="section">22.3  <span style="font-family:monospace">lra</span>: a decision procedure for linear real and rational arithmetic</h2>
+<p>
+<a id="sec:lra"></a>
+The <span style="font-family:monospace">lra</span> tactic is searching for <em>linear</em> refutations using
+Fourier elimination.<sup><a id="text24" href="#note24">4</a></sup> As a result, this tactic
+explores a subset of the <span style="font-style:italic">Cone</span> defined as
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-style:italic">LinCone</span>(<span style="font-style:italic">S</span>) =</td><td class="dcell">⎧<br>
+⎪<br>
+⎨<br>
+⎪<br>
+⎩</td><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">&nbsp;</td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-size:xx-large">∑</span></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">p</span> ∈ <span style="font-style:italic">S</span></td></tr>
+</table></td><td class="dcell"> α<sub><span style="font-style:italic">p</span></sub> × <span style="font-style:italic">p</span> </td><td class="dcell">⎪<br>
+⎪<br>
+⎪<br>
+⎪</td><td class="dcell">
+ α<sub><span style="font-style:italic">p</span></sub>  are positive constants </td><td class="dcell">⎫<br>
+⎪<br>
+⎬<br>
+⎪<br>
+⎭</td><td class="dcell">.
+</td></tr>
+</table><p>
+The deductive power of <span style="font-family:monospace">lra</span> is the combined deductive power of <span style="font-family:monospace">ring_simplify</span> and <span style="font-family:monospace">fourier</span>.
+There is also an overlap with the <span style="font-family:monospace">field</span> tactic <em>e</em>.g., <span style="font-family:monospace">x = 10 * x / 10</span> is solved by <span style="font-family:monospace">lra</span>.</p>
+<h2 id="sec709" class="section">22.4  <span style="font-family:monospace">psatz</span>: a proof procedure for non-linear arithmetic</h2>
+<p>
+<a id="sec:psatz"></a>
+The <span style="font-family:monospace">psatz</span> tactic explores the <span style="font-style:italic">Cone</span> by increasing degrees – hence the depth parameter <span style="font-style:italic">n</span>.
+In theory, such a proof search is complete – if the goal is provable the search eventually stops.
+Unfortunately, the external oracle is using numeric (approximate) optimization techniques that might miss a
+refutation. </p><p>To illustrate the working of the tactic, consider we wish to prove the following Coq goal.
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x, -x</span></span><span style="font-size:small"><span style="font-family:monospace">^</span></span><span style="font-size:small"><span style="font-family:monospace">2 </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> x - 1 </span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 0 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> False.</span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+Such a goal is solved by <span style="font-family:monospace">intro x; psatz Z 2</span>. The oracle returns the
+cone expression 2 × (<span style="font-weight:bold"><span style="font-style:italic">x</span></span><span style="font-weight:bold">−1</span>) + (<span style="font-weight:bold"><span style="font-style:italic">x</span></span><span style="font-weight:bold">−1</span>) ×
+(<span style="font-weight:bold"><span style="font-style:italic">x</span></span><span style="font-weight:bold">−1</span>) + <span style="font-weight:bold">−</span><span style="font-weight:bold"><span style="font-style:italic">x</span></span><sup><span style="font-weight:bold">2</span></sup> (polynomial hypotheses are printed in
+bold). By construction, this expression belongs to <span style="font-style:italic">Cone</span>({−<span style="font-style:italic">x</span><sup>2</sup>,
+<span style="font-style:italic">x</span> −1}). Moreover, by running <span style="font-family:monospace">ring</span> we obtain −1. By
+Theorem <a href="#thm%3Apsatz">1</a>, the goal is valid.
+</p>
+<h2 id="sec710" class="section">22.5  <span style="font-family:monospace">lia</span>: a tactic for linear integer arithmetic</h2>
+<p>
+<a id="hevea_default964"></a><a id="hevea_tactic223"></a>
+<a id="sec:lia"></a></p><p>The tactic <span style="font-family:monospace">lia</span> offers an alternative to the <span style="font-family:monospace">omega</span> and <span style="font-family:monospace">romega</span> tactic (see Chapter <a href="Reference-Manual024.html#OmegaChapter">21</a>).
+Roughly speaking, the deductive power of <span style="font-family:monospace">lia</span> is the combined deductive power of <span style="font-family:monospace">ring_simplify</span> and <span style="font-family:monospace">omega</span>.
+However, it solves linear goals that <span style="font-family:monospace">omega</span> and <span style="font-family:monospace">romega</span> do not solve, such as the
+following so-called <em>omega nightmare</em> [<a href="biblio.html#TheOmegaPaper">130</a>].
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x y,</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        27 </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 11 * x + 13 * y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 45 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        -10 </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 7 * x - 9 * y </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">= 4 -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">  False.</span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+The estimation of the relative efficiency of <span style="font-family:monospace">lia</span> <em>vs</em> <span style="font-family:monospace">omega</span>
+and <span style="font-family:monospace">romega</span> is under evaluation.</p>
+<h5 id="sec711" class="paragraph">High level view of <span style="font-family:monospace">lia</span>.</h5>
+<p>
+Over ℝ, <em>positivstellensatz</em> refutations are a complete
+proof principle.<sup><a id="text25" href="#note25">5</a></sup>
+However, this is not the case over ℤ.
+Actually, <em>positivstellensatz</em> refutations are not even sufficient
+to decide linear <em>integer</em> arithmetic.
+The canonical example is <span style="font-family:monospace">2 * x = 1 -&gt; False</span> which is a theorem of ℤ but not a theorem of ℝ.
+To remedy this weakness, the <span style="font-family:monospace">lia</span> tactic is using recursively a combination of:
+</p><ul class="itemize"><li class="li-itemize">
+linear <em>positivstellensatz</em> refutations;
+</li><li class="li-itemize">cutting plane proofs;
+</li><li class="li-itemize">case split.
+</li></ul>
+<h5 id="sec712" class="paragraph">Cutting plane proofs</h5>
+<p> are a way to take into account the discreetness of ℤ by rounding up
+(rational) constants up-to the closest integer. 
+</p><div class="theorem"><span style="font-weight:bold">Theorem 2</span>  <em>
+Let </em><span style="font-style:italic">p</span><em> be an integer and </em><span style="font-style:italic">c</span><em> a rational constant.
+</em><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">  <span style="font-style:italic">p</span> ≥ <span style="font-style:italic">c</span> ⇒ <span style="font-style:italic">p</span> ≥ ⌈ <span style="font-style:italic">c</span> ⌉
+</td></tr>
+</table><em>
+</em></div><p>
+For instance, from 2 <span style="font-style:italic">x</span> = 1 we can deduce
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-style:italic">x</span> ≥ 1/2 which cut plane is  <span style="font-style:italic">x</span> ≥ ⌈ 1/2 ⌉ = 1;
+</li><li class="li-itemize"> <span style="font-style:italic">x</span> ≤ 1/2 which cut plane is  <span style="font-style:italic">x</span> ≤ ⌊ 1/2 ⌋ = 0.
+</li></ul><p>
+By combining these two facts (in normal form) <span style="font-style:italic">x</span> − 1 ≥ 0 and −<span style="font-style:italic">x</span> ≥
+0, we conclude by exhibiting a <em>positivstellensatz</em> refutation: −1
+≡ <span style="font-weight:bold"><span style="font-style:italic">x</span></span><span style="font-weight:bold">−1</span> + <span style="font-weight:bold">−</span><span style="font-weight:bold"><span style="font-style:italic">x</span></span> ∈ <span style="font-style:italic">Cone</span>({<span style="font-style:italic">x</span>−1,<span style="font-style:italic">x</span>}).</p><p>Cutting plane proofs and linear <em>positivstellensatz</em> refutations are a complete proof principle for integer linear arithmetic.</p>
+<h5 id="sec713" class="paragraph">Case split</h5>
+<p> enumerates over the possible values of an expression.
+</p><div class="theorem"><span style="font-weight:bold">Theorem 3</span>  <em>
+Let </em><span style="font-style:italic">p</span><em> be an integer and </em><span style="font-style:italic">c</span><sub>1</sub><em> and </em><span style="font-style:italic">c</span><sub>2</sub><em> integer constants.
+</em><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">  <span style="font-style:italic">c</span><sub>1</sub> ≤ <span style="font-style:italic">p</span> ≤ <span style="font-style:italic">c</span><sub>2</sub> ⇒ </td><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center">&nbsp;</td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-size:xx-large">∨</span></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">x</span> ∈ [<span style="font-style:italic">c</span><sub>1</sub>,<span style="font-style:italic">c</span><sub>2</sub>]</td></tr>
+</table></td><td class="dcell"> <span style="font-style:italic">p</span> = <span style="font-style:italic">x</span>
+</td></tr>
+</table><em>
+</em></div><p>
+Our current oracle tries to find an expression <span style="font-style:italic">e</span> with a small range [<span style="font-style:italic">c</span><sub>1</sub>,<span style="font-style:italic">c</span><sub>2</sub>].
+We generate <span style="font-style:italic">c</span><sub>2</sub> − <span style="font-style:italic">c</span><sub>1</sub> subgoals which contexts are enriched with an equation <span style="font-style:italic">e</span> = <span style="font-style:italic">i</span> for <span style="font-style:italic">i</span> ∈ [<span style="font-style:italic">c</span><sub>1</sub>,<span style="font-style:italic">c</span><sub>2</sub>] and
+recursively search for a proof.</p>
+<h2 id="sec714" class="section">22.6  <span style="font-family:monospace">nia</span>: a proof procedure for non-linear integer arithmetic</h2>
+<p>
+<a id="hevea_default965"></a><a id="hevea_tactic224"></a>
+<a id="sec:nia"></a>
+The <span style="font-family:monospace">nia</span> tactic is an <em>e</em>xperimental proof procedure for non-linear integer arithmetic.
+The tactic performs a limited amount of non-linear reasoning before running the
+linear prover of <span style="font-family:monospace">lia</span>.
+This pre-processing does the following:
+</p><ul class="itemize"><li class="li-itemize">
+If the context contains an arithmetic expression of the form <span style="font-style:italic">e</span>[<span style="font-style:italic">x</span><sup>2</sup>] where <span style="font-style:italic">x</span> is a
+monomial, the context is enriched with <span style="font-style:italic">x</span><sup>2</sup>≥ 0;
+</li><li class="li-itemize">For all pairs of hypotheses <span style="font-style:italic">e</span><sub>1</sub>≥ 0, <span style="font-style:italic">e</span><sub>2</sub> ≥ 0, the context is enriched with <span style="font-style:italic">e</span><sub>1</sub> × <span style="font-style:italic">e</span><sub>2</sub> ≥ 0.
+</li></ul><p>
+After pre-processing, the linear prover of <span style="font-family:monospace">lia</span> searches for a proof
+by abstracting monomials by variables.</p>
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note21" href="#text21">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Support for <span style="font-family:monospace">nat</span> and <span style="font-family:monospace">N</span> is obtained by
+pre-processing the goal with the <span style="font-family:monospace">zify</span> tactic.</div></dd><dt class="dt-thefootnotes"><a id="note22" href="#text22">2</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Sources and binaries can be found at
+<a href="https://projects.coin-or.org/Csdp"><span style="font-family:monospace">https://projects.coin-or.org/Csdp</span></a></div></dd><dt class="dt-thefootnotes"><a id="note23" href="#text23">3</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">Variants
+deal with equalities and strict inequalities.</div></dd><dt class="dt-thefootnotes"><a id="note24" href="#text24">4</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">More efficient linear programming
+techniques could equally be employed.</div></dd><dt class="dt-thefootnotes"><a id="note25" href="#text25">5</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">In practice, the oracle might fail to produce
+such a refutation.</div></dd></dl>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

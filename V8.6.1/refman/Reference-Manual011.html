@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 9  The tactic language</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="TacticLanguage" class="chapter">Chapter 9  The tactic language</h1>
+<ul>
+<li><a href="Reference-Manual011.html#sec454">9.1  Syntax</a>
+</li><li><a href="Reference-Manual011.html#sec455">9.2  Semantics</a>
+</li><li><a href="Reference-Manual011.html#sec487">9.3  Tactic toplevel definitions</a>
+</li><li><a href="Reference-Manual011.html#sec490">9.4  Debugging <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> tactics</a>
+</li></ul>
+<p>This chapter gives a compact documentation of Ltac, the tactic
+language available in <span style="font-variant:small-caps">Coq</span>. We start by giving the syntax, and next,
+we present the informal semantics. If you want to know more regarding
+this language and especially about its foundations, you can refer
+to [<a href="biblio.html#Del00">43</a>]. Chapter <a href="Reference-Manual012.html#Tactics-examples">10</a> is devoted to giving
+examples of use of this language on small but also with non-trivial
+problems.</p>
+<h2 id="sec454" class="section">9.1  Syntax</h2>
+<p>The syntax of the tactic language is given Figures <a href="#ltac">9.1</a>
+and <a href="#ltac-aux">9.2</a>. See Chapter <a href="Reference-Manual003.html#BNF-syntax">1</a> for a description of
+the BNF metasyntax used in these grammar rules. Various already
+defined entries will be used in this chapter: entries
+<span style="font-style:oblique">natural</span>, <span style="font-style:oblique">integer</span>, <span style="font-style:oblique">ident</span>, <span style="font-style:oblique">qualid</span>, <span style="font-style:oblique">term</span>,
+<span style="font-style:oblique">cpattern</span> and <span style="font-style:oblique">atomic_tactic</span> represent respectively the natural and
+integer numbers, the authorized identificators and qualified names,
+<span style="font-variant:small-caps">Coq</span>’s terms and patterns and all the atomic tactics described in
+Chapter <a href="Reference-Manual010.html#Tactics">8</a>. The syntax of <span style="font-style:oblique">cpattern</span> is the same as that
+of terms, but it is extended with pattern matching metavariables. In
+<span style="font-style:oblique">cpattern</span>, a pattern-matching metavariable is represented with the
+syntax <span style="font-family:monospace">?id</span> where <span style="font-family:monospace">id</span> is an <span style="font-style:oblique">ident</span>. The notation <span style="font-family:monospace">_</span>
+can also be used to denote metavariable whose instance is
+irrelevant. In the notation <span style="font-family:monospace">?id</span>, the identifier allows us to
+keep instantiations and to make constraints whereas <span style="font-family:monospace">_</span> shows
+that we are not interested in what will be matched. On the right hand
+side of pattern-matching clauses, the named metavariable are used
+without the question mark prefix. There is also a special notation for
+second-order pattern-matching problems: in an applicative pattern of
+the form <span style="font-family:monospace">@?id id</span><sub>1</sub><span style="font-family:monospace"> …id</span><sub><span style="font-style:italic">n</span></sub>, the variable <span style="font-family:monospace">id</span>
+matches any complex expression with (possible) dependencies in the
+variables <span style="font-family:monospace">id</span><sub>1</sub><span style="font-family:monospace"> …id</span><sub><span style="font-style:italic">n</span></sub> and returns a functional term of
+the form <span style="font-family:monospace">fun id</span><sub>1</sub><span style="font-family:monospace"> …id</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace"> =&gt; </span><span style="font-style:oblique">term</span>.</p><p>The main entry of the grammar is <span style="font-style:oblique">expr</span>. This language is used in
+proof mode but it can also be used in toplevel definitions as shown in
+Figure <a href="#ltactop">9.3</a>.</p><p><br>
+<span style="font-weight:bold">Remarks: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+The infix tacticals “… <span style="font-family:monospace">||</span> …”, “… <span style="font-family:monospace">+</span>
+…”, and “… <span style="font-family:monospace">;</span> …” are associative.</li><li class="li-enumerate">In <span style="font-style:oblique">tacarg</span>, there is an overlap between <span style="font-style:oblique">qualid</span> as a
+direct tactic argument and <span style="font-style:oblique">qualid</span> as a particular case of
+<span style="font-style:oblique">term</span>. The resolution is done by first looking for a reference of
+the tactic language and if it fails, for a reference to a term. To
+force the resolution as a reference of the tactic language, use the
+form <span style="font-family:monospace">ltac :</span> <span style="font-style:oblique">qualid</span>. To force the resolution as a reference to
+a term, use the syntax <span style="font-family:monospace">(</span><span style="font-style:oblique">qualid</span><span style="font-family:monospace">)</span>.</li><li class="li-enumerate">As shown by the figure, tactical <span style="font-family:monospace">||</span> binds more than the
+prefix tacticals <span style="font-family:monospace">try</span>, <span style="font-family:monospace">repeat</span>, <span style="font-family:monospace">do</span> and
+<span style="font-family:monospace">abstract</span> which themselves bind more than the postfix tactical
+“<span style="font-family:monospace">… ;[ … ]</span>” which binds more than “… <span style="font-family:monospace">;</span>
+…”.<p>For instance
+</p><blockquote class="quote">
+<span style="font-family:monospace">try repeat </span><span style="font-style:oblique">tactic</span><sub>1</sub><span style="font-family:monospace"> ||
+</span><span style="font-style:oblique">tactic</span><sub>2</sub><span style="font-family:monospace">;</span><span style="font-style:oblique">tactic</span><sub>3</sub><span style="font-family:monospace">;[</span><span style="font-style:oblique">tactic</span><sub>31</sub><span style="font-family:monospace">|…|</span><span style="font-style:oblique">tactic</span><sub>3<span style="font-style:italic">n</span></sub><span style="font-family:monospace">];</span><span style="font-style:oblique">tactic</span><sub>4</sub><span style="font-family:monospace">.</span>
+</blockquote><p>
+is understood as
+</p><blockquote class="quote">
+<span style="font-family:monospace">(try (repeat (</span><span style="font-style:oblique">tactic</span><sub>1</sub><span style="font-family:monospace"> || </span><span style="font-style:oblique">tactic</span><sub>2</sub><span style="font-family:monospace">)));</span> <br>
+<span style="font-family:monospace">((</span><span style="font-style:oblique">tactic</span><sub>3</sub><span style="font-family:monospace">;[</span><span style="font-style:oblique">tactic</span><sub>31</sub><span style="font-family:monospace">|…|</span><span style="font-style:oblique">tactic</span><sub>3<span style="font-style:italic">n</span></sub><span style="font-family:monospace">]);</span><span style="font-style:oblique">tactic</span><sub>4</sub><span style="font-family:monospace">).</span>
+</blockquote></li></ol><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">expr</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">expr</span> <span style="font-family:monospace">;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">[&gt;</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">expr</span> <span style="font-family:monospace">; [</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>3</sub></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-family:monospace">do</span> <span style="font-style:italic">(</span><span style="font-style:oblique">natural</span> <span style="font-style:italic">|</span> <span style="font-style:oblique">ident</span><span style="font-style:italic">)</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">progress</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">repeat</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">try</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">once</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">exactly_once</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">timeout</span> <span style="font-style:italic">(</span><span style="font-style:oblique">natural</span> <span style="font-style:italic">|</span> <span style="font-style:oblique">ident</span><span style="font-style:italic">)</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">time</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">string</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">only</span> <span style="font-style:oblique">selector</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>2</sub> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>2</sub></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">tacexpr</span><sub>1</sub> <span style="font-family:monospace">||</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>1</sub> <span style="font-family:monospace">+</span> <span style="font-style:oblique">tacexpr</span><sub>3</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">tryif</span> <span style="font-style:oblique">tacexpr</span><sub>1</sub> <span style="font-family:monospace">then</span> <span style="font-style:oblique">tacexpr</span><sub>1</sub> <span style="font-family:monospace">else</span> <span style="font-style:oblique">tacexpr</span><sub>1</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>1</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacexpr</span><sub>1</sub></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fun</span> <span style="font-style:oblique">name</span>  …  <span style="font-style:oblique">name</span> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">atom</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">let</span> <span style="font-style:oblique">[</span><span style="font-family:monospace">rec</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">let_clause</span> <span style="font-family:monospace">with</span> … <span style="font-family:monospace">with</span> <span style="font-style:oblique">let_clause</span> <span style="font-family:monospace">in</span>
+<span style="font-style:oblique">atom</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">match goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">match reverse goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">match</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">with</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">lazymatch goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">lazymatch reverse goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">lazymatch</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">with</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">multimatch goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">multimatch reverse goal with</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">context_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">multimatch</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">with</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">match_rule</span> <span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">abstract</span> <span style="font-style:oblique">atom</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">abstract</span> <span style="font-style:oblique">atom</span> <span style="font-family:monospace">using</span> <span style="font-style:oblique">ident</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">first [</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">solve [</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">|</span> … <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">idtac</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">message_token</span>  …  <span style="font-style:oblique">message_token</span><span style="font-style:oblique">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fail</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">natural</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">message_token</span>  …  <span style="font-style:oblique">message_token</span><span style="font-style:oblique">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">gfail</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">natural</span><span style="font-style:oblique">]</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">message_token</span>  …  <span style="font-style:oblique">message_token</span><span style="font-style:oblique">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fresh</span>  |  <span style="font-family:monospace">fresh</span> <span style="font-style:oblique">string</span>|  <span style="font-family:monospace">fresh</span> <span style="font-style:oblique">qualid</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">context</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">term</span> <span style="font-family:monospace">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">eval</span> <span style="font-style:oblique">redexpr</span> <span style="font-family:monospace">in</span> <span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">type of</span> <span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">external</span> <span style="font-style:oblique">string</span> <span style="font-style:oblique">string</span> <span style="font-style:oblique">tacarg</span>  …  <span style="font-style:oblique">tacarg</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">constr :</span> <span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">uconstr :</span> <span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">type_term</span> <span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">numgoals</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">guard</span> <span style="font-style:italic">test</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">atomic_tactic</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">qualid</span> <span style="font-style:oblique">tacarg</span>  …  <span style="font-style:oblique">tacarg</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">atom</span>
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 9.1: Syntax of the tactic language</td></tr>
+</table></div>
+<a id="ltac"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">atom</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">qualid</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" >()</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">)</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">message_token</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">string</span>  |  <span style="font-style:oblique">ident</span>  |  <span style="font-style:oblique">integer</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">tacarg</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">qualid</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">()</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ltac :</span> <span style="font-style:oblique">atom</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">term</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">let_clause</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ident</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">name</span>  …  <span style="font-style:oblique">name</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">context_rule</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">context_hyp</span> <span style="font-family:monospace">,</span> … <span style="font-family:monospace">,</span> <span style="font-style:oblique">context_hyp</span> <span style="font-family:monospace">|-</span><span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|-</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">_ =&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">context_hyp</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">name</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">cpattern</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">name</span> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">cpattern</span> <span style="font-style:oblique">[</span><span style="font-family:monospace">:</span> <span style="font-style:oblique">cpattern</span><span style="font-style:oblique">]</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">match_rule</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">context</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">ident</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">]</span>
+<span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">appcontext</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">ident</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">]</span>
+<span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">_ =&gt;</span> <span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">test</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">integer</span> <span style="font-family:monospace"> = </span> <span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span> <span style="font-family:monospace"> &lt; </span> <span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span> <span style="font-family:monospace">&lt;=</span> <span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span> <span style="font-family:monospace"> &gt; </span> <span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span> <span style="font-family:monospace">&gt;=</span> <span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">selector</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > [<span style="font-style:oblique">ident</span>]</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">integer</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">(</span><span style="font-style:oblique">integer</span> <span style="font-style:italic">|</span> <span style="font-style:oblique">integer</span> <span style="font-family:monospace">-</span> <span style="font-style:oblique">integer</span><span style="font-style:italic">)</span> <span style="font-family:monospace">,</span> … <span style="font-family:monospace">,</span> <span style="font-style:italic">(</span><span style="font-style:oblique">integer</span> <span style="font-style:italic">|</span> <span style="font-style:oblique">integer</span> <span style="font-family:monospace">-</span> <span style="font-style:oblique">integer</span><span style="font-style:italic">)</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">toplevel_selector</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span style="font-style:oblique">selector</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">all</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">par</span>
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 9.2: Syntax of the tactic language (continued)</td></tr>
+</table></div>
+<a id="ltac-aux"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">top</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">[</span><span style="font-family:monospace">Local</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">Ltac</span> <span style="font-style:oblique">ltac_def</span> <span style="font-family:monospace">with</span> … <span style="font-family:monospace">with</span> <span style="font-style:oblique">ltac_def</span> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ltac_def</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">ident</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">ident</span>  …  <span style="font-style:oblique">ident</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">:=</span>
+<span style="font-style:oblique">expr</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >|</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:oblique">qualid</span> <span style="font-style:oblique">[</span><span style="font-style:oblique">ident</span>  …  <span style="font-style:oblique">ident</span><span style="font-style:oblique">]</span> <span style="font-family:monospace">::=</span><span style="font-style:oblique">expr</span>
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 9.3: Tactic toplevel definitions</td></tr>
+</table></div>
+<a id="ltactop"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote>
+<h2 id="sec455" class="section">9.2  Semantics</h2>
+<p>
+<a id="hevea_default770"></a>
+</p><p>Tactic expressions can only be applied in the context of a proof. The
+evaluation yields either a term, an integer or a tactic. Intermediary
+results can be terms or integers but the final result must be a tactic
+which is then applied to the focused goals.</p><p>There is a special case for <span style="font-family:monospace">match goal</span> expressions of which
+the clauses evaluate to tactics. Such expressions can only be used as
+end result of a tactic expression (never as argument of a non recursive local
+definition or of an application).</p><p>The rest of this section explains the semantics of every construction
+of Ltac.</p><h4 id="sec456" class="subsubsection">Sequence<a id="hevea_default771"></a><a id="hevea_tactic198"></a>
+<a id="hevea_default772"></a></h4>
+<p>A sequence is an expression of the following form:
+</p><blockquote class="quote">
+<span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">;</span> <span style="font-style:oblique">expr</span><sub>2</sub>
+</blockquote><p>
+The expressions <span style="font-style:oblique">expr</span><sub>1</sub> and <span style="font-style:oblique">expr</span><sub>2</sub> are evaluated
+to <span style="font-style:italic">v</span><sub>1</sub> and <span style="font-style:italic">v</span><sub>2</sub> which have to be tactic values. The tactic <span style="font-style:italic">v</span><sub>1</sub> is
+then applied and <span style="font-style:italic">v</span><sub>2</sub> is applied to the goals generated by the
+application of <span style="font-style:italic">v</span><sub>1</sub>. Sequence is left-associative.</p><h4 id="sec457" class="subsubsection">Local application of tactics<a id="hevea_default773"></a><a id="hevea_tactic199"></a><a id="hevea_default774"></a><a id="hevea_tactic200"></a><a id="hevea_default775"></a><a id="hevea_default776"></a></h4>
+<p>Different tactics can be applied to the different goals using the following form:
+</p><blockquote class="quote">
+<span style="font-family:monospace">[ &gt;</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span>
+</blockquote><p>
+The expressions <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> are evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub>, for <span style="font-style:italic">i</span>=0,...,<span style="font-style:italic">n</span>
+and all have to be tactics. The <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> is applied to the <span style="font-style:italic">i</span>-th goal,
+for =1,...,<span style="font-style:italic">n</span>. It fails if the number of focused goals is not exactly <span style="font-style:italic">n</span>.</p><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+If no tactic is given for the <span style="font-style:italic">i</span>-th goal, it behaves as if
+the tactic <span style="font-family:monospace">idtac</span> were given. For instance, <span style="font-family:monospace">[ &gt; | auto
+]</span> is a shortcut for <span style="font-family:monospace">[ &gt; idtac | auto ]</span>.</li><li class="li-enumerate"><span style="font-family:monospace">[ &gt;</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">..</span> <span style="font-family:monospace">|</span>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span>+1+<span style="font-style:italic">j</span></sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span><p>In this variant, <span style="font-family:monospace">expr</span> is used for each goal numbered from
+<span style="font-style:italic">i</span>+1 to <span style="font-style:italic">i</span>+<span style="font-style:italic">j</span> (assuming <span style="font-style:italic">n</span> is the number of goals).</p><p>Note that <span style="font-family:monospace">..</span> is part of the syntax, while ... is the meta-symbol used
+to describe a list of <span style="font-style:oblique">expr</span> of arbitrary length.
+goals numbered from <span style="font-style:italic">i</span>+1 to <span style="font-style:italic">i</span>+<span style="font-style:italic">j</span>.</p></li><li class="li-enumerate"><span style="font-family:monospace">[ &gt;</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> <span style="font-family:monospace">|</span> <span style="font-family:monospace">..</span> <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span>+1+<span style="font-style:italic">j</span></sub> <span style="font-family:monospace">|</span>
+... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span><p>In this variant, <span style="font-family:monospace">idtac</span> is used for the goals numbered from
+<span style="font-style:italic">i</span>+1 to <span style="font-style:italic">i</span>+<span style="font-style:italic">j</span>.</p></li><li class="li-enumerate"><span style="font-family:monospace">[ &gt;</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">..</span> <span style="font-family:monospace">]</span><p>In this variant, the tactic <span style="font-style:oblique">expr</span> is applied independently to
+each of the goals, rather than globally. In particular, if there
+are no goal, the tactic is not run at all. A tactic which
+expects multiple goals, such as <span style="font-family:monospace">swap</span>, would act as if a single
+goal is focused.</p></li><li class="li-enumerate"><span style="font-style:oblique">expr</span> <span style="font-family:monospace">; [ </span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span><p>This variant of local tactic application is paired with a
+sequence. In this variant, <span style="font-style:italic">n</span> must be the number of goals
+generated by the application of <span style="font-style:oblique">expr</span> to each of the
+individual goals independently. All the above variants work in
+this form too. Formally, <span style="font-style:oblique">expr</span> <span style="font-family:monospace">; [</span> ... <span style="font-family:monospace">]</span> is
+equivalent to
+</p><blockquote class="quote">
+<span style="font-family:monospace">[ &gt;</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">; [ &gt;</span> ... <span style="font-family:monospace">]</span> <span style="font-family:monospace">..</span> <span style="font-family:monospace">]</span>
+</blockquote></li></ol><h4 id="ltac:selector" class="subsubsection">Goal selectors
+<a id="hevea_default777"></a><a id="hevea_tactic201"></a><a id="hevea_default778"></a></h4>
+<p>We can restrict the application of a tactic to a subset of
+the currently focused goals with:
+</p><blockquote class="quote">
+<span style="font-style:oblique">toplevel_selector</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+We can also use selectors as a tactical, which allows to use them nested in
+a tactic expression, by using the keyword <span style="font-family:monospace">only</span>:
+</p><blockquote class="quote">
+<span style="font-family:monospace">only</span> <span style="font-style:oblique">selector</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+When selecting several goals, the tactic <span style="font-style:oblique">expr</span> is applied globally to
+all selected goals.</p><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+ [<span style="font-style:oblique">ident</span>] <span style="font-family:monospace">:</span> <span style="font-style:oblique">expr</span><p>In this variant, <span style="font-style:oblique">expr</span> is applied locally to a goal
+previously named by the user (see <a href="Reference-Manual004.html#ExistentialVariables">2.11</a>).</p></li><li class="li-enumerate"><span style="font-style:oblique">num</span> <span style="font-family:monospace">:</span> <span style="font-style:oblique">expr</span><p>In this variant, <span style="font-style:oblique">expr</span> is applied locally to the
+<span style="font-style:oblique">num</span>-th goal.</p></li><li class="li-enumerate"><span style="font-style:italic">n</span><sub>1</sub>-<span style="font-style:italic">m</span><sub>1</sub>, …, <span style="font-style:italic">n</span><sub><span style="font-style:italic">k</span></sub>-<span style="font-style:italic">m</span><sub><span style="font-style:italic">k</span></sub> <span style="font-family:monospace">:</span> <span style="font-style:oblique">expr</span><p>In this variant, <span style="font-style:oblique">expr</span> is applied globally to the subset
+of goals described by the given ranges. You can write a single
+<span style="font-style:italic">n</span> as a shortcut for <span style="font-style:italic">n</span>-<span style="font-style:italic">n</span> when specifying multiple ranges.</p></li><li class="li-enumerate"><span style="font-family:monospace">all:</span> <span style="font-style:oblique">expr</span><p>In this variant, <span style="font-style:oblique">expr</span> is applied to all focused goals.
+<span style="font-family:monospace">all:</span> can only be used at the toplevel of a tactic expression.</p></li><li class="li-enumerate"><span style="font-family:monospace">par:</span> <span style="font-style:oblique">expr</span><p>In this variant, <span style="font-style:oblique">expr</span> is applied to all focused goals
+in parallel. The number of workers can be controlled via the
+command line option <span style="font-family:monospace">-async-proofs-tac-j</span> taking as argument
+the desired number of workers. Limitations: <span style="font-family:monospace">par: </span> only works
+on goals containing no existential variables and <span style="font-style:oblique">expr</span> must
+either solve the goal completely or do nothing (i.e. it cannot make
+some progress).
+<span style="font-family:monospace">par:</span> can only be used at the toplevel of a tactic expression.</p></li></ol><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">No such goal</span><a id="hevea_error128"></a></p><h4 id="sec459" class="subsubsection">For loop<a id="hevea_default779"></a><a id="hevea_tactic202"></a>
+<a id="hevea_default780"></a></h4>
+<p>There is a for loop that repeats a tactic <span style="font-style:oblique">num</span> times:
+</p><blockquote class="quote">
+<span style="font-family:monospace">do</span> <span style="font-style:oblique">num</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+This tactic value <span style="font-style:italic">v</span> is
+applied <span style="font-style:oblique">num</span> times. Supposing <span style="font-style:oblique">num</span>&gt;1, after the first
+application of <span style="font-style:italic">v</span>, <span style="font-style:italic">v</span> is applied, at least once, to the generated
+subgoals and so on. It fails if the application of <span style="font-style:italic">v</span> fails before
+the <span style="font-style:oblique">num</span> applications have been completed.</p><h4 id="sec460" class="subsubsection">Repeat loop<a id="hevea_default781"></a><a id="hevea_tactic203"></a>
+<a id="hevea_default782"></a></h4>
+<p>We have a repeat loop with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">repeat</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span>. If <span style="font-style:italic">v</span> denotes a tactic, this tactic
+is applied to each focused goal independently. If the application
+succeeds, the tactic is applied recursively to all the generated subgoals
+until it eventually fails. The recursion stops in a subgoal when the
+tactic has failed <em>to make progress</em>. The tactic <span style="font-family:monospace">repeat
+</span><span style="font-style:oblique">expr</span> itself never fails.</p><h4 id="sec461" class="subsubsection">Error catching<a id="hevea_default783"></a><a id="hevea_tactic204"></a>
+<a id="hevea_default784"></a></h4>
+<p>We can catch the tactic errors with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">try</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+The tactic value <span style="font-style:italic">v</span> is
+applied to each focused goal independently. If the application of <span style="font-style:italic">v</span>
+fails in a goal, it catches the error and leaves the goal
+unchanged. If the level of the exception is positive, then the
+exception is re-raised with its level decremented.</p><h4 id="sec462" class="subsubsection">Detecting progress<a id="hevea_default785"></a><a id="hevea_tactic205"></a></h4>
+<p>We can check if a tactic made progress with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">progress</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+The tactic value <span style="font-style:italic">v</span> is
+applied to each focued subgoal independently. If the application of
+<span style="font-style:italic">v</span> to one of the focused subgoal produced subgoals equal to the
+initial goals (up to syntactical equality), then an error of level 0
+is raised.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">Failed to progress</span><a id="hevea_error129"></a></p><h4 id="sec463" class="subsubsection">Backtracking branching<a id="hevea_default786"></a><a id="hevea_tactic206"></a>
+<a id="hevea_default787"></a></h4>
+<p>We can branch with the following structure:
+</p><blockquote class="quote">
+<span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">+</span> <span style="font-style:oblique">expr</span><sub>2</sub>
+</blockquote><p>
+<span style="font-style:oblique">expr</span><sub>1</sub> and <span style="font-style:oblique">expr</span><sub>2</sub> are evaluated to <span style="font-style:italic">v</span><sub>1</sub> and
+<span style="font-style:italic">v</span><sub>2</sub> which must be tactic values. The tactic value <span style="font-style:italic">v</span><sub>1</sub> is applied to each
+focused goal independently and if it fails or a later tactic fails,
+then the proof backtracks to the current goal and <span style="font-style:italic">v</span><sub>2</sub> is applied.</p><p>Tactics can be seen as having several successes. When a tactic fails
+it asks for more successes of the prior tactics. <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">+</span> <span style="font-style:oblique">expr</span><sub>2</sub> has all the successes of <span style="font-style:italic">v</span><sub>1</sub> followed by all the
+successes of <span style="font-style:italic">v</span><sub>2</sub>. Algebraically, (<span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">+</span>
+<span style="font-style:oblique">expr</span><sub>2</sub>);<span style="font-style:oblique">expr</span><sub>3</sub> = (<span style="font-style:oblique">expr</span><sub>1</sub>;<span style="font-style:oblique">expr</span><sub>3</sub>)
+<span style="font-family:monospace">+</span> (<span style="font-style:oblique">expr</span><sub>2</sub>;<span style="font-style:oblique">expr</span><sub>3</sub>).</p><p>Branching is left-associative.</p><h4 id="sec464" class="subsubsection">First tactic to work<a id="hevea_default788"></a><a id="hevea_tactic207"></a>
+<a id="hevea_default789"></a></h4>
+<p>Backtracking branching may be too expensive. In this case we may
+restrict to a local, left biased, branching and consider the first
+tactic to work (i.e. which does not fail) among a panel of tactics:
+</p><blockquote class="quote">
+<span style="font-family:monospace">first [</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> are evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> and <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> must be tactic values,
+for <span style="font-style:italic">i</span>=1,...,<span style="font-style:italic">n</span>. Supposing <span style="font-style:italic">n</span>&gt;1, it applies, in each focused goal
+independently, <span style="font-style:italic">v</span><sub>1</sub>, if it works, it stops otherwise it tries to
+apply <span style="font-style:italic">v</span><sub>2</sub> and so on. It fails when there is no applicable tactic. In
+other words, <span style="font-family:monospace">first [</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span> behaves, in each goal, as the the first <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub>
+to have <em>at least</em> one success.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">No applicable tactic</span><a id="hevea_error130"></a></p><h4 id="sec465" class="subsubsection">Left-biased branching<a id="hevea_default790"></a><a id="hevea_tactic208"></a>
+<a id="hevea_default791"></a></h4>
+<p>Yet another way of branching without backtracking is the following structure:
+</p><blockquote class="quote">
+<span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">||</span> <span style="font-style:oblique">expr</span><sub>2</sub>
+</blockquote><p>
+<span style="font-style:oblique">expr</span><sub>1</sub> and <span style="font-style:oblique">expr</span><sub>2</sub> are evaluated to <span style="font-style:italic">v</span><sub>1</sub> and
+<span style="font-style:italic">v</span><sub>2</sub> which must be tactic values. The tactic value <span style="font-style:italic">v</span><sub>1</sub> is applied in each
+subgoal independently and if it fails <em>to progress</em> then <span style="font-style:italic">v</span><sub>2</sub> is
+applied. <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">||</span> <span style="font-style:oblique">expr</span><sub>2</sub> is equivalent to <span style="font-family:monospace">first [</span> <span style="font-family:monospace">progress</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> <span style="font-family:monospace">progress</span>
+<span style="font-style:oblique">expr</span><sub>2</sub> <span style="font-family:monospace">]</span> (except that if it fails, it fails like
+<span style="font-style:italic">v</span><sub>2</sub>). Branching is left-associative.</p><h4 id="sec466" class="subsubsection">Generalized biased branching<a id="hevea_default792"></a><a id="hevea_tactic209"></a>
+<a id="hevea_default793"></a></h4>
+<p>The tactic
+</p><blockquote class="quote">
+<span style="font-family:monospace">tryif </span><span style="font-style:oblique">expr</span><sub>1</sub><span style="font-family:monospace"> then </span><span style="font-style:oblique">expr</span><sub>2</sub><span style="font-family:monospace"> else </span><span style="font-style:oblique">expr</span><sub>3</sub>
+</blockquote><p>
+is a generalization of the biased-branching tactics above. The
+expression <span style="font-style:oblique">expr</span><sub>1</sub> is evaluated to <span style="font-style:italic">v</span><sub>1</sub>, which is then applied
+to each subgoal independently. For each goal where <span style="font-style:italic">v</span><sub>1</sub> succeeds at
+least once, tacexpr<sub>2</sub> is evaluated to <span style="font-style:italic">v</span><sub>2</sub> which is then applied
+collectively to the generated subgoals. The <span style="font-style:italic">v</span><sub>2</sub> tactic can trigger
+backtracking points in <span style="font-style:italic">v</span><sub>1</sub>: where <span style="font-style:italic">v</span><sub>1</sub> succeeds at least once, <span style="font-family:monospace">tryif </span><span style="font-style:oblique">expr</span><sub>1</sub><span style="font-family:monospace"> then </span><span style="font-style:oblique">expr</span><sub>2</sub><span style="font-family:monospace"> else </span><span style="font-style:oblique">expr</span><sub>3</sub> is
+equivalent to <span style="font-style:italic">v</span><sub>1</sub>;<span style="font-style:italic">v</span><sub>2</sub>. In each of the goals where <span style="font-style:italic">v</span><sub>1</sub> does not
+succeed at least once, <span style="font-style:oblique">expr</span><sub>3</sub> is evaluated in <span style="font-style:italic">v</span><sub>3</sub> which is
+is then applied to the goal.</p><h4 id="sec467" class="subsubsection">Soft cut<a id="hevea_default794"></a><a id="hevea_tactic210"></a><a id="hevea_default795"></a></h4>
+<p>Another way of restricting backtracking is to restrict a tactic to a
+single success <em>a posteriori</em>:
+</p><blockquote class="quote">
+<span style="font-family:monospace">once</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+The tactic value <span style="font-style:italic">v</span> is
+applied but only its first success is used. If <span style="font-style:italic">v</span> fails, <span style="font-family:monospace">once</span>
+<span style="font-style:oblique">expr</span> fails like <span style="font-style:italic">v</span>. If <span style="font-style:italic">v</span> has a least one success, <span style="font-family:monospace">once</span>
+<span style="font-style:oblique">expr</span> succeeds once, but cannot produce more successes.</p><h4 id="sec468" class="subsubsection">Checking the successes<a id="hevea_default796"></a><a id="hevea_tactic211"></a><a id="hevea_default797"></a></h4>
+<p>Coq provides an experimental way to check that a tactic has <em>exactly one</em> success:
+</p><blockquote class="quote">
+<span style="font-family:monospace">exactly_once</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+The tactic value <span style="font-style:italic">v</span> is
+applied if it has at most one success. If <span style="font-style:italic">v</span> fails, <span style="font-family:monospace">exactly_once</span> <span style="font-style:oblique">expr</span> fails like <span style="font-style:italic">v</span>. If <span style="font-style:italic">v</span> has a exactly one
+success, <span style="font-family:monospace">exactly_once</span> <span style="font-style:oblique">expr</span> succeeds like <span style="font-style:italic">v</span>. If <span style="font-style:italic">v</span> has
+two or more successes, <span style="font-family:monospace">exactly_once</span> <span style="font-style:oblique">expr</span> fails.</p><p>The experimental status of this tactic pertains to the fact if <span style="font-style:italic">v</span> performs side effects, they may occur in a unpredictable way. Indeed, normally <span style="font-style:italic">v</span> would only be executed up to the first success until backtracking is needed, however <span style="font-family:monospace">exactly_once</span> needs to look ahead to see whether a second success exists, and may run further effects immediately.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">This tactic has more than one success</span><a id="hevea_error131"></a></p><h4 id="sec469" class="subsubsection">Solving<a id="hevea_default798"></a><a id="hevea_tactic212"></a>
+<a id="hevea_default799"></a></h4>
+<p>We may consider the first to solve (i.e. which generates no subgoal) among a
+panel of tactics:
+</p><blockquote class="quote">
+<span style="font-family:monospace">solve [</span> <span style="font-style:oblique">expr</span><sub>1</sub> <span style="font-family:monospace">|</span> ... <span style="font-family:monospace">|</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">]</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> are evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> and <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> must be tactic values,
+for <span style="font-style:italic">i</span>=1,...,<span style="font-style:italic">n</span>. Supposing <span style="font-style:italic">n</span>&gt;1, it applies <span style="font-style:italic">v</span><sub>1</sub> to each goal
+independently, if it doesn’t solve the goal then it tries to apply
+<span style="font-style:italic">v</span><sub>2</sub> and so on. It fails if there is no solving tactic.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">Cannot solve the goal</span><a id="hevea_error132"></a></p><h4 id="ltac:idtac" class="subsubsection">Identity<a id="hevea_default800"></a><a id="hevea_tactic213"></a>
+<a id="hevea_default801"></a></h4>
+<p>The constant <span style="font-family:monospace">idtac</span> is the identity tactic: it leaves any goal
+unchanged but it appears in the proof script.</p><p><br>
+<span style="font-weight:bold">Variant: </span><span style="font-family:monospace">idtac </span><span style="font-style:oblique">message_token</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">message_token</span></p><p>This prints the given tokens. Strings and integers are printed
+literally. If a (term) variable is given, its contents are printed.</p><h4 id="sec471" class="subsubsection">Failing<a id="hevea_default802"></a><a id="hevea_tactic214"></a>
+<a id="hevea_default803"></a>
+<a id="hevea_default804"></a><a id="hevea_tactic215"></a><a id="hevea_default805"></a></h4>
+<p>The tactic <span style="font-family:monospace">fail</span> is the always-failing tactic: it does not solve
+any goal. It is useful for defining other tacticals since it can be
+caught by <span style="font-family:monospace">try</span>, <span style="font-family:monospace">repeat</span>, <span style="font-family:monospace">match goal</span>, or the branching
+tacticals. The <span style="font-family:monospace">fail</span> tactic will, however, succeed if all the
+goals have already been solved.</p><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">fail </span><span style="font-style:italic">n</span><br>
+The number <span style="font-style:italic">n</span> is the failure level. If no
+level is specified, it defaults to 0. The level is used by <span style="font-family:monospace">try</span>, <span style="font-family:monospace">repeat</span>, <span style="font-family:monospace">match goal</span> and the branching tacticals.
+If 0, it makes <span style="font-family:monospace">match goal</span> considering the next clause
+(backtracking). If non zero, the current <span style="font-family:monospace">match goal</span> block,
+<span style="font-family:monospace">try</span>, <span style="font-family:monospace">repeat</span>, or branching command is aborted and the
+level is decremented. In the case of <span style="font-family:monospace">+</span>, a non-zero level skips
+the first backtrack point, even if the call to <span style="font-family:monospace">fail </span><span style="font-style:italic">n</span> is not
+enclosed in a <span style="font-family:monospace">+</span> command, respecting the algebraic identity.</li><li class="li-enumerate"><span style="font-family:monospace">fail </span><span style="font-style:oblique">message_token</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">message_token</span><br>
+The given tokens are used for printing the failure message.</li><li class="li-enumerate"><span style="font-family:monospace">fail </span><span style="font-style:italic">n</span><span style="font-family:monospace"> </span><span style="font-style:oblique">message_token</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">message_token</span><br>
+This is a combination of the previous variants.</li><li class="li-enumerate"><span style="font-family:monospace">gfail</span><br>
+This variant fails even if there are no goals left.</li><li class="li-enumerate"><span style="font-family:monospace">gfail </span><span style="font-style:oblique">message_token</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">message_token</span><br>
+<span style="font-family:monospace">gfail </span><span style="font-style:italic">n</span><span style="font-family:monospace"> </span><span style="font-style:oblique">message_token</span><span style="font-family:monospace">  </span><span style="font-family:monospace">…</span><span style="font-family:monospace">  </span><span style="font-style:oblique">message_token</span><br>
+These variants fail with an error message or an error level even if
+there are no goals left. Be careful however if Coq terms have to be
+printed as part of the failure: term construction always forces the
+tactic into the goals, meaning that if there are no goals when it is
+evaluated, a tactic call like <span style="font-family:monospace">let x:=H in fail 0 x</span> will succeed.</li></ol><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">Tactic Failure </span><span style="font-family:monospace"><span style="font-style:italic">message</span></span><span style="font-family:monospace"> (level </span><span style="font-style:italic">n</span><span style="font-family:monospace">)</span><a id="hevea_error133"></a>.</p><h4 id="sec472" class="subsubsection">Timeout<a id="hevea_default806"></a><a id="hevea_tactic216"></a>
+<a id="hevea_default807"></a></h4>
+<p>We can force a tactic to stop if it has not finished after a certain
+amount of time:
+</p><blockquote class="quote">
+<span style="font-family:monospace">timeout</span> <span style="font-style:oblique">num</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+<span style="font-style:oblique">expr</span> is evaluated to <span style="font-style:italic">v</span> which must be a tactic value.
+The tactic value <span style="font-style:italic">v</span> is
+applied normally, except that it is interrupted after <span style="font-style:oblique">num</span> seconds
+if it is still running. In this case the outcome is a failure.</p><p>Warning: For the moment, <span style="font-family:monospace">timeout</span> is based on elapsed time in
+seconds, which is very
+machine-dependent: a script that works on a quick machine may fail
+on a slow one. The converse is even possible if you combine a
+<span style="font-family:monospace">timeout</span> with some other tacticals. This tactical is hence
+proposed only for convenience during debug or other development
+phases, we strongly advise you to not leave any <span style="font-family:monospace">timeout</span> in
+final scripts. Note also that this tactical isn’t available on
+the native Windows port of Coq.</p>
+<h4 id="sec473" class="subsubsection">Timing a tactic<a id="hevea_default808"></a><a id="hevea_tactic217"></a>
+<a id="hevea_default809"></a></h4>
+<p>A tactic execution can be timed:
+</p><blockquote class="quote">
+<span style="font-family:monospace">time</span> <span style="font-style:oblique">string</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+evaluates <span style="font-style:oblique">expr</span>
+and displays the time the tactic expression ran, whether it fails or
+successes. In case of several successes, the time for each successive
+runs is displayed. Time is in seconds and is machine-dependent. The
+<span style="font-style:oblique">string</span> argument is optional. When provided, it is used to identify
+this particular occurrence of <span style="font-family:monospace">time</span>.</p><h4 id="sec474" class="subsubsection">Local definitions<a id="hevea_default810"></a>
+<a id="hevea_default811"></a>
+<a id="hevea_default812"></a>
+<a id="hevea_default813"></a></h4>
+<p>Local definitions can be done as follows:
+</p><blockquote class="quote">
+<span style="font-family:monospace">let</span> <span style="font-style:oblique">ident</span><sub>1</sub> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">expr</span><sub>1</sub><br>
+<span style="font-family:monospace">with</span> <span style="font-style:oblique">ident</span><sub>2</sub> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">expr</span><sub>2</sub><br>
+...<br>
+<span style="font-family:monospace">with</span> <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">:=</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">in</span><br>
+<span style="font-style:oblique">expr</span>
+</blockquote><p>
+each <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> is evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub>, then, <span style="font-style:oblique">expr</span> is
+evaluated by substituting <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub> to each occurrence of <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub>,
+for <span style="font-style:italic">i</span>=1,...,<span style="font-style:italic">n</span>. There is no dependencies between the <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub>
+and the <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">i</span></sub>.</p><p>Local definitions can be recursive by using <span style="font-family:monospace">let rec</span> instead of
+<span style="font-family:monospace">let</span>. In this latter case, the definitions are evaluated lazily
+so that the <span style="font-family:monospace">rec</span> keyword can be used also in non recursive cases
+so as to avoid the eager evaluation of local definitions.</p>
+<h4 id="sec475" class="subsubsection">Application</h4>
+<p>An application is an expression of the following form:
+</p><blockquote class="quote">
+<span style="font-style:oblique">qualid</span> <span style="font-style:oblique">tacarg</span><sub>1</sub> ... <span style="font-style:oblique">tacarg</span><sub><span style="font-style:italic">n</span></sub>
+</blockquote><p>
+The reference <span style="font-style:oblique">qualid</span> must be bound to some defined tactic
+definition expecting at least <span style="font-style:italic">n</span> arguments. The expressions
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">i</span></sub> are evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">i</span></sub>, for <span style="font-style:italic">i</span>=1,...,<span style="font-style:italic">n</span>.
+</p><h4 id="sec476" class="subsubsection">Function construction<a id="hevea_default814"></a>
+<a id="hevea_default815"></a></h4>
+<p>A parameterized tactic can be built anonymously (without resorting to
+local definitions) with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">fun</span> <span style="font-style:oblique">ident</span><sub>1</sub> ... <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+Indeed, local definitions of functions are a syntactic sugar for
+binding a <span style="font-family:monospace">fun</span> tactic to an identifier.</p><h4 id="sec477" class="subsubsection">Pattern matching on terms<a id="hevea_default816"></a>
+<a id="hevea_default817"></a></h4>
+<p>We can carry out pattern matching on terms with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">match</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">with</span><br>
+   <span style="font-style:oblique">cpattern</span><sub>1</sub> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub>1</sub><br>
+ <span style="font-family:monospace">|</span> <span style="font-style:oblique">cpattern</span><sub>2</sub> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub>2</sub><br>
+ ...<br>
+ <span style="font-family:monospace">|</span> <span style="font-style:oblique">cpattern</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub><br>
+ <span style="font-family:monospace">|</span> <span style="font-family:monospace">_</span> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span>+1</sub><br>
+<span style="font-family:monospace">end</span>
+</blockquote><p>
+The expression <span style="font-style:oblique">expr</span> is evaluated and should yield a term which
+is matched against <span style="font-style:oblique">cpattern</span><sub>1</sub>. The matching is non-linear: if a
+metavariable occurs more than once, it should match the same
+expression every time. It is first-order except on the
+variables of the form <span style="font-family:monospace">@?id</span> that occur in head position of an
+application. For these variables, the matching is second-order and
+returns a functional term.</p><p>Alternatively, when a metavariable of the form <span style="font-family:monospace">?id</span> occurs under
+binders, say <span style="font-style:italic">x</span><sub>1</sub>, …, <span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> and the expression matches, the
+metavariable is instantiated by a term which can then be used in any
+context which also binds the variables <span style="font-style:italic">x</span><sub>1</sub>, …, <span style="font-style:italic">x</span><sub><span style="font-style:italic">n</span></sub> with
+same types. This provides with a primitive form of matching
+under context which does not require manipulating a functional term.</p><p>If the matching with <span style="font-style:oblique">cpattern</span><sub>1</sub> succeeds, then <span style="font-style:oblique">expr</span><sub>1</sub> is
+evaluated into some value by substituting the pattern matching
+instantiations to the metavariables. If <span style="font-style:oblique">expr</span><sub>1</sub> evaluates to a
+tactic and the <span style="font-family:monospace">match</span> expression is in position to be applied to
+a goal (e.g. it is not bound to a variable by a <span style="font-family:monospace">let in</span>), then
+this tactic is applied. If the tactic succeeds, the list of resulting
+subgoals is the result of the <span style="font-family:monospace">match</span> expression. If
+<span style="font-style:oblique">expr</span><sub>1</sub> does not evaluate to a tactic or if the <span style="font-family:monospace">match</span>
+expression is not in position to be applied to a goal, then the result
+of the evaluation of <span style="font-style:oblique">expr</span><sub>1</sub> is the result of the <span style="font-family:monospace">match</span>
+expression.</p><p>If the matching with <span style="font-style:oblique">cpattern</span><sub>1</sub> fails, or if it succeeds but the
+evaluation of <span style="font-style:oblique">expr</span><sub>1</sub> fails, or if the evaluation of
+<span style="font-style:oblique">expr</span><sub>1</sub> succeeds but returns a tactic in execution position
+whose execution fails, then <span style="font-style:oblique">cpattern</span><sub>2</sub> is used and so on. The
+pattern _ matches any term and shunts all remaining patterns if
+any. If all clauses fail (in particular, there is no pattern _)
+then a no-matching-clause error is raised.</p><p>Failures in subsequent tactics do not cause backtracking to select new
+branches or inside the right-hand side of the selected branch even if
+it has backtracking points.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate"><span style="font-family:monospace">No matching clauses for match</span><a id="hevea_error134"></a><p>No pattern can be used and, in particular, there is no <span style="font-family:monospace">_</span> pattern.</p></li><li class="li-enumerate"><span style="font-family:monospace">Argument of match does not evaluate to a term</span><a id="hevea_error135"></a><p>This happens when <span style="font-style:oblique">expr</span> does not denote a term.</p></li></ol><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate"><a id="hevea_default818"></a>
+<a id="hevea_default819"></a>
+Using <span style="font-family:monospace">multimatch</span> instead of <span style="font-family:monospace">match</span> will allow subsequent
+tactics to backtrack into a right-hand side tactic which has
+backtracking points left and trigger the selection of a new matching
+branch when all the backtracking points of the right-hand side have
+been consumed.<p>The syntax <span style="font-family:monospace">match …</span> is, in fact, a shorthand for
+<span style="font-family:monospace">once multimatch …</span>.</p></li><li class="li-enumerate"><a id="hevea_default820"></a>
+<a id="hevea_default821"></a>
+Using <span style="font-family:monospace">lazymatch</span> instead of <span style="font-family:monospace">match</span> will perform the same
+pattern matching procedure but will commit to the first matching
+branch rather than trying a new matching if the right-hand side
+fails. If the right-hand side of the selected branch is a tactic with
+backtracking points, then subsequent failures cause this tactic to
+backtrack.</li><li class="li-enumerate"><a id="hevea_default822"></a>
+There is a special form of patterns to match a subterm against the
+pattern:
+<blockquote class="quote">
+<span style="font-family:monospace">context</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">]</span>
+</blockquote>
+It matches any term with a subterm matching <span style="font-style:oblique">cpattern</span>. If there is
+a match, the optional <span style="font-style:oblique">ident</span> is assigned the “matched context”, i.e.
+the initial term where the matched subterm is replaced by a
+hole. The example below will show how to use such term contexts.<p>If the evaluation of the right-hand-side of a valid match fails, the
+next matching subterm is tried. If no further subterm matches, the
+next clause is tried. Matching subterms are considered top-bottom and
+from left to right (with respect to the raw printing obtained by
+setting option <span style="font-family:monospace">Printing All</span>, see Section <a href="Reference-Manual004.html#SetPrintingAll">2.9</a>).</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Ltac f x :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match x with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          context f [S ?X] =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          idtac X;                    (* To display the evaluation order *)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          assert (p := eq</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">refl 1 : X=1);    (* To filter the case X=1 *)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          let x:= context f[O] in assert (x=O) (* To observe the context *)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">f is defined</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal True.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  True</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> f (3+4).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">2</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">2 subgoals</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  p : 1 = 1</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  1 + 4 = 0</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 2 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span></div></li><li class="li-enumerate"><a id="hevea_default823"></a>
+<a id="hevea_default824"></a><a id="hevea_option54"></a>
+For historical reasons, <span style="font-family:monospace">context</span> used to consider <span style="font-style:italic">n</span>-ary applications
+such as <span style="font-family:monospace">(f 1 2)</span> as a whole, and not as a sequence of unary
+applications <span style="font-family:monospace">((f 1) 2)</span>. Hence <span style="font-family:monospace">context [f ?x]</span> would fail
+to find a matching subterm in <span style="font-family:monospace">(f 1 2)</span>: if the pattern was a partial
+application, the matched subterms would have necessarily been
+applications with exactly the same number of arguments.
+As a workaround, one could use the following variant of <span style="font-family:monospace">context</span>:
+<blockquote class="quote">
+<span style="font-family:monospace">appcontext</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">]</span>
+</blockquote>
+This syntax is now deprecated, as <span style="font-family:monospace">context</span> behaves as intended. The former
+behavior can be retrieved with the <span style="font-family:monospace">Tactic Compat Context</span> flag.</li></ol><h4 id="ltac-match-goal" class="subsubsection">Pattern matching on goals<a id="hevea_default825"></a>
+<a id="hevea_default826"></a>
+<a id="hevea_default827"></a>
+<a id="hevea_default828"></a></h4>
+<p>We can make pattern matching on goals using the following expression:
+</p><blockquote class="quote">
+<table style="border:0;border-spacing:0" class="cellpadding0"><tr><td style="text-align:left;white-space:nowrap" >
+<span style="font-family:monospace">match goal with</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  </td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|</span> <span style="font-style:italic">hyp</span><sub>1,1</sub><span style="font-family:monospace">,</span>...<span style="font-family:monospace">,</span><span style="font-style:italic">hyp</span><sub>1,<span style="font-style:italic">m</span><sub>1</sub></sub>
+  <span style="font-family:monospace">|-</span><span style="font-style:oblique">cpattern</span><sub>1</sub><span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub>1</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > </td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|</span> <span style="font-style:italic">hyp</span><sub>2,1</sub><span style="font-family:monospace">,</span>...<span style="font-family:monospace">,</span><span style="font-style:italic">hyp</span><sub>2,<span style="font-style:italic">m</span><sub>2</sub></sub>
+  <span style="font-family:monospace">|-</span><span style="font-style:oblique">cpattern</span><sub>2</sub><span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >  ...</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > </td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|</span> <span style="font-style:italic">hyp</span><sub><span style="font-style:italic">n</span>,1</sub><span style="font-family:monospace">,</span>...<span style="font-family:monospace">,</span><span style="font-style:italic">hyp</span><sub><span style="font-style:italic">n</span>,<span style="font-style:italic">m</span><sub><span style="font-style:italic">n</span></sub></sub>
+  <span style="font-family:monospace">|-</span><span style="font-style:oblique">cpattern</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > </td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|_</span>    <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span>+1</sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">end</span>
+</td></tr>
+</table>
+</blockquote><p>If each hypothesis pattern <span style="font-style:italic">hyp</span><sub>1,<span style="font-style:italic">i</span></sub>, with <span style="font-style:italic">i</span>=1,...,<span style="font-style:italic">m</span><sub>1</sub>
+is matched (non-linear first-order unification) by an hypothesis of
+the goal and if <span style="font-style:oblique">cpattern</span><sub>1</sub> is matched by the conclusion of the
+goal, then <span style="font-style:oblique">expr</span><sub>1</sub> is evaluated to <span style="font-style:italic">v</span><sub>1</sub> by substituting the
+pattern matching to the metavariables and the real hypothesis names
+bound to the possible hypothesis names occurring in the hypothesis
+patterns. If <span style="font-style:italic">v</span><sub>1</sub> is a tactic value, then it is applied to the
+goal. If this application fails, then another combination of
+hypotheses is tried with the same proof context pattern. If there is
+no other combination of hypotheses then the second proof context
+pattern is tried and so on. If the next to last proof context pattern
+fails then <span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span>+1</sub> is evaluated to <span style="font-style:italic">v</span><sub><span style="font-style:italic">n</span>+1</sub> and <span style="font-style:italic">v</span><sub><span style="font-style:italic">n</span>+1</sub>
+is applied. Note also that matching against subterms (using the <span style="font-family:monospace">context</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">cpattern</span> <span style="font-family:monospace">]</span>) is available and is
+also subject to yielding several matchings.</p><p>Failures in subsequent tactics do not cause backtracking to select new
+branches or combinations of hypotheses, or inside the right-hand side
+of the selected branch even if it has backtracking points.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">No matching clauses for match goal</span><a id="hevea_error136"></a></p><p>No clause succeeds, i.e. all matching patterns, if any,
+fail at the application of the right-hand-side.</p><p><br>
+</p><p>It is important to know that each hypothesis of the goal can be
+matched by at most one hypothesis pattern. The order of matching is
+the following: hypothesis patterns are examined from the right to the
+left (i.e. <span style="font-style:italic">hyp</span><sub><span style="font-style:italic">i</span>,<span style="font-style:italic">m</span><sub><span style="font-style:italic">i</span></sub></sub> before <span style="font-style:italic">hyp</span><sub><span style="font-style:italic">i</span>,1</sub>). For each hypothesis
+pattern, the goal hypothesis are matched in order (fresher hypothesis
+first), but it possible to reverse this order (older first) with
+the <span style="font-family:monospace">match reverse goal with</span> variant.</p><p><br>
+<span style="font-weight:bold">Variant: </span></p><p><a id="hevea_default829"></a>
+<a id="hevea_default830"></a>
+<a id="hevea_default831"></a>
+<a id="hevea_default832"></a></p><p>Using <span style="font-family:monospace">multimatch</span> instead of <span style="font-family:monospace">match</span> will allow subsequent
+tactics to backtrack into a right-hand side tactic which has
+backtracking points left and trigger the selection of a new matching
+branch or combination of hypotheses when all the backtracking points
+of the right-hand side have been consumed.</p><p>The syntax <span style="font-family:monospace">match [reverse] goal …</span> is, in fact, a shorthand for
+<span style="font-family:monospace">once multimatch [reverse] goal …</span>.</p><p><a id="hevea_default833"></a>
+<a id="hevea_default834"></a>
+<a id="hevea_default835"></a>
+<a id="hevea_default836"></a>
+Using <span style="font-family:monospace">lazymatch</span> instead of <span style="font-family:monospace">match</span> will perform the same
+pattern matching procedure but will commit to the first matching
+branch with the first matching combination of hypotheses rather than
+trying a new matching if the right-hand side fails. If the right-hand
+side of the selected branch is a tactic with backtracking points, then
+subsequent failures cause this tactic to backtrack.</p><h4 id="sec479" class="subsubsection">Filling a term context<a id="hevea_default837"></a></h4>
+<p>The following expression is not a tactic in the sense that it does not
+produce subgoals but generates a term to be used in tactic
+expressions:
+</p><blockquote class="quote">
+<span style="font-family:monospace">context</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">[</span> <span style="font-style:oblique">expr</span> <span style="font-family:monospace">]</span>
+</blockquote><p>
+<span style="font-style:oblique">ident</span> must denote a context variable bound by a <span style="font-family:monospace">context</span>
+pattern of a <span style="font-family:monospace">match</span> expression. This expression evaluates
+replaces the hole of the value of <span style="font-style:oblique">ident</span> by the value of
+<span style="font-style:oblique">expr</span>.</p><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">not a context variable</span><a id="hevea_error137"></a></p><h4 id="sec480" class="subsubsection">Generating fresh hypothesis names<a id="hevea_default838"></a>
+<a id="hevea_default839"></a></h4>
+<p>Tactics sometimes have to generate new names for hypothesis. Letting
+the system decide a name with the <span style="font-family:monospace">intro</span> tactic is not so good
+since it is very awkward to retrieve the name the system gave.
+The following expression returns an identifier:
+</p><blockquote class="quote">
+<span style="font-family:monospace">fresh</span> <span style="font-style:oblique">component</span>  …  <span style="font-style:oblique">component</span>
+</blockquote><p>
+It evaluates to an identifier unbound in the goal. This fresh
+identifier is obtained by concatenating the value of the
+<span style="font-style:oblique">component</span>’s (each of them is, either an <span style="font-style:oblique">qualid</span> which
+has to refer to a (unqualified) name, or directly a name denoted by a
+<span style="font-style:oblique">string</span>). If the resulting name is already used, it is padded
+with a number so that it becomes fresh. If no component is
+given, the name is a fresh derivative of the name <span style="font-family:monospace">H</span>.</p><h4 id="sec481" class="subsubsection">Computing in a constr<a id="hevea_default840"></a>
+<a id="hevea_default841"></a></h4>
+<p>Evaluation of a term can be performed with:
+</p><blockquote class="quote">
+<span style="font-family:monospace">eval</span> <span style="font-style:oblique">redexpr</span> <span style="font-family:monospace">in</span> <span style="font-style:oblique">term</span>
+</blockquote><p>
+where <span style="font-style:oblique">redexpr</span> is a reduction tactic among <span style="font-family:monospace">red</span>, <span style="font-family:monospace">hnf</span>, <span style="font-family:monospace">compute</span>, <span style="font-family:monospace">simpl</span>, <span style="font-family:monospace">cbv</span>, <span style="font-family:monospace">lazy</span>, <span style="font-family:monospace">unfold</span>,
+<span style="font-family:monospace">fold</span>, <span style="font-family:monospace">pattern</span>.</p>
+<h4 id="sec482" class="subsubsection">Recovering the type of a term</h4>
+<p>
+<a id="hevea_default842"></a>
+<a id="hevea_default843"></a></p><p>The following returns the type of <span style="font-style:oblique">term</span>:</p><blockquote class="quote">
+<span style="font-family:monospace">type of</span> <span style="font-style:oblique">term</span>
+</blockquote><h4 id="sec483" class="subsubsection">Manipulating untyped terms<a id="hevea_default844"></a>
+<a id="hevea_default845"></a>
+<a id="hevea_default846"></a>
+<a id="hevea_default847"></a></h4>
+<p>The terms built in Ltac are well-typed by default. It may not be
+appropriate for building large terms using a recursive Ltac function:
+the term has to be entirely type checked at each step, resulting in
+potentially very slow behavior. It is possible to build untyped terms
+using Ltac with the syntax</p><blockquote class="quote">
+<span style="font-family:monospace">uconstr :</span> <span style="font-style:oblique">term</span>
+</blockquote><p>An untyped term, in Ltac, can contain references to hypotheses or to
+Ltac variables containing typed or untyped terms. An untyped term can
+be type-checked using the function <span style="font-family:monospace">type_term</span> whose argument is
+parsed as an untyped term and returns a well-typed term which can be
+used in tactics.</p><blockquote class="quote">
+<span style="font-family:monospace">type_term</span> <span style="font-style:oblique">term</span>
+</blockquote><p>Untyped terms built using <span style="font-family:monospace">uconstr :</span> can also be used as
+arguments to the <span style="font-family:monospace">refine</span> tactic <a href="Reference-Manual010.html#refine">8.2.3</a>. In that case the
+untyped term is type checked against the conclusion of the goal, and
+the holes which are not solved by the typing procedure are turned into
+new subgoals.</p><h4 id="sec484" class="subsubsection">Counting the goals<a id="hevea_default848"></a><a id="hevea_default849"></a></h4>
+<p>The number of goals under focus can be recovered using the <span style="font-family:monospace">numgoals</span> function. Combined with the <span style="font-family:monospace">guard</span> command below, it
+can be used to branch over the number of goals produced by previous tactics.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Ltac pr</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">numgoals := let n := numgoals in idtac "There are" n "goals".</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal True /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> True /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> True.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> split;[|split].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> all:pr</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">numgoals.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">There are 3 goals</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">3 subgoals</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 2 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 3 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span></div><h4 id="sec485" class="subsubsection">Testing boolean expressions<a id="hevea_default850"></a><a id="hevea_default851"></a></h4>
+<p>The <span style="font-family:monospace">guard</span> tactic tests a boolean expression, and fails if the expression evaluates to false. If the expression evaluates to true, it succeeds without affecting the proof.</p><blockquote class="quote">
+<span style="font-family:monospace">guard</span> <span style="font-style:italic">test</span>
+</blockquote><p>The accepted tests are simple integer comparisons.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal True /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> True /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> True.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> split;[|split].</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> all:let n:= numgoals in guard n</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">4.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">3 subgoals</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 2 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 3 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Fail all:let n:= numgoals in guard n=2.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">The command has indeed failed with message:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Ltac call to "guard (test)" failed.</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Error: Condition not satisfied: 3=2</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">3 subgoals</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 2 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">subgoal 3 is:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> True</span></span></span><span style="font-size:small"><br>
+</span></div><p><span style="font-size:small">
+</span>
+<br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate"><span style="font-family:monospace">Condition not satisfied</span><a id="hevea_error138"></a></li></ol><h4 id="sec486" class="subsubsection">Proving a subgoal as a separate lemma<a id="hevea_default852"></a><a id="hevea_tactic218"></a><a id="hevea_default853"></a><a id="hevea_command207"></a>
+<a id="hevea_default854"></a></h4>
+<p>From the outside “<span style="font-family:monospace">abstract </span><span style="font-style:oblique">expr</span>” is the same as
+<span style="font-family:monospace">solve </span><span style="font-style:oblique">expr</span>. Internally it saves an auxiliary lemma called
+<span style="font-style:oblique">ident</span><span style="font-family:monospace">_subproof</span><span style="font-style:italic">n</span> where <span style="font-style:oblique">ident</span> is the name of the
+current goal and <span style="font-style:italic">n</span> is chosen so that this is a fresh name.
+Such auxiliary lemma is inlined in the final proof term
+unless the proof is ended with “<span style="font-family:monospace">Qed exporting</span>”. In such
+case the lemma is preserved. The syntax
+“<span style="font-family:monospace">Qed exporting </span><span style="font-style:oblique">ident</span><sub>1</sub><span style="font-family:monospace">, ..., </span><span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub>”
+is also supported. In such case the system checks that the names given by the
+user actually exist when the proof is ended.</p><p>This tactical is useful with tactics such as <span style="font-family:monospace">omega</span> or
+<span style="font-family:monospace">discriminate</span> that generate huge proof terms. With that tool
+the user can avoid the explosion at time of the <span style="font-family:monospace">Save</span> command
+without having to cut manually the proof in smaller lemmas.</p><p>It may be useful to generate lemmas minimal w.r.t. the assumptions they depend
+on. This can be obtained thanks to the option below.</p><blockquote class="quote">
+<a id="hevea_default855"></a><a id="hevea_option55"></a>
+<span style="font-family:monospace">Set Shrink Abstract</span>
+</blockquote><p>When set, all lemmas generated through <span style="font-family:monospace">abstract </span><span style="font-style:oblique">expr</span> are
+quantified only over the variables that appear in the term constructed by
+<span style="font-style:oblique">expr</span>.</p><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">abstract </span><span style="font-style:oblique">expr</span><span style="font-family:monospace"> using </span><span style="font-style:oblique">ident</span>.<br>
+ Give explicitly the name of the auxiliary lemma.
+</li></ol><p><br>
+<span style="font-weight:bold">Error message: </span><span style="font-family:monospace">Proof is not complete</span><a id="hevea_error139"></a></p><h2 id="sec487" class="section">9.3  Tactic toplevel definitions<a id="hevea_default856"></a><a id="hevea_command208"></a></h2>
+<h3 id="sec488" class="subsection">9.3.1  Defining <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> functions</h3>
+<p>Basically, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> toplevel definitions are made as follows:
+</p><blockquote class="quote">
+<span style="font-family:monospace">Ltac</span> <span style="font-style:oblique">ident</span> <span style="font-style:oblique">ident</span><sub>1</sub> ... <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">:=</span>
+<span style="font-style:oblique">expr</span>
+</blockquote><p>
+This defines a new <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> function that can be used in any tactic
+script or new <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> toplevel definition.</p><p><br>
+<span style="font-weight:bold">Remark: </span>The preceding definition can equivalently be written:
+</p><blockquote class="quote">
+<span style="font-family:monospace">Ltac</span> <span style="font-style:oblique">ident</span> <span style="font-family:monospace">:= fun</span> <span style="font-style:oblique">ident</span><sub>1</sub> ... <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub>
+<span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">expr</span>
+</blockquote><p>
+Recursive and mutual recursive function definitions are also
+possible with the syntax:
+</p><blockquote class="quote">
+<span style="font-family:monospace">Ltac</span> <span style="font-style:oblique">ident</span><sub>1</sub> <span style="font-style:oblique">ident</span><sub>1,1</sub> ...
+<span style="font-style:oblique">ident</span><sub>1,<span style="font-style:italic">m</span><sub>1</sub></sub>  <span style="font-family:monospace">:=</span> <span style="font-style:oblique">expr</span><sub>1</sub><br>
+<span style="font-family:monospace">with</span> <span style="font-style:oblique">ident</span><sub>2</sub> <span style="font-style:oblique">ident</span><sub>2,1</sub> ... <span style="font-style:oblique">ident</span><sub>2,<span style="font-style:italic">m</span><sub>2</sub></sub>  <span style="font-family:monospace">:=</span>
+<span style="font-style:oblique">expr</span><sub>2</sub><br>
+...<br>
+<span style="font-family:monospace">with</span> <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span>,1</sub> ... <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span>,<span style="font-style:italic">m</span><sub><span style="font-style:italic">n</span></sub></sub>  <span style="font-family:monospace">:=</span>
+<span style="font-style:oblique">expr</span><sub><span style="font-style:italic">n</span></sub>
+</blockquote><p>
+<br>
+It is also possible to <em>redefine</em> an existing user-defined tactic
+using the syntax:
+</p><blockquote class="quote">
+<span style="font-family:monospace">Ltac</span> <span style="font-style:oblique">qualid</span> <span style="font-style:oblique">ident</span><sub>1</sub> ... <span style="font-style:oblique">ident</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">::=</span>
+<span style="font-style:oblique">expr</span>
+</blockquote><p>
+A previous definition of <span style="font-style:oblique">qualid</span> must exist in the environment.
+The new definition will always be used instead of the old one and
+it goes across module boundaries.</p><p>If preceded by the keyword <span style="font-family:monospace">Local</span> the tactic definition will not
+be exported outside the current module.</p><h3 id="sec489" class="subsection">9.3.2  Printing <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> tactics<a id="hevea_default857"></a><a id="hevea_command209"></a></h3>
+<p>Defined <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> functions can be displayed using the command</p><blockquote class="quote">
+<span style="font-family:monospace">Print Ltac </span><span style="font-style:oblique">qualid</span><span style="font-family:monospace">.</span>
+</blockquote><p>The command <span style="font-family:monospace">Print Ltac Signatures</span><a id="hevea_default858"></a><a id="hevea_command210"></a> displays a list of all user-defined tactics, with their arguments.</p>
+<h2 id="sec490" class="section">9.4  Debugging <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> tactics</h2>
+<h3 id="sec491" class="subsection">9.4.1  Info trace<a id="hevea_default859"></a><a id="hevea_command211"></a><a id="hevea_default860"></a><a id="hevea_option56"></a></h3>
+<p>It is possible to print the trace of the path eventually taken by an <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> script. That is, the list of executed tactics, discarding all the branches which have failed. To that end the <span style="font-family:monospace">Info</span> command can be used with the following syntax.</p><blockquote class="quote">
+<span style="font-family:monospace">Info</span> <span style="font-style:oblique">num</span> <span style="font-style:oblique">expr</span>.
+</blockquote><p>The number <span style="font-style:oblique">num</span> is the unfolding level of tactics in the trace. At level 0, the trace contains a sequence of tactics in the actual script, at level 1, the trace will be the concatenation of the traces of these tactics, etc…</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Ltac t x := exists x; reflexivity.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal exists n, n=0.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Info 0 t 1||t 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">t </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">constr:(0)</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Undo.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Info 1 t 1||t 0.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">exists 0;reflexivity </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><p>The trace produced by <span style="font-family:monospace">Info</span> tries its best to be a reparsable <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> script, but this goal is not achievable in all generality. So some of the output traces will contain oddities.</p><p>As an additional help for debugging, the trace produced by <span style="font-family:monospace">Info</span> contains (in comments) the messages produced by the <span style="font-family:monospace">idtac</span> tacticals <a href="#ltac%3Aidtac">9.2</a> at the right possition in the script. In particular, the calls to <span style="font-family:monospace">idtac</span> in branches which failed are not printed.</p><p>An alternative to the <span style="font-family:monospace">Info</span> command is to use the <span style="font-family:monospace">Info Level</span> option as follows:</p><blockquote class="quote">
+<span style="font-family:monospace">Set Info Level</span> <span style="font-style:oblique">num</span>.
+</blockquote><p>This will automatically print the same trace as <span style="font-family:monospace">Info </span><span style="font-style:oblique">num</span> at each tactic call. The unfolding level can be overridden by a call to the <span style="font-family:monospace">Info</span> command. And this option can be turned off with:</p><blockquote class="quote">
+<span style="font-family:monospace">Unset Info Level</span> <span style="font-style:oblique">num</span>.
+</blockquote><p>The current value for the <span style="font-family:monospace">Info Level</span> option can be checked using the <span style="font-family:monospace">Test Info Level</span> command.</p><h3 id="sec492" class="subsection">9.4.2  Interactive debugger<a id="hevea_default861"></a><a id="hevea_option57"></a></h3>
+<p>The <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> interpreter comes with a step-by-step debugger. The
+debugger can be activated using the command</p><blockquote class="quote">
+<span style="font-family:monospace">Set Ltac Debug.</span>
+</blockquote><p>and deactivated using the command</p><blockquote class="quote">
+<span style="font-family:monospace">Unset Ltac Debug.</span>
+</blockquote><p>To know if the debugger is on, use the command <span style="font-family:monospace">Test Ltac Debug</span>.
+When the debugger is activated, it stops at every step of the
+evaluation of the current <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> expression and it prints information
+on what it is doing. The debugger stops, prompting for a command which
+can be one of the following:</p><p><br>
+</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >simple newline:</td><td style="text-align:left;white-space:nowrap" >go to the next step</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >h:</td><td style="text-align:left;white-space:nowrap" >get help</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >x:</td><td style="text-align:left;white-space:nowrap" >exit current evaluation</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >s:</td><td style="text-align:left;white-space:nowrap" >continue current evaluation without stopping</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >r <span style="font-style:italic">n</span>:</td><td style="text-align:left;white-space:nowrap" >advance <span style="font-style:italic">n</span> steps further</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >r <span style="font-style:oblique">string</span>:</td><td style="text-align:left;white-space:nowrap" >advance up to the next call to “<span style="font-family:monospace">idtac</span> <span style="font-style:oblique">string</span>”</td></tr>
+</table><h3 id="sec493" class="subsection">9.4.3  Profiling <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> tactics<a id="hevea_default862"></a><a id="hevea_option58"></a><a id="hevea_default863"></a><a id="hevea_command212"></a><a id="hevea_default864"></a><a id="hevea_command213"></a></h3>
+<p>It is possible to measure the time spent in invocations of primitive tactics as well as tactics defined in <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> and their inner invocations. The primary use is the development of complex tactics, which can sometimes be so slow as to impede interactive usage. The reasons for the performence degradation can be intricate, like a slowly performing <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">L</span></span><sub><span style="font-style:italic">tac</span></sub> match or a sub-tactic whose performance only degrades in certain situations. The profiler generates a call tree and indicates the time spent in a tactic depending its calling context. Thus it allows to locate the part of a tactic definition that contains the performance bug.</p><blockquote class="quote">
+<span style="font-family:monospace">Set Ltac Profiling</span>.
+</blockquote><p>
+Enables the profiler</p><blockquote class="quote">
+<span style="font-family:monospace">Unset Ltac Profiling</span>.
+</blockquote><p>
+Disables the profiler</p><blockquote class="quote">
+<span style="font-family:monospace">Show Ltac Profile</span>.
+</blockquote><p>
+Prints the profile</p><blockquote class="quote">
+<span style="font-family:monospace">Show Ltac Profile</span> <span style="font-style:oblique">string</span>.
+</blockquote><p>
+Prints a profile for all tactics that start with <span style="font-style:oblique">string</span>. Append a period (.) to the string if you only want exactly that name.</p><blockquote class="quote">
+<span style="font-family:monospace">Reset Ltac Profile</span>.
+</blockquote><p>
+Resets the profile, that is, deletes all accumulated information. Note that backtracking across a <span style="font-family:monospace">Reset Ltac Profile</span> will not restore the information.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Require Import Coq.omega.Omega.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Ltac mytauto := tauto.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Ltac tac := intros; repeat split; omega || mytauto.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation max x y := (x + (y - x)) (only parsing).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Goal forall x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z,</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          max x (max y z) = max (max x y) z /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> max x (max y z) = max (max x y) z</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">          /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> (A /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> C /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> D /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> E /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> F /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> G /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> H /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> I /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> J /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> K /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> L /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> M /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> N /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> O /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> P /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> Q /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> R /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> S /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> T /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> U /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> V /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> W /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> X /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> Y /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> Z</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">              -</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Z /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> Y /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> X /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> W /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> V /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> U /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> T /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> S /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> R /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> Q /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> P /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> O /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> N /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> M /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> L /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> K /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> J /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> I /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> H /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> G /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> F /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> E /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> D /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> C /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> B /</span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace"> A).</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Proof.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Set Ltac Profiling.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   tac.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">No more subgoals.</span></span></span><span style="font-size:small"><br>
+</span></div><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Show Ltac Profile.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">total time:      1.091s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> tactic                                   local  total   calls       max </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">────────────────────────────────────────┴──────┴──────┴───────┴─────────┘</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─tac -----------------------------------   0.0% 100.0%       1    1.091s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.with</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">uniform</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">flags</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> ---   0.0%  54.7%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">gen</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> ------------   0.1%  54.7%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intuitionistic</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> -   0.1%  54.6%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─t</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intuit ------------------------   1.8%  54.5%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.simplif</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> --------------  34.2%  52.2%      26    0.031s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─omega ---------------------------------  44.9%  44.9%      28    0.244s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─elim id -------------------------------   8.3%   8.3%     650    0.012s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.is</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">conj</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> --------------   6.2%   6.2%   28756    0.001s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> tactic                                   local  total   calls       max </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">────────────────────────────────────────┴──────┴──────┴───────┴─────────┘</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─tac -----------------------------------   0.0% 100.0%       1    1.091s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> ├─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.with</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">uniform</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">flags</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> -   0.0%  54.7%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │└</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">gen</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> ----------   0.1%  54.7%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │└</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intuitionistic</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">   0.1%  54.6%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │└t</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">tauto</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">intuit ----------------------   1.8%  54.5%      26    0.032s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │└</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.simplif</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> ------------  34.2%  52.2%      26    0.031s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │ ├─elim id ---------------------------   8.3%   8.3%     650    0.012s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> │ └─</span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">Coq.Init.Tauto.is</span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace">conj</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> ----------   6.2%   6.2%   28756    0.001s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> └─omega -------------------------------  44.9%  44.9%      28    0.244s</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Show Ltac Profile "omega".</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">total time:      1.091s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> tactic                                   local  total   calls       max </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">────────────────────────────────────────┴──────┴──────┴───────┴─────────┘</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">─omega ---------------------------------  44.9%  44.9%      28    0.244s</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"> tactic                                   local  total   calls       max </span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">────────────────────────────────────────┴──────┴──────┴───────┴─────────┘</span></span><span style="font-size:small"><br>
+</span></div><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Abort.</span></span><span style="font-size:small"><br>
+<br>
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Unset Ltac Profiling.</span></span><span style="font-size:small"><br>
+</span></div><p><a id="hevea_default865"></a><a id="hevea_tactic219"></a><a id="hevea_default866"></a><a id="hevea_tactic220"></a>
+The following two tactics behave like <span style="font-family:monospace">idtac</span> but enable and disable the profiling. They allow you to exclude parts of a proof script from profiling.</p><blockquote class="quote">
+<span style="font-family:monospace">start ltac profiling</span>.
+</blockquote><blockquote class="quote">
+<span style="font-family:monospace">stop ltac profiling</span>.
+</blockquote><p>You can also pass the <span style="font-family:monospace">-profile-ltac</span> command line option to <span style="font-family:monospace">coqc</span>, which performs a <span style="font-family:monospace">Set Ltac Profiling</span> at the beginning of each document, and a <span style="font-family:monospace">Show Ltac Profile</span> at the end.</p><p>Note that the profiler currently does not handle backtracking into multi-success tactics, and issues a warning to this effect in many cases when such backtracking occurs.</p>
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

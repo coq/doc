@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/style.css" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/coq/coqdoc.css" /><title>Chapter 24  Program</title>
+</head>
+<body >
+
+<div id="container">
+
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/about-coq" title="More about coq">About Coq</a></li>
+    <li><a href="/download">Get Coq</a></li>
+    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+<div id="logoWrapper">
+  <div id="logo"><a href="/" title="Home"><img src="/files/barron_logo.png" alt="Home" /></a>
+  </div>
+  <div id="siteName"><a href="/" title="Home">The Coq Proof Assistant</a>
+  </div>
+</div>
+</div>
+
+<div id="content">
+
+<h1 id="sec729" class="chapter">Chapter 24  <span style="font-variant:small-caps">Program</span></h1>
+<ul>
+<li><a href="Reference-Manual027.html#sec730">24.1  Elaborating programs</a>
+</li><li><a href="Reference-Manual027.html#sec736">24.2  Solving obligations</a>
+</li><li><a href="Reference-Manual027.html#ProgramFAQ">24.3  Frequently Asked Questions
+</a>
+</li></ul>
+<p>
+<a id="Program"></a>
+<span style="font-size:x-large"><span style="font-weight:bold">Matthieu Sozeau</span></span> <br>
+<br>
+
+<a id="hevea_default986"></a></p><p>We present here the <span style="font-variant:small-caps">Program</span> tactic commands, used to build certified
+<span style="font-variant:small-caps">Coq</span> programs, elaborating them from their algorithmic skeleton and a
+rich specification [<a href="biblio.html#Sozeau06">135</a>]. It can be thought of as a dual of extraction
+(see Chapter <a href="Reference-Manual026.html#Extraction">23</a>). The goal of <span style="font-variant:small-caps">Program</span> is to program as in a regular
+functional programming language whilst using as rich a specification as 
+desired and proving that the code meets the specification using the whole <span style="font-variant:small-caps">Coq</span> proof
+apparatus. This is done using a technique originating from the
+“Predicate subtyping” mechanism of <span style="font-variant:small-caps">PVS</span>[<a href="biblio.html#Rushby98">132</a>], which generates type-checking
+conditions while typing a term constrained to a particular type. 
+Here we insert existential variables in the term, which must be filled
+with proofs to get a complete <span style="font-variant:small-caps">Coq</span> term. <span style="font-variant:small-caps">Program</span> replaces the
+<span style="font-variant:small-caps">Program</span> tactic by Catherine Parent [<a href="biblio.html#Parent95b">121</a>] which had a similar goal but is no longer
+maintained.</p><p>The languages available as input are currently restricted to <span style="font-variant:small-caps">Coq</span>’s term
+language, but may be extended to <span style="font-variant:small-caps">Objective Caml</span>, <span style="font-variant:small-caps">Haskell</span> and others
+in the future. We use the same syntax as <span style="font-variant:small-caps">Coq</span> and permit to use implicit
+arguments and the existing coercion mechanism.
+Input terms and types are typed in an extended system (<span style="font-variant:small-caps">Russell</span>) and
+interpreted into <span style="font-variant:small-caps">Coq</span> terms. The interpretation process may produce
+some proof obligations which need to be resolved to create the final term.</p>
+<h2 id="sec730" class="section">24.1  Elaborating programs</h2>
+<p>
+The main difference from <span style="font-variant:small-caps">Coq</span> is that an object in a type <span style="font-style:italic">T</span> : <span style="font-family:sans-serif">Set</span>
+can be considered as an object of type { <span style="font-style:italic">x</span> : <span style="font-style:italic">T</span> | <span style="font-style:italic">P</span>} for any
+wellformed <span style="font-style:italic">P</span> : <span style="font-family:sans-serif">Prop</span>. 
+If we go from <span style="font-style:italic">T</span> to the subset of <span style="font-style:italic">T</span> verifying property <span style="font-style:italic">P</span>, we must
+prove that the object under consideration verifies it. <span style="font-variant:small-caps">Russell</span> will
+generate an obligation for every such coercion. In the other direction,
+<span style="font-variant:small-caps">Russell</span> will automatically insert a projection.</p><p>Another distinction is the treatment of pattern-matching. Apart from the
+following differences, it is equivalent to the standard <span style="font-family:monospace">match</span>
+operation (see Section <a href="Reference-Manual006.html#Caseexpr">4.5.3</a>).
+</p><ul class="itemize"><li class="li-itemize">
+Generation of equalities. A <span style="font-family:monospace">match</span> expression is always
+generalized by the corresponding equality. As an example,
+the expression: <pre class="verbatim">  match x with
+  | 0 =&gt; t
+  | S n =&gt; u
+  end.
+</pre><p>will be first rewritten to:
+</p><pre class="verbatim">  (match x as y return (x = y -&gt; _) with
+  | 0 =&gt; fun H : x = 0 -&gt; t
+  | S n =&gt; fun H : x = S n -&gt; u
+  end) (eq_refl n).
+</pre><p>This permits to get the proper equalities in the context of proof
+obligations inside clauses, without which reasoning is very limited.</p></li><li class="li-itemize">Generation of inequalities. If a pattern intersects with a
+previous one, an inequality is added in the context of the second
+branch. See for example the definition of <span style="font-family:monospace">div2</span> below, where the second
+branch is typed in a context where ∀ <span style="font-style:italic">p</span>, _ &lt;&gt; <span style="font-style:italic">S</span> (<span style="font-style:italic">S</span> <span style="font-style:italic">p</span>).</li><li class="li-itemize">Coercion. If the object being matched is coercible to an inductive
+type, the corresponding coercion will be automatically inserted. This also
+works with the previous mechanism.
+</li></ul>
+<h3 id="sec731" class="subsection">24.1.1  Syntactic control over equalities</h3>
+<p>
+<a id="ProgramSyntax"></a>
+To give more control over the generation of equalities, the typechecker will
+fall back directly to <span style="font-variant:small-caps">Coq</span>’s usual typing of dependent pattern-matching
+if a <span style="font-family:monospace">return</span> or <span style="font-family:monospace">in</span> clause is specified. Likewise,
+the <span style="font-family:monospace">if</span> construct is not treated specially by <span style="font-variant:small-caps">Program</span> so boolean
+tests in the code are not automatically reflected in the obligations. 
+One can use the <span style="font-family:monospace">dec</span> combinator to get the correct hypotheses as in:</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Program Definition id (n : nat) : { x : nat | x = n } :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        if dec (leb n 0) then 0</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        else S (pred n).</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">id has type-checked, generating 2 obligation(s)</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Solving obligations automatically...</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">2 obligations remaining</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Obligation 1 of id:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(forall n : nat, (n </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">=? 0) = true -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (fun x : nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x = n) 0).</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Obligation 2 of id:</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">(forall n : nat,</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (n </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&lt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">=? 0) = false -</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> (fun x : nat =</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">&gt;</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> x = n) (S (Init.Nat.pred n))).</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic"> </span></span></span><span style="font-size:small"><br>
+</span></div><p>The let tupling construct <span style="font-family:monospace">let (x1, ..., xn) := t in b</span>
+does not produce an equality, contrary to the let pattern construct 
+<span style="font-family:monospace">let ’(x1, ..., xn) := t in b</span>.
+Also, <span style="font-style:oblique">term</span><span style="font-family:monospace">:&gt;</span> explicitly asks the system to coerce <span style="font-style:oblique">term</span> to its
+support type. It can be useful in notations, for example:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Notation " x `= y " := (@eq </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> (x :</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">) (y :</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace">)) (only parsing).</span></span><span style="font-size:small"><br>
+</span></div><p>This notation denotes equality on subset types using equality on their
+support types, avoiding uses of proof-irrelevance that would come up
+when reasoning with equality on the subset types themselves. </p><p>The next two commands are similar to their standard counterparts
+Definition (see Section <a href="Reference-Manual003.html#Basic-definitions">1.3.2</a>) and Fixpoint (see Section <a href="Reference-Manual003.html#Fixpoint">1.3.4</a>) in that
+they define constants. However, they may require the user to prove some
+goals to construct the final definitions.</p>
+<h3 id="ProgramDefinition" class="subsection">24.1.2  <span style="font-family:monospace">Program Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> := </span><span style="font-style:oblique">term</span><span style="font-family:monospace">.
+</span><a id="hevea_default987"></a><a id="hevea_command284"></a></h3>
+<p>This command types the value <span style="font-style:oblique">term</span> in <span style="font-variant:small-caps">Russell</span> and generates proof
+obligations. Once solved using the commands shown below, it binds the final
+<span style="font-variant:small-caps">Coq</span> term to the name <span style="font-style:oblique">ident</span> in the environment.</p><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-style:oblique">ident</span><span style="font-family:monospace"> already exists</span><a id="hevea_error159"></a>
+</li></ol><p><br>
+<span style="font-weight:bold">Variants: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">Program Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-family:monospace">:</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> :=
+</span><span style="font-style:oblique">term</span><sub>2</sub><span style="font-family:monospace">.</span><br>
+ It interprets the type <span style="font-style:oblique">term</span><sub>1</sub>, potentially generating proof
+obligations to be resolved. Once done with them, we have a <span style="font-variant:small-caps">Coq</span> type
+<span style="font-style:oblique">term</span><sub>1</sub>′. It then checks that the type of the interpretation of
+<span style="font-style:oblique">term</span><sub>2</sub> is coercible to <span style="font-style:oblique">term</span><sub>1</sub>′, and registers <span style="font-style:oblique">ident</span> as
+being of type <span style="font-style:oblique">term</span><sub>1</sub>′ once the set of obligations generated
+during the interpretation of <span style="font-style:oblique">term</span><sub>2</sub> and the aforementioned
+coercion derivation are solved.
+</li><li class="li-enumerate"><span style="font-family:monospace">Program Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-style:oblique">binder</span><sub>1</sub><span style="font-family:monospace">…</span><span style="font-style:oblique">binder</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">
+</span><span style="font-family:monospace">:</span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">:=</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub>2</sub><span style="font-family:monospace">.</span><br>
+ This is equivalent to <br>
+ <span style="font-family:monospace">Program Definition </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-family:monospace">: forall</span><span style="font-family:monospace"> </span><span style="font-style:oblique">binder</span><sub>1</sub><span style="font-family:monospace">…</span><span style="font-style:oblique">binder</span><sub><span style="font-style:italic">n</span></sub><span style="font-family:monospace">,</span><span style="font-family:monospace"> </span><span style="font-style:oblique">term</span><sub>1</sub><span style="font-family:monospace"> </span><span style="font-family:monospace">:=</span> <br>
+     <span style="font-family:monospace">fun</span> <span style="font-style:oblique">binder</span><sub>1</sub>…<span style="font-style:oblique">binder</span><sub><span style="font-style:italic">n</span></sub> <span style="font-family:monospace">=&gt;</span> <span style="font-style:oblique">term</span><sub>2</sub> <span style="font-family:monospace">.</span>
+</li></ol><p><br>
+<span style="font-weight:bold">Error messages: </span></p><ol class="enumerate" type=1><li class="li-enumerate">
+<span style="font-family:monospace">In environment </span><span style="font-family:monospace">…</span><span style="font-family:monospace"> the term: </span><span style="font-style:oblique">term</span><sub>2</sub><span style="font-family:monospace"> does not have type
+</span><span style="font-style:oblique">term</span><sub>1</sub><a id="hevea_error160"></a>.<br>
+ <span style="font-family:monospace">Actually, it has type </span><span style="font-style:oblique">term</span><sub>3</sub>.
+</li></ol><p><br>
+<span style="font-weight:bold">See also: </span>Sections <a href="Reference-Manual008.html#Opaque">6.10.1</a>, <a href="Reference-Manual008.html#Transparent">6.10.2</a>, <a href="Reference-Manual010.html#unfold">8.7.5</a></p>
+<h3 id="ProgramFixpoint" class="subsection">24.1.3  <span style="font-family:monospace">Program Fixpoint </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> </span><span style="font-style:oblique">params</span><span style="font-family:monospace"> </span><span style="font-family:monospace">{order}</span><span style="font-family:monospace"> : type := </span><span style="font-style:oblique">term</span><a id="hevea_default988"></a><a id="hevea_command285"></a><span style="font-family:monospace">
+</span></h3>
+<p>The structural fixpoint operator behaves just like the one of Coq
+(see Section <a href="Reference-Manual003.html#Fixpoint">1.3.4</a>), except it may also generate obligations.
+It works with mutually recursive definitions too.</p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Program Fixpoint div2 (n : nat) : { x : nat | n = 2 * x </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ n = 2 * x + 1 } :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S (S p) =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (div2 p)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> O</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">Solving obligations automatically...</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">4 obligations remaining</span></span></span><span style="font-size:small"><br>
+</span></div><p>Here we have one obligation for each branch (branches for <code>0</code> and <code>(S 0)</code> are
+automatically generated by the pattern-matching compilation algorithm).
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace">   Obligation 1.</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">1 subgoal</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  </span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  p, x : nat</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  o : p = x + (x + 0) </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">\</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">/ p = x + (x + 0) + 1</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  ============================</span></span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">  S (S p) = S (x + S (x + 0)) </span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">\</span></span></span><span style="font-size:small"><span style="font-family:monospace"><span style="font-style:italic">/ S (S p) = S (x + S (x + 0) + 1)</span></span></span><span style="font-size:small"><br>
+</span></div><p>One can use a well-founded order or a measure as termination orders using the syntax:
+<span style="font-size:small">
+</span></p><div class="flushleft"><span style="font-size:small">
+</span><span style="font-size:small"><span style="font-family:monospace">Coq </span></span><span style="font-size:small"><span style="font-family:monospace">&lt;</span></span><span style="font-size:small"><span style="font-family:monospace"> Program Fixpoint div2 (n : nat) {measure n} :</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        { x : nat | n = 2 * x </span></span><span style="font-size:small"><span style="font-family:monospace">\</span></span><span style="font-size:small"><span style="font-family:monospace">/ n = 2 * x + 1 } :=</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        match n with</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | S (S p) =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> S (div2 p)</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        | </span></span><span style="font-size:small"><span style="font-family:monospace">_</span></span><span style="font-size:small"><span style="font-family:monospace"> =</span></span><span style="font-size:small"><span style="font-family:monospace">&gt;</span></span><span style="font-size:small"><span style="font-family:monospace"> O</span></span><span style="font-size:small"><br>
+</span><span style="font-size:small"><span style="font-family:monospace">        end.</span></span><span style="font-size:small"><br>
+</span></div><p>The order annotation can be either:
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">measure f (R)?</span> where <span style="font-family:monospace">f</span> is a value of type <span style="font-family:monospace">X</span>
+computed on any subset of the arguments and the optional
+(parenthesised) term <span style="font-family:monospace">(R)</span> is a relation
+on <span style="font-family:monospace">X</span>. By default <span style="font-family:monospace">X</span> defaults to <span style="font-family:monospace">nat</span> and <span style="font-family:monospace">R</span> to
+<span style="font-family:monospace">lt</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">wf R x</span> which is equivalent to <span style="font-family:monospace">measure x (R)</span>.
+</li></ul>
+<h5 id="sec734" class="paragraph">Caution</h5>
+<p>
+When defining structurally recursive functions, the
+generated obligations should have the prototype of the currently defined functional
+in their context. In this case, the obligations should be transparent
+(e.g. defined using <span style="font-family:monospace">Defined</span>) so that the guardedness condition on
+recursive calls can be checked by the
+kernel’s type-checker. There is an optimization in the generation of
+obligations which gets rid of the hypothesis corresponding to the
+functional when it is not necessary, so that the obligation can be
+declared opaque (e.g. using <span style="font-family:monospace">Qed</span>). However, as soon as it appears in the
+context, the proof of the obligation is <em>required</em> to be declared transparent.</p><p>No such problems arise when using measures or well-founded recursion.</p>
+<h3 id="ProgramLemma" class="subsection">24.1.4  <span style="font-family:monospace">Program Lemma </span><span style="font-style:oblique">ident</span><span style="font-family:monospace"> : type.
+</span><a id="hevea_default989"></a><a id="hevea_command286"></a><span style="font-family:monospace">
+</span></h3>
+<p>The <span style="font-variant:small-caps">Russell</span> language can also be used to type statements of logical
+properties. It will generate obligations, try to solve them
+automatically and fail if some unsolved obligations remain. 
+In this case, one can first define the lemma’s
+statement using <span style="font-family:monospace">Program Definition</span> and use it as the goal afterwards.
+Otherwise the proof will be started with the elaborated version as a goal.
+The <span style="font-family:monospace">Program</span> prefix can similarly be used as a prefix for <span style="font-family:monospace">Variable</span>, <span style="font-family:monospace">Hypothesis</span>, <span style="font-family:monospace">Axiom</span> etc...</p>
+<h2 id="sec736" class="section">24.2  Solving obligations</h2>
+<p>
+The following commands are available to manipulate obligations. The
+optional identifier is used when multiple functions have unsolved
+obligations (e.g. when defining mutually recursive blocks). The optional
+tactic is replaced by the default one if not specified.</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">[Local|Global] Obligation Tactic := </span><span style="font-style:oblique">expr</span><a id="hevea_default990"></a><a id="hevea_command287"></a>
+Sets the default obligation
+solving tactic applied to all obligations automatically, whether to
+solve them or when starting to prove one, e.g. using <span style="font-family:monospace">Next</span>.
+Local makes the setting last only for the current module. Inside
+sections, local is the default.
+</li><li class="li-itemize"><span style="font-family:monospace">Show Obligation Tactic</span><a id="hevea_default991"></a><a id="hevea_command288"></a>
+Displays the current default tactic.
+</li><li class="li-itemize"><span style="font-family:monospace">Obligations [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">]</span><a id="hevea_default992"></a><a id="hevea_command289"></a> Displays all remaining
+obligations.
+</li><li class="li-itemize"><span style="font-family:monospace">Obligation num [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">]</span><a id="hevea_default993"></a><a id="hevea_command290"></a> Start the proof of
+obligation <span style="font-family:monospace">num</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">Next Obligation [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">]</span><a id="hevea_default994"></a><a id="hevea_command291"></a> Start the proof of the next
+unsolved obligation.
+</li><li class="li-itemize"><span style="font-family:monospace">Solve Obligations [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">] [with
+</span><span style="font-style:oblique">expr</span><span style="font-family:monospace">]</span><a id="hevea_default995"></a><a id="hevea_command292"></a>
+Tries to solve
+each obligation of <span style="font-style:oblique">ident</span>using the given tactic or the default one.
+</li><li class="li-itemize"><span style="font-family:monospace">Solve All Obligations [with </span><span style="font-style:oblique">expr</span><span style="font-family:monospace">]</span> Tries to solve
+each obligation of every program using the given tactic or the default
+one (useful for mutually recursive definitions).
+</li><li class="li-itemize"><span style="font-family:monospace">Admit Obligations [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">]</span><a id="hevea_default996"></a><a id="hevea_command293"></a> 
+Admits all obligations (does not work with structurally recursive programs).
+</li><li class="li-itemize"><span style="font-family:monospace">Preterm [of </span><span style="font-style:oblique">ident</span><span style="font-family:monospace">]</span><a id="hevea_default997"></a><a id="hevea_command294"></a> 
+Shows the term that will be fed to
+the kernel once the obligations are solved. Useful for debugging.
+</li><li class="li-itemize"><span style="font-family:monospace">Set Transparent Obligations</span><a id="hevea_default998"></a><a id="hevea_option62"></a>
+Control whether all obligations should be declared as transparent (the
+default), or if the system should infer which obligations can be declared opaque. 
+</li><li class="li-itemize"><span style="font-family:monospace">Set Hide Obligations</span><a id="hevea_default999"></a><a id="hevea_option63"></a>
+Control whether obligations appearing in the term should be hidden
+as implicit arguments of the special constant
+<span style="font-family:monospace">Program.Tactics.obligation</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">Set Shrink Obligations</span><a id="hevea_default1000"></a><a id="hevea_option64"></a>
+Control whether obligations defined by tactics should have their
+context minimized to the set of variables used in the proof of the
+obligation, to avoid unnecessary dependencies.
+</li></ul><p>The module <span style="font-family:monospace">Coq.Program.Tactics</span> defines the default tactic for solving
+obligations called <span style="font-family:monospace">program_simpl</span>. Importing 
+<span style="font-family:monospace">Coq.Program.Program</span> also adds some useful notations, as documented in the file itself.</p>
+<h2 id="ProgramFAQ" class="section">24.3  Frequently Asked Questions
+</h2>
+<ul class="itemize"><li class="li-itemize">
+Ill-formed recursive definitions
+This error can happen when one tries to define a
+function by structural recursion on a subset object, which means the Coq
+function looks like:<p><code>Program Fixpoint f (x : A | P) := match x with A b =&gt; f b end.</code></p><p>Supposing <span style="font-style:italic">b</span> : <span style="font-style:italic">A</span>, the argument at the recursive call to f is not a
+direct subterm of x as b is wrapped inside an <span style="font-family:monospace">exist</span> constructor to build
+an object of type <code>{x : A | P}</code>. Hence the definition is rejected
+by the guardedness condition checker. However one can use
+wellfounded recursion on subset objects like this:</p><pre class="verbatim">Program Fixpoint f (x : A | P) { measure (size x) } :=
+  match x with A b =&gt; f b end.
+</pre><p>One will then just have to prove that the measure decreases at each recursive
+call. There are three drawbacks though: 
+</p><ol class="enumerate" type=1><li class="li-enumerate">
+A measure function has to be defined;
+</li><li class="li-enumerate">The reduction is a little more involved, although it works well
+using lazy evaluation;
+</li><li class="li-enumerate">Mutual recursion on the underlying inductive type isn’t possible
+anymore, but nested mutual recursion is always possible.
+</li></ol></li></ul>
+
+<div id="sidebarWrapper">
+  <div id="sidebar">
+    <div class="block">
+      <h2 class="title">Navigation</h2>
+      <div class="content">
+        <ul class="menu">
+          <li class="leaf"><a href="index.html">Cover</a></li>
+          <li class="leaf"><a href="toc.html">Table of contents</a></li>
+          <li class="leaf">Index
+            <ul class="menu">
+              <li><a href="general-index.html">General</a></li>
+              <li><a href="command-index.html">Commands</a></li>
+              <li><a href="option-index.html">Options</a></li>
+              <li><a href="tactic-index.html">Tactics</a></li>
+              <li><a href="error-index.html">Errors</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:coq-www_@_inria.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

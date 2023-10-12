@@ -1,0 +1,680 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<LINK rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<STYLE type="text/css" media="all">@import "/modules/node/node.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/modules/system/defaults.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/system/system.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/modules/user/user.css";</STYLE>
+
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/style.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/coqdoc.css";</STYLE>
+<STYLE type="text/css" media="all">@import "/sites/all/themes/coq/hevea.css";</STYLE>
+<TITLE>Chapter 5  The Module System</TITLE>
+</HEAD>
+<BODY >
+
+<div id="container">
+<div id="headertop">
+<div id="nav">
+  <ul class="links-menu">
+    <li><a href="http://coq.inria.fr/" class="active">Home</a></li>
+
+    <li><a href="http://coq.inria.fr/about-coq" title="More about coq">About Coq</a></li>    
+    <li><a href="http://coq.inria.fr/download">Get Coq</a></li>
+    <li><a href="http://coq.inria.fr/documentation">Documentation</a></li>
+    <li><a href="http://coq.inria.fr/community">Community</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="header">
+
+<div id="logoWrapper">
+
+<div id="logo"><a href="http://coq.inria.fr/" title="Home"><img src="/files/barron_logo.png" alt="Home"></a>
+</div>
+<div id="siteName"><a href="http://coq.inria.fr/" title="Home">The Coq Proof Assistant</a>
+</div>
+
+</div>
+</div>
+
+<div id="content">
+
+<H1 CLASS="chapter"><A NAME="htoc105">Chapter 5</A>  The Module System<A NAME="chapter:Modules"></A></H1><UL>
+<LI><A HREF="Reference-Manual007.html#toc34">5.1  Modules and module types</A>
+</LI><LI><A HREF="Reference-Manual007.html#toc35">5.2  Typing Modules</A>
+</LI></UL>
+<P>The module system extends the Calculus of Inductive Constructions
+providing a convenient way to structure large developments as well as
+a mean of massive abstraction.
+</P><H2 CLASS="section"><A NAME="toc34"></A><A NAME="htoc106">5.1</A>  Modules and module types</H2><H5 CLASS="paragraph">Access path.</H5><P> It is denoted by <I>p</I>, it can be either a module 
+variable <I>X</I> or, if <I>p</I>&#X2032; is an access path and <I>id</I> an identifier, then
+<I>p</I>&#X2032;.<I>id</I> is an access path.</P><H5 CLASS="paragraph">Structure element.</H5><P> It is denoted by <I>e</I> and is either a
+definition of a constant, an assumption, a definition of an inductive,
+a definition of a module, an alias of module or a module type abbreviation.</P><H5 CLASS="paragraph">Structure expression.</H5><P> It is denoted by <I>S</I> and can be:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+an access path <I>p</I>
+</LI><LI CLASS="li-itemize">a plain structure <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I> <TT>;</TT> &#X2026; <TT>;</TT> <I><I>e</I></I> <FONT COLOR=purple> <I>End</I></FONT>
+</LI><LI CLASS="li-itemize">a functor <FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I>) <I>S</I>&#X2032;, where <I>X</I> is a module variable,
+<I>S</I> and <I>S</I>&#X2032; are structure expression
+</LI><LI CLASS="li-itemize">an application <I>S</I> <I>p</I>, where <I>S</I> is a structure expression and <I>p</I> 
+an access path 
+</LI><LI CLASS="li-itemize">a refined structure <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>p</I> := <I>p</I>&#X2032; or <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>p</I> := <I>t</I>:<I>T</I> where <I>S</I>
+is a structure expression, <I>p</I> and <I>p</I>&#X2032; are access paths, <I>t</I> is a term 
+and <I>T</I> is the type of <I>t</I>.
+</LI></UL><H5 CLASS="paragraph">Module definition,</H5><P> is written <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I> <I><FONT COLOR=maroon>[</FONT></I>:=<I>S</I>&#X2032;<I><FONT COLOR=maroon>]</FONT></I>) and
+consists of a module variable <I>X</I>, a module type
+<I>S</I> which can be any structure expression and optionally a module implementation <I>S</I>&#X2032; 
+which can be any structure expression except a refined structure.</P><H5 CLASS="paragraph">Module alias,</H5><P> is written <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>) and
+consists of a module variable <I>X</I> and a module path <I>p</I>. </P><H5 CLASS="paragraph">Module type abbreviation,</H5><P> is written <FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I>), where
+<I>Y</I> is an identifier and <I>S</I> is any structure expression .</P><H2 CLASS="section"><A NAME="toc35"></A><A NAME="htoc107">5.2</A>  Typing Modules</H2><P>In order to introduce the typing system we first slightly extend
+the syntactic class of terms and environments given in
+section <A HREF="Reference-Manual006.html#Terms">4.1</A>. The environments, apart from definitions of
+constants and inductive types now also hold any other structure elements.
+Terms, apart from variables, constants and complex terms, 
+include also access paths.</P><P>We also need additional typing judgments: 
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>S</I>), denoting that a structure <I>S</I> is well-formed, </LI><LI CLASS="li-itemize"><I>E</I>[] &#X22A2; <I>p</I> : <I>S</I>, denoting that the module pointed by <I>p</I> has type <I>S</I> in
+environment <I>E</I>.</LI><LI CLASS="li-itemize"><I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>, denoting that a structure <I>S</I> is evaluated to 
+a structure <SPAN style="text-decoration:overline"><I>S</I></SPAN> in weak head normal form.</LI><LI CLASS="li-itemize"><I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &lt;: <I>S</I><SUB>2</SUB>, denoting that a structure <I>S</I><SUB>1</SUB> is a subtype of a
+structure <I>S</I><SUB>2</SUB>.</LI><LI CLASS="li-itemize"><I>E</I>[] &#X22A2; <I><I>e</I></I><SUB>1</SUB> &lt;: <I><I>e</I></I><SUB>2</SUB>, denoting that a structure element
+<I><I>e</I></I><SUB>1</SUB> is more precise that a structure element <I><I>e</I></I><SUB>2</SUB>.
+</LI></UL><P>
+The rules for forming structures are the following:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>WF-STR</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>;<I>E</I>&#X2032;)[]
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<FONT COLOR=purple> <I>Struct</I></FONT> <I>E</I>&#X2032; <FONT COLOR=purple> <I>End</I></FONT>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WF-FUN</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I>)[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(</TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I>&#X2032;</TD></TR>
+</TABLE></TD><TD CLASS="dcell">)
+</TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I>) <I>S</I>&#X2032;)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+Evaluation of structures to weak head normal form:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>WEVAL-APP</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>) <I>S</I><SUB>2</SUB>     <I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">1</SPAN></SUB></TD></TR>
+<TR><TD ALIGN=center NOWRAP><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">    <I>E</I>[] &#X22A2; <I>p</I> : <I>S</I><SUB>3</SUB>     <I>E</I>[] &#X22A2; <I>S</I><SUB>3</SUB> &lt;: </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>1</SUB></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>S</I> <I>p</I> &#X2014;&#X2192; <I>S</I><SUB>2</SUB>{<I>p</I>/<I>X</I>,<I>t</I><SUB>1</SUB>/<I>p</I><SUB>1</SUB>.<I>c</I><SUB>1</SUB>,&#X2026;,<I>t</I><SUB><I>n</I></SUB>/<I>p</I><SUB><I>n</I></SUB>.<I>c</I><SUB><I>n</I></SUB>}
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+In the last rule, {<I>t</I><SUB>1</SUB>/<I>p</I><SUB>1</SUB>.<I>c</I><SUB>1</SUB>,&#X2026;,<I>t</I><SUB><I>n</I></SUB>/<I>p</I><SUB><I>n</I></SUB>.<I>c</I><SUB><I>n</I></SUB>} is the resulting
+substitution from the inlining mechanism. We substitute in <I>S</I> the
+inlined fields <I>p</I><SUB><I>i</I></SUB>.<I>c</I><SUB><I>i</I></SUB> form <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>) by the corresponding delta-reduced term <I>t</I><SUB><I>i</I></SUB> in <I>p</I>.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>WEVAL-WITH-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT>     <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">1</SPAN></SUB></TD></TR>
+<TR><TD ALIGN=center NOWRAP><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">    <I>E</I>[] &#X22A2; <I>p</I> : <I>S</I><SUB>2</SUB>     <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I><SUB>2</SUB> &lt;: </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>1</SUB></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>x</I> := <I>p</I> &#X2014;&#X2192;</TD></TR>
+<TR><TD ALIGN=center NOWRAP> 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>{<I>p</I>/<I>X</I>}
+;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB>{<I>p</I>/<I>X</I>} <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-WITH-MOD-REC</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I><SUB>1</SUB>:<I>S</I><SUB>1</SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I><SUB>1</SUB> <FONT COLOR=purple> <I>with</I></FONT> <I>p</I> := <I>p</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">2</SPAN></SUB></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>X</I><SUB>1</SUB>.<I>p</I> := <I>p</I><SUB>1</SUB> &#X2014;&#X2192;</TD></TR>
+<TR><TD ALIGN=center NOWRAP> 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">2</SPAN></SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>{<I>p</I><SUB>1</SUB>/<I>X</I><SUB>1</SUB>.<I>p</I>}
+;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB>{<I>p</I><SUB>1</SUB>/<I>X</I><SUB>1</SUB>.<I>p</I>} <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-WITH-DEF</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>1</SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I>) &lt;: <FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>1</SUB>)</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>c</I> := <I>t</I>:<I>T</I> &#X2014;&#X2192;</TD></TR>
+<TR><TD ALIGN=center NOWRAP> 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-WITH-DEF-REC</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I><SUB>1</SUB>:<I>S</I><SUB>1</SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I><SUB>1</SUB> <FONT COLOR=purple> <I>with</I></FONT> <I>p</I> := <I>p</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">2</SPAN></SUB></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> <FONT COLOR=purple> <I>with</I></FONT> <I>X</I><SUB>1</SUB>.<I>p</I> := <I>t</I>:<I>T</I> &#X2014;&#X2192;</TD></TR>
+<TR><TD ALIGN=center NOWRAP> 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<SPAN style="text-decoration:overline"><I>S</I></SPAN><SUB><SPAN style="text-decoration:overline">2</SPAN></SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></DD><DT CLASS="dt-description"><B>WEVAL-PATH-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>p</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>; <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I> <I><FONT COLOR=maroon>[</FONT></I>:=<I>S</I><SUB>1</SUB><I><FONT COLOR=maroon>]</FONT></I>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>p</I>.<I>X</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]      <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I> <I><FONT COLOR=maroon>[</FONT></I>:=<I>S</I><SUB>1</SUB><I><FONT COLOR=maroon>]</FONT></I>)&#X2208; <I>E</I></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>X</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-PATH-ALIAS</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>p</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I><SUB>1</SUB>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>p</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>p</I>.<I>X</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>      <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]       <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I><SUB>1</SUB>)&#X2208; <I>E</I></TD></TR>
+<TR><TD ALIGN=center NOWRAP>      <I>E</I>[] &#X22A2; <I>p</I><SUB>1</SUB> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>X</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-PATH-TYPE</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>p</I> &#X2014;&#X2192; 
+<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I>);<I><I>e</I></I><SUB><I>i</I>+2</SUB>;&#X2026;
+;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>p</I>.<I>Y</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WEVAL-PATH-TYPE</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>    <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]       <FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I>)&#X2208; <I>E</I></TD></TR>
+<TR><TD ALIGN=center NOWRAP>    <I>E</I>[] &#X22A2; <I>S</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>Y</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+Rules for typing module:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>MT-EVAL</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I> &#X2014;&#X2192; <SPAN style="text-decoration:overline"><I>S</I></SPAN>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell"><I>E</I>[] &#X22A2; <I>p</I> : </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>MT-STR</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I> : <I>S</I>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <I>p</I> : <I>S</I>/<I>p</I>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+The last rule, called strengthening is used to make all module fields
+manifestly equal to themselves. The notation <I>S</I>/<I>p</I> has the following
+meaning:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+if <I>S</I>&#X2014;&#X2192;<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT> then
+<I>S</I>/<I>p</I>=<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>/<I>p</I>;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB>/<I>p</I> <FONT COLOR=purple> <I>End</I></FONT> where <I><I>e</I></I>/<I>p</I> is defined as
+follows:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I>)/<I>p</I><SUP><A NAME="text12" HREF="Reference-Manual008.html#note12">1</A></SUP>  =  <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I>)
+</LI><LI CLASS="li-itemize"><FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>U</I>)/<I>p</I>  =  <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>p</I>.<I>c</I>:<I>U</I>)
+</LI><LI CLASS="li-itemize"><FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I>)/<I>p</I>  =  <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>.<I>X</I>)
+</LI><LI CLASS="li-itemize"><FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>&#X2032;)/<I>p</I>  =  <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>&#X2032;)
+</LI><LI CLASS="li-itemize"><FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> )/<I>p</I>  =  <FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE>
+</LI><LI CLASS="li-itemize"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I>&#X2032;</SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )/<I>p</I></TD></TR>
+</TABLE>  =  <FONT COLOR=purple>Ind</FONT><SUB><I>p</I>&#X2032;</SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE>
+</LI></UL>
+</LI><LI CLASS="li-itemize">if <I>S</I>&#X2014;&#X2192;<FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I>&#X2032;) <I>S</I>&#X2033; then <I>S</I>/<I>p</I>=<I>S</I>
+</LI></UL><P>
+The notation <FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE><P> denotes an
+inductive definition that is definitionally equal to the inductive
+definition in the module denoted by the path <I>p</I>. All rules which have
+<FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> ) as premises are also valid for 
+<FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE><P>. We give the formation rule
+for <FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE><P> below as well as
+the equality rules on inductive types and constructors.<BR>
+
+The module subtyping rules:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>MSUB-STR</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>      <I>E</I>;<I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB>[] &#X22A2; <I><I>e</I></I><SUB>&#X3C3;(<I>i</I>)</SUB> &lt;: <I><I>e</I></I>&#X2032;<SUB><I>i</I></SUB>
+  for  <I>i</I>=1..<I>m</I> </TD></TR>
+<TR><TD ALIGN=center NOWRAP>      &#X3C3; : {1&#X2026; <I>m</I>} &#X2192; {1&#X2026; <I>n</I>}   injective</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB> <FONT COLOR=purple> <I>End</I></FONT> &lt;: <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I>&#X2032;<SUB>1</SUB>;&#X2026;;<I><I>e</I></I>&#X2032;<SUB><I>m</I></SUB> <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>MSUB-FUN</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>[] &#X22A2; </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>1</SUB>&#X2032;</TD></TR>
+</TABLE></TD><TD CLASS="dcell"> &lt;: </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>1</SUB></TD></TR>
+</TABLE></TD><TD CLASS="dcell">          <I>E</I>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>&#X2032;)[] &#X22A2; </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>2</SUB></TD></TR>
+</TABLE></TD><TD CLASS="dcell"> &lt;: </TD><TD CLASS="dcell"><TABLE border=0 cellspacing=1 cellpadding=0><TR><TD CLASS="hbar"></TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>S</I><SUB>2</SUB>&#X2032;</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>) <I>S</I><SUB>2</SUB> &lt;: <FONT COLOR=purple> <I>Functor</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>&#X2032;) <I>S</I><SUB>2</SUB>&#X2032;
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+Structure element subtyping rules:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>ASSUM-ASSUM</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>T</I><SUB>1</SUB> &#X2264;<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>T</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>DEF-ASSUM</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>T</I><SUB>1</SUB> &#X2264;<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>T</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>ASSUM-DEF</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>T</I><SUB>1</SUB> &#X2264;<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>T</I><SUB>2</SUB>        <I>E</I>[] &#X22A2; <I>c</I> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>t</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I><SUB>2</SUB>:<I>T</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>DEF-DEF</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>T</I><SUB>1</SUB> &#X2264;<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>T</I><SUB>2</SUB>        <I>E</I>[] &#X22A2; <I>t</I><SUB>1</SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>t</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I><SUB>1</SUB>:<I>T</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I><SUB>2</SUB>:<I>T</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>IND-IND</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; &#X393;<SUB><I>P</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>P</I></SUB>&#X2032;        <I>E</I>[&#X393;<SUB><I>P</I></SUB>] &#X22A2; &#X393;<SUB><I>C</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>C</I></SUB>&#X2032;        <I>E</I>[&#X393;<SUB><I>P</I></SUB>;&#X393;<SUB><I>C</I></SUB>] &#X22A2; &#X393;<SUB><I>I</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>I</I></SUB>&#X2032;</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> ) &lt;: <FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>&#X2032;](&#X393;<SUB><I>C</I></SUB>&#X2032;:=&#X393;<SUB><I>I</I></SUB>&#X2032; )
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>INDP-IND</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; &#X393;<SUB><I>P</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>P</I></SUB>&#X2032;        <I>E</I>[&#X393;<SUB><I>P</I></SUB>] &#X22A2; &#X393;<SUB><I>C</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>C</I></SUB>&#X2032;        <I>E</I>[&#X393;<SUB><I>P</I></SUB>;&#X393;<SUB><I>C</I></SUB>] &#X22A2; &#X393;<SUB><I>I</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>I</I></SUB>&#X2032;</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>[] &#X22A2; </TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE></TD><TD CLASS="dcell"> &lt;: <FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>&#X2032;](&#X393;<SUB><I>C</I></SUB>&#X2032;:=&#X393;<SUB><I>I</I></SUB>&#X2032; )
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>INDP-INDP</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; &#X393;<SUB><I>P</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>P</I></SUB>&#X2032;      <I>E</I>[&#X393;<SUB><I>P</I></SUB>] &#X22A2; &#X393;<SUB><I>C</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>C</I></SUB>&#X2032;      <I>E</I>[&#X393;<SUB><I>P</I></SUB>;&#X393;<SUB><I>C</I></SUB>] &#X22A2; &#X393;<SUB><I>I</I></SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> &#X393;<SUB><I>I</I></SUB>&#X2032;      <I>E</I>[] &#X22A2; <I>p</I> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>p</I>&#X2032;
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>[] &#X22A2; </TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE></TD><TD CLASS="dcell"> &lt;: </TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I>&#X2032;</SUB>()[&#X393;<SUB><I>P</I></SUB>&#X2032;](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>&#X2032;:=&#X393;<SUB><I>I</I></SUB>&#X2032;
+ )</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>MOD-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &lt;: <I>S</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>ALIAS-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I> : <I>S</I><SUB>1</SUB>        <I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &lt;: <I>S</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>) &lt;: <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>MOD-ALIAS</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I> : <I>S</I><SUB>2</SUB>        
+<I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &lt;: <I>S</I><SUB>2</SUB>        <I>E</I>[] &#X22A2; <I>X</I> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>p</I>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>ALIAS-ALIAS</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I><SUB>1</SUB> =<SUB>&#X3B2;&#X3B4;&#X3B9;&#X3B6;</SUB> <I>p</I><SUB>2</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>MODTYPE-MODTYPE</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>S</I><SUB>1</SUB> &lt;: <I>S</I><SUB>2</SUB>        <I>E</I>[] &#X22A2; <I>S</I><SUB>2</SUB> &lt;: <I>S</I><SUB>1</SUB>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I><SUB>1</SUB>) &lt;: <FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I><SUB>2</SUB>)
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+New environment formation rules
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>WF-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]        <I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>S</I>)
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I>))[]
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WF-MOD</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>  <I>E</I>[] &#X22A2; <I>S</I><SUB>2</SUB> &lt;: <I>S</I><SUB>1</SUB></TD></TR>
+<TR><TD ALIGN=center NOWRAP>  <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]     <I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>S</I><SUB>1</SUB>)     <I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>S</I><SUB>2</SUB>)</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>;<FONT COLOR=purple> <I>Mod</I></FONT>(<I>X</I>:<I>S</I><SUB>1</SUB> <I><FONT COLOR=maroon>[</FONT></I>:=<I>S</I><SUB>2</SUB><I><FONT COLOR=maroon>]</FONT></I>))[]
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE></DD><DT CLASS="dt-description"><B>WF-ALIAS</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]           <I>E</I>[] &#X22A2; <I>p</I> : <I>S</I>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>,<FONT COLOR=purple> <I>ModA</I></FONT>(<I>X</I>==<I>p</I>))[]
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WF-MODTYPE</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>)[]           <I>E</I>[] &#X22A2; <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>S</I>)
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>,<FONT COLOR=purple> <I>ModType</I></FONT>(<I>Y</I>:=<I>S</I>))[]
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>WF-IND</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+</TD><TD CLASS="dcell"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=center NOWRAP>      <FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>;<FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> ))[]</TD></TR>
+<TR><TD ALIGN=center NOWRAP>      <I>E</I>[] &#X22A2; <I>p</I>:<FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>n</I></SUB>;<FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>&#X2032;](&#X393;<SUB><I>C</I></SUB>&#X2032;:=&#X393;<SUB><I>I</I></SUB>&#X2032; );&#X2026; <FONT COLOR=purple> <I>End</I></FONT> : </TD></TR>
+<TR><TD ALIGN=center NOWRAP><I>E</I>[] &#X22A2; <FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>&#X2032;](&#X393;<SUB><I>C</I></SUB>&#X2032;:=&#X393;<SUB><I>I</I></SUB>&#X2032; ) &lt;: <FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> )</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell"><FONT COLOR=red> <I>W</I><I>F</I></FONT>(<I>E</I>;</TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I></SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE></TD><TD CLASS="dcell">)[]
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD></DL><P>
+Component access rules
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>ACC-TYPE</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Assum</FONT>()(<I>c</I>:<I>T</I>);&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I>.<I>c</I> : <I>T</I>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE><BR>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>T</I>);&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I>.<I>c</I> : <I>T</I>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>ACC-DELTA</B></DT><DD CLASS="dd-description">
+Notice that the following rule extends the delta rule defined in
+section <A HREF="Reference-Manual006.html#delta">4.3</A>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Def</FONT>()(<I>c</I>:=<I>t</I>:<I>U</I>);&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I>.<I>c</I> &#X25B7;<SUB>&#X3B4;</SUB> <I>t</I>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE><BR>
+In the rules below we assume &#X393;<SUB><I>P</I></SUB> is [<I>p</I><SUB>1</SUB>:<I>P</I><SUB>1</SUB>;&#X2026;;<I>p</I><SUB><I>r</I></SUB>:<I>P</I><SUB><I>r</I></SUB>],
+&#X393;<SUB><I>I</I></SUB> is [<I>I</I><SUB>1</SUB>:<I>A</I><SUB>1</SUB>;&#X2026;;<I>I</I><SUB><I>k</I></SUB>:<I>A</I><SUB><I>k</I></SUB>], and &#X393;<SUB><I>C</I></SUB> is
+[<I>c</I><SUB>1</SUB>:<I>C</I><SUB>1</SUB>;&#X2026;;<I>c</I><SUB><I>n</I></SUB>:<I>C</I><SUB><I>n</I></SUB>]
+</DD><DT CLASS="dt-description"><B>ACC-IND</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> );&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I>.<I>I</I><SUB><I>j</I></SUB> : (<I>p</I><SUB>1</SUB>:<I>P</I><SUB>1</SUB>)&#X2026;(<I>p</I><SUB><I>r</I></SUB>:<I>P</I><SUB><I>r</I></SUB>)<I>A</I><SUB><I>j</I></SUB>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;<FONT COLOR=purple>Ind</FONT>()[&#X393;<SUB><I>P</I></SUB>](&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB> );&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[&#X393;] &#X22A2; <I>p</I>.<I>c</I><SUB><I>m</I></SUB> : (<I>p</I><SUB>1</SUB>:<I>P</I><SUB>1</SUB>)&#X2026;(<I>p</I><SUB><I>r</I></SUB>:<I>P</I><SUB><I>r</I></SUB>)<I>C</I><SUB><I>m</I></SUB><I>I</I><SUB><I>j</I></SUB>(<I>I</I><SUB><I>j</I></SUB> <I>p</I><SUB>1</SUB>&#X2026;
+<I>p</I><SUB><I>r</I></SUB>)<SUB><I>j</I>=1&#X2026; <I>k</I></SUB>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+</DD><DT CLASS="dt-description"><B>ACC-INDP</B></DT><DD CLASS="dd-description">
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>[] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;</TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I>&#X2032;</SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE></TD><TD CLASS="dcell">;&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I>.<I>I</I><SUB><I>i</I></SUB> &#X25B7;<SUB>&#X3B4;</SUB> <I>p</I>&#X2032;.<I>I</I><SUB><I>i</I></SUB>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE>
+<TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><TABLE CLASS="display"><TR><TD CLASS="dcell" ALIGN="center"><TABLE CLASS="display"><TR VALIGN="middle"><TD CLASS="dcell">
+<I>E</I>[] &#X22A2; <I>p</I> : <FONT COLOR=purple> <I>Struct</I></FONT> <I><I>e</I></I><SUB>1</SUB>;&#X2026;;<I><I>e</I></I><SUB><I>i</I></SUB>;</TD><TD CLASS="dcell"><FONT COLOR=purple>Ind</FONT><SUB><I>p</I>&#X2032;</SUB>()[&#X393;<SUB><I>P</I></SUB>](<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>&#X393;<SUB><I>C</I></SUB>:=&#X393;<SUB><I>I</I></SUB>
+ )</TD></TR>
+</TABLE></TD><TD CLASS="dcell">;&#X2026; <FONT COLOR=purple> <I>End</I></FONT>
+</TD></TR>
+</TABLE></TD></TR>
+<TR><TD CLASS="hbar"></TD></TR>
+<TR><TD CLASS="dcell" ALIGN="center">
+<I>E</I>[] &#X22A2; <I>p</I>.<I>c</I><SUB><I>i</I></SUB> &#X25B7;<SUB>&#X3B4;</SUB> <I>p</I>&#X2032;.<I>c</I><SUB><I>i</I></SUB>
+</TD></TR>
+</TABLE></TD></TR>
+</TABLE></DD></DL>
+<div id="sidebarWrapper">
+<div id="sidebar">
+
+<div class="block">
+<h2 class="title">Navigation</h2>
+<div class="content">
+
+<ul class="menu">
+
+<li class="leaf"><a href="index.html">Cover</a></li>
+<li class="leaf"><a href="toc.html">Table of contents</a></li>
+<li class="leaf">Index
+  <ul class="menu">
+  <li><a href="general-index.html">General</a></li>
+  <li><a href="command-index.html">Commands</a></li>
+  <li><a href="tactic-index.html">Tactics</a></li>
+  <li><a href="error-index.html">Errors</a></li>
+  </ul>
+</li>
+
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+</div>
+
+<div id="footer">
+<div id="nav-footer">
+  <ul class="links-menu-footer">
+    <li><a href="mailto:www-coq at lix.polytechnique.fr">webmaster</a></li>
+    <li><a href="http://validator.w3.org/check?uri=referer">xhtml valid</a></li>
+    <li><a href="http://jigsaw.w3.org/css-validator/check/referer">CSS valid</a></li>
+  </ul>
+
+</div>
+</div>
+
+</div>
+</BODY>
+</HTML>

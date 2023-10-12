@@ -1,0 +1,774 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+The tactic language
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual010.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual012.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc254">Chapter&nbsp;9</A>&nbsp;&nbsp;The tactic language</H1>
+<A NAME="TacticLanguage"></A>
+This chapter gives a compact documentation of Ltac, the tactic
+language available in <FONT COLOR=navy>Coq</FONT>. We start by giving the syntax, and next,
+we present the informal semantics. If you want to know more regarding
+this language and especially about its fundations, you can refer
+to&nbsp;[<A HREF="biblio.html#Del00"><CITE>36</CITE></A>]. Chapter&nbsp;<A HREF="Reference-Manual012.html#Tactics-examples">10</A> is devoted to giving
+examples of use of this language on small but also with non-trivial
+problems.<BR>
+<BR>
+<A NAME="toc57"></A>
+<H2><A NAME="htoc255">9.1</A>&nbsp;&nbsp;Syntax</H2>
+
+
+
+
+
+
+
+
+
+
+
+
+The syntax of the tactic language is given Figures&nbsp;<A HREF="#ltac">9.1</A>
+and&nbsp;<A HREF="#ltac_aux">9.2</A>. See page&nbsp;<A HREF="Reference-Manual003.html#BNF-syntax">??</A> for a description of
+the BNF metasyntax used in these grammar rules. Various already defined
+entries will be used in this chapter: entries <I><FONT COLOR=maroon>natural</FONT></I>,
+<I><FONT COLOR=maroon>integer</FONT></I>, <I><FONT COLOR=maroon>ident</FONT></I>, <I><FONT COLOR=maroon>qualid</FONT></I>, <I><FONT COLOR=maroon>term</FONT></I>, <I><FONT COLOR=maroon>cpattern</FONT></I> and <I><FONT COLOR=maroon>atomic_tactic</FONT></I>
+represent respectively the natural and integer numbers, the authorized
+identificators and qualified names, <FONT COLOR=navy>Coq</FONT>'s terms and patterns and
+all the atomic tactics described in chapter&nbsp;<A HREF="Reference-Manual010.html#Tactics">8</A>. The syntax
+of <I><FONT COLOR=maroon>cpattern</FONT></I> is the same as that of terms, but there can be specific
+variables like <TT>?id</TT> where <TT>id</TT> is a <I><FONT COLOR=maroon>ident</FONT></I> or <TT>_</TT>,
+which are metavariables for pattern matching. <TT>?id</TT> allows us to
+keep instantiations and to make constraints whereas <TT>_</TT> shows
+that we are not interested in what will be matched. On the right hand
+side, they are used without the question mark.<BR>
+<BR>
+The main entry of the grammar is <I><FONT COLOR=maroon>expr</FONT></I>. This language is used in
+proof mode but it can also be used in toplevel definitions as shown in
+Figure&nbsp;<A HREF="#ltactop">9.3</A>.<BR>
+<BR>
+<BR>
+<B>Remarks: </B><OL type=1><LI>
+The infix tacticals ``... <TT>||</TT> ...'' and ``... <TT>;</TT> ...'' are associative. <BR>
+<BR>
+<LI>As shown by the figure, tactical <TT>||</TT> binds more than the
+prefix tacticals <TT>try</TT>, <TT>repeat</TT>, <TT>do</TT>, <TT>info</TT> and
+<TT>abstract</TT> which themselves bind more than the postfix tactical
+``<TT>... ;[ ... ]</TT>'' which binds more than ``... <TT>;</TT>
+...''.<BR>
+<BR>
+For instance
+<BLOCKQUOTE>
+<TT>try repeat </TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> ||
+ </TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>;</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>3</FONT></TT></SUB><TT>;[</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>31</FONT></TT></SUB><TT>|...|</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>3<I>n</I></FONT></TT></SUB><TT>];</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>4</FONT></TT></SUB><TT>.</TT>
+</BLOCKQUOTE>
+is understood as 
+<BLOCKQUOTE>
+<TT>(try (repeat (</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> || </TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB><TT>)));</TT><BR>
+<TT>((</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>3</FONT></TT></SUB><TT>;[</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>31</FONT></TT></SUB><TT>|...|</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>3<I>n</I></FONT></TT></SUB><TT>]);</TT><I><FONT COLOR=maroon>tactic</FONT></I><SUB><TT><FONT SIZE=2>4</FONT></TT></SUB><TT>).</TT>
+</BLOCKQUOTE>
+</OL>
+<BLOCKQUOTE><DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>expr</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>expr</FONT></I> <TT>;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>expr</FONT></I> <TT>; [</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>]</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><TT>do</TT> <I>(</I><I><FONT COLOR=maroon>natural</FONT></I> <I>|</I> <I><FONT COLOR=maroon>ident</FONT></I><I>)</I> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>info</TT> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>progress</TT> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>repeat</TT> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>try</TT> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>2</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>2</FONT></FONT></I></SUB></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>1</FONT></FONT></I></SUB> <TT>||</TT> <I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>3</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>1</FONT></FONT></I></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacexpr</FONT></I><SUB><I><FONT COLOR=maroon><FONT SIZE=2>1</FONT></FONT></I></SUB></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><TT>fun</TT> <I><FONT COLOR=maroon>name</FONT></I>  ...  <I><FONT COLOR=maroon>name</FONT></I> <TT>=&gt;</TT> <I><FONT COLOR=maroon>atom</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>let</TT> <I><FONT COLOR=maroon>let_clause</FONT></I> <TT>with</TT> ... <TT>with</TT> <I><FONT COLOR=maroon>let_clause</FONT></I> <TT>in</TT>
+<I><FONT COLOR=maroon>atom</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>let rec</TT> <I><FONT COLOR=maroon>rec_clause</FONT></I> <TT>with</TT> ... <TT>with</TT> <I><FONT COLOR=maroon>rec_clause</FONT></I> <TT>in</TT>
+<I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>match goal with</TT> <I><FONT COLOR=maroon>context_rule</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>context_rule</FONT></I> <TT>end</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>match reverse goal with</TT> <I><FONT COLOR=maroon>context_rule</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>context_rule</FONT></I> <TT>end</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>match</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>with</TT> <I><FONT COLOR=maroon>match_rule</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>match_rule</FONT></I> <TT>end</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>abstract</TT> <I><FONT COLOR=maroon>atom</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>abstract</TT> <I><FONT COLOR=maroon>atom</FONT></I> <TT>using</TT> <I><FONT COLOR=maroon>ident</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>first [</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>]</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>solve [</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>]</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>idtac</TT> &nbsp;|&nbsp; <TT>idtac</TT> <I><FONT COLOR=maroon>string</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>fail</TT> &nbsp;|&nbsp; <TT>fail</TT> <I><FONT COLOR=maroon>natural</FONT></I> <I><FONT COLOR=maroon>string</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>fresh</TT> &nbsp;|&nbsp; <TT>fresh</TT> <I><FONT COLOR=maroon>string</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>context</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>[</TT> <I><FONT COLOR=maroon>term</FONT></I> <TT>]</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>eval</TT> <I><FONT COLOR=maroon>redexpr</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>term</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>type of</TT> <I><FONT COLOR=maroon>term</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>constr :</TT> <I><FONT COLOR=maroon>term</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>atomic_tactic</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>qualid</FONT></I> <I><FONT COLOR=maroon>tacarg</FONT></I>  ...  <I><FONT COLOR=maroon>tacarg</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>atom</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>atom</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>qualid</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP>()</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>(</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>)</TT></TD>
+</TR></TABLE>
+</DIV>
+<BR>
+<DIV ALIGN=center>Figure 9.1: Syntax of the tactic language</DIV><BR>
+
+<A NAME="ltac"></A>
+<DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE>
+<BLOCKQUOTE><DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>tacarg</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>qualid</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>()</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>ltac :</TT> <I><FONT COLOR=maroon>atom</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>term</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>let_clause</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>name</FONT></I>  ...  <I><FONT COLOR=maroon>name</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>rec_clause</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>name</FONT></I>  ...  <I><FONT COLOR=maroon>name</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>context_rule</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>context_hyps</FONT></I> <TT>,</TT> ... <TT>,</TT> <I><FONT COLOR=maroon>context_hyps</FONT></I> <TT>|-</TT><I><FONT COLOR=maroon>cpattern</FONT></I> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>|-</TT> <I><FONT COLOR=maroon>cpattern</FONT></I> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>_ =&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>context_hyps</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>name</FONT></I> <TT>:</TT> <I><FONT COLOR=maroon>cpattern</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>match_rule</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>cpattern</FONT></I> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>context</TT> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>ident</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>[</TT> <I><FONT COLOR=maroon>cpattern</FONT></I> <TT>]</TT> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>|</TD>
+<TD ALIGN=left NOWRAP><TT>_ =&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR></TABLE>
+</DIV>
+<BR>
+<DIV ALIGN=center>Figure 9.2: Syntax of the tactic language (continued)</DIV><BR>
+
+<A NAME="ltac_aux"></A>
+<DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE>
+<BLOCKQUOTE><DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV>
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>top</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><TT>Ltac</TT> <I><FONT COLOR=maroon>ltac_def</FONT></I> <TT>with</TT> ... <TT>with</TT> <I><FONT COLOR=maroon>ltac_def</FONT></I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ltac_def</FONT></I></TD>
+<TD ALIGN=center NOWRAP>::=</TD>
+<TD ALIGN=left NOWRAP><I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>[</FONT></I><I><FONT COLOR=maroon>ident</FONT></I>  ...  <I><FONT COLOR=maroon>ident</FONT></I><I><FONT COLOR=maroon>]</FONT></I> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I></TD>
+</TR></TABLE>
+</DIV>
+<BR>
+<DIV ALIGN=center>Figure 9.3: Tactic toplevel definitions</DIV><BR>
+
+<A NAME="ltactop"></A>
+<DIV ALIGN=center><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE>
+<A NAME="toc58"></A>
+<H2><A NAME="htoc256">9.2</A>&nbsp;&nbsp;Semantics</H2>
+<A NAME="@default578"></A>
+
+Tactic expressions can only be applied in the context of a goal. The
+evaluation yields either a term, an integer or a tactic. Intermediary
+results can be terms or integers but the final result must be a tactic
+which is then applied to the current goal.<BR>
+<BR>
+There is a special case for <TT>match goal</TT> expressions of which
+the clauses evaluate to tactics. Such expressions can only be used as
+end result of a tactic expression (never as argument of a local
+definition or of an application).<BR>
+<BR>
+The rest of this section explains the semantics of every construction
+of Ltac.<BR>
+<BR>
+
+<H4>Sequence</H4>
+<A NAME="@default579"></A><A NAME="@tactic123"></A>
+<A NAME="@default580"></A>
+A sequence is an expression of the following form:
+<BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> are evaluated to <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<I>v</I><SUB><FONT SIZE=2>2</FONT></SUB>. <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> and <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> must be tactic values. <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> is then applied
+and <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> is applied to every subgoal generated by the application of
+<I>v</I><SUB><FONT SIZE=2>1</FONT></SUB>. Sequence is left associating.<BR>
+<BR>
+
+<H4>General sequence</H4>
+<A NAME="@default581"></A><A NAME="@tactic124"></A>
+<A NAME="@default582"></A>
+We can generalize the previous sequence operator as
+<BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>0</FONT></SUB> <TT>; [</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>|</TT> ... <TT>|</TT>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>]</TT>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is evaluated to <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>, for <I>i</I>=0,...,<I>n</I>. <I>v</I><SUB><FONT SIZE=2>0</FONT></SUB> is
+applied and <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is applied to the <I>i</I>-th generated subgoal by the
+application of <I>v</I><SUB><FONT SIZE=2>0</FONT></SUB>, for =1,...,<I>n</I>. It fails if the application of
+<I>v</I><SUB><FONT SIZE=2>0</FONT></SUB> does not generate exactly <I>n</I> subgoals.<BR>
+<BR>
+
+<H4>For loop</H4>
+<A NAME="@default583"></A><A NAME="@tactic125"></A>
+<A NAME="@default584"></A>
+There is a for loop that repeats a tactic <I><FONT COLOR=maroon>num</FONT></I> times:
+<BLOCKQUOTE>
+<TT>do</TT> <I><FONT COLOR=maroon>num</FONT></I> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I> is evaluated to <I>v</I>. <I>v</I> must be a tactic value. <I>v</I> is
+applied <I><FONT COLOR=maroon>num</FONT></I> times. Supposing <I><FONT COLOR=maroon>num</FONT></I>&gt;1, after the first
+application of <I>v</I>, <I>v</I> is applied, at least once, to the generated
+subgoals and so on. It fails if the application of <I>v</I> fails before
+the <I><FONT COLOR=maroon>num</FONT></I> applications have been completed.<BR>
+<BR>
+
+<H4>Repeat loop</H4>
+<A NAME="@default585"></A><A NAME="@tactic126"></A>
+<A NAME="@default586"></A>
+We have a repeat loop with:
+<BLOCKQUOTE>
+<TT>repeat</TT> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I> is evaluated to <I>v</I>. <I>v</I> must be a tactic value. <I>v</I> is
+applied until it fails. Supposing <I>n</I>&gt;1, after the first application
+of <I>v</I>, <I>v</I> is applied, at least once, to the generated subgoals and
+so on. It stops when it fails for all the generated subgoals. It never
+fails.<BR>
+<BR>
+
+<H4>Error catching</H4>
+<A NAME="@default587"></A><A NAME="@tactic127"></A>
+<A NAME="@default588"></A>
+We can catch the tactic errors with:
+<BLOCKQUOTE>
+<TT>try</TT> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I> is evaluated to <I>v</I>. <I>v</I> must be a tactic value. <I>v</I> is
+applied. If the application of <I>v</I> fails, it catches the error and
+leaves the goal unchanged. If the level of the exception is positive,
+then the exception is re-raised with its level decremented.<BR>
+<BR>
+
+<H4>Detecting progress</H4>
+<A NAME="@default589"></A><A NAME="@tactic128"></A>
+We can check if a tactic made progress with:
+<BLOCKQUOTE>
+<TT>progress</TT> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I> is evaluated to <I>v</I>. <I>v</I> must be a tactic value. <I>v</I> is
+applied. If the application of <I>v</I> produced one subgoal equal to the
+initial goal (up to syntactical equality), then an error of level 0 is
+raised. <BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Failed to progress</TT><A NAME="@error101"></A><BR>
+<BR>
+
+<H4>Branching</H4>
+<A NAME="@default590"></A><A NAME="@tactic129"></A>
+<A NAME="@default591"></A>
+We can easily branch with the following structure:
+<BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>||</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> and <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> are evaluated to <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> and
+<I>v</I><SUB><FONT SIZE=2>2</FONT></SUB>. <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> and <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> must be tactic values. <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> is applied and if
+it fails then <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> is applied. Branching is left associating.<BR>
+<BR>
+
+<H4>First tactic to work</H4>
+<A NAME="@default592"></A><A NAME="@tactic130"></A>
+<A NAME="@default593"></A>
+We may consider the first tactic to work (i.e. which does not fail) among a
+panel of tactics:
+<BLOCKQUOTE>
+<TT>first [</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>]</TT>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> are evaluated to <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> and <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> must be tactic values, for 
+<I>i</I>=1,...,<I>n</I>. Supposing <I>n</I>&gt;1, it applies <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB>, if it works, it stops else it
+tries to apply <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> and so on. It fails when there is no applicable tactic.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>No applicable tactic</TT><A NAME="@error102"></A><BR>
+<BR>
+
+<H4>Solving</H4>
+<A NAME="@default594"></A><A NAME="@tactic131"></A>
+<A NAME="@default595"></A>
+We may consider the first to solve (i.e. which generates no subgoal) among a
+panel of tactics:
+<BLOCKQUOTE>
+<TT>solve [</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>|</TT> ... <TT>|</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>]</TT>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> are evaluated to <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> and <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> must be tactic values, for 
+<I>i</I>=1,...,<I>n</I>. Supposing <I>n</I>&gt;1, it applies <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB>, if it solves, it stops else it
+tries to apply <I>v</I><SUB><FONT SIZE=2>2</FONT></SUB> and so on. It fails if there is no solving tactic.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Cannot solve the goal</TT><A NAME="@error103"></A><BR>
+<BR>
+
+<H4>Identity</H4>
+<A NAME="@default596"></A><A NAME="@tactic132"></A>
+<A NAME="@default597"></A>
+The constant <TT>idtac</TT> is the identity tactic: it leaves any goal
+unchanged but it appears in the proof script.
+<BLOCKQUOTE>
+<TT>idtac</TT> and <TT>idtac "message"</TT>
+</BLOCKQUOTE>
+The latter variant prints the string on the standard output.<BR>
+<BR>
+
+<H4>Failing</H4>
+<A NAME="@default598"></A><A NAME="@tactic133"></A>
+<A NAME="@default599"></A>
+The tactic <TT>fail</TT> is the always-failing tactic: it does not solve
+any goal. It is useful for defining other tacticals since it can be
+catched by <TT>try</TT> or <TT>match goal</TT>. There are three variants:
+<BLOCKQUOTE>
+<TT>fail <I>n</I></TT>, <TT>fail "message"</TT> and <TT>fail <I>n</I> "message"</TT>
+</BLOCKQUOTE>
+The number <I>n</I> is the failure level. If no level is specified, it
+defaults to 0. The level is used by <TT>try</TT> and <TT>match goal</TT>.
+If 0, it makes <TT>match goal</TT> considering the next clause
+(backtracking). If non zero, the current <TT>match goal</TT> block or
+<TT>try</TT> command is aborted and the level is decremented.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>Tactic Failure "message" (level <I>n</I>)</TT><A NAME="@error104"></A>.<BR>
+<BR>
+
+<H4>Local definitions</H4>
+<A NAME="@default600"></A>
+<A NAME="@default601"></A>
+<A NAME="@default602"></A>
+<A NAME="@default603"></A>
+Local definitions can be done as follows:
+<BLOCKQUOTE>
+<TT>let</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><BR>
+<TT>with</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><BR>
+...<BR>
+<TT>with</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>in</TT><BR>
+<I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+each <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> is evaluated to <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>, then, <I><FONT COLOR=maroon>expr</FONT></I> is
+evaluated by substituting <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> to each occurrence of <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>,
+for <I>i</I>=1,...,<I>n</I>. There is no dependencies between the <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>
+and the <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>.<BR>
+<BR>
+Local definitions can be recursive by using <TT>let rec</TT> instead of
+<TT>let</TT>. Only functions can be defined by recursion, so at least one
+argument is required.<BR>
+<BR>
+
+<H4>Application</H4>
+An application is an expression of the following form:
+<BLOCKQUOTE>
+<I><FONT COLOR=maroon>qualid</FONT></I> <I><FONT COLOR=maroon>tacarg</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>tacarg</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+</BLOCKQUOTE>
+The reference <I><FONT COLOR=maroon>qualid</FONT></I> must be bound to some defined tactic
+definition expecting at least <I>n</I> arguments. The expressions
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>i</I></FONT></SUB> are evaluated to <I>v</I><SUB><FONT SIZE=2><I>i</I></FONT></SUB>, for <I>i</I>=1,...,<I>n</I>.
+<BR>
+<BR>
+
+<H4>Function construction</H4>
+<A NAME="@default604"></A>
+<A NAME="@default605"></A>
+A parameterized tactic can be built anonymously (without resorting to
+local definitions) with:
+<BLOCKQUOTE>
+<TT>fun</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+Indeed, local definitions of functions are a syntactic sugar for
+binding a <TT>fun</TT> tactic to an identifier.<BR>
+<BR>
+
+<H4>Pattern matching on terms</H4>
+<A NAME="@default606"></A>
+<A NAME="@default607"></A>
+We can carry out pattern matching on terms with:
+<BLOCKQUOTE>
+<TT>match</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>with</TT><BR>
+&nbsp;&nbsp;&nbsp;<I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><BR>
+&nbsp;<TT>|</TT> <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><BR>
+&nbsp;...<BR>
+&nbsp;<TT>|</TT> <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><BR>
+&nbsp;<TT>|</TT> <TT>_</TT> <TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I>+1</FONT></SUB><BR>
+<TT>end</TT>
+</BLOCKQUOTE>
+The <I><FONT COLOR=maroon>expr</FONT></I> is evaluated and should yield a term which is matched
+(non-linear first order unification) against <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> then
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> is evaluated into some value by substituting the
+pattern matching instantiations to the metavariables. If the matching
+with <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> fails, <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> is used and so on. The
+pattern _ matches any term and shunts all remaining patterns if
+any. If <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> evaluates to a tactic, this tactic is not
+immediately applied to the current goal (in contrast with <TT>match
+goal</TT>). If all clauses fail (in particular, there is no pattern _)
+then a no-matching error is raised.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><TT>No matching clauses for match</TT><A NAME="@error105"></A><BR>
+<BR>
+No pattern can be used and, in particular, there is no <TT>_</TT> pattern.<BR>
+<BR>
+<LI><TT>Argument of match does not evaluate to a term</TT><A NAME="@error106"></A><BR>
+<BR>
+This happens when <I><FONT COLOR=maroon>expr</FONT></I> does not denote a term.</OL>
+<A NAME="@default608"></A>
+There is a special form of patterns to match a subterm against the
+pattern:
+<BLOCKQUOTE>
+<TT>context</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>[</TT> <I><FONT COLOR=maroon>cpattern</FONT></I> <TT>]</TT>
+</BLOCKQUOTE>
+It matches any term which one subterm matches <I><FONT COLOR=maroon>cpattern</FONT></I>. If there is
+a match, the optional <I><FONT COLOR=maroon>ident</FONT></I> is assign the ``matched context'', that
+is the initial term where the matched subterm is replaced by a
+hole. The definition of <TT>context</TT> in expressions below will show
+how to use such term contexts.<BR>
+<BR>
+This operator never makes backtracking. If there are several subterms
+matching the pattern, only the first match is considered. Note that
+the order of matching is left unspecified.
+<BR>
+<BR>
+
+<H4>Pattern matching on goals</H4>
+<A NAME="@default609"></A>
+<A NAME="@default610"></A>
+<A NAME="@default611"></A>
+<A NAME="@default612"></A>
+We can make pattern matching on goals using the following expression:
+<BLOCKQUOTE>
+<TABLE border=0 cellspacing=0 cellpadding=0>
+<TR><TD ALIGN=left NOWRAP>
+<TT>match goal with</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;&nbsp;</TD>
+<TD ALIGN=left NOWRAP><TT>|</TT> <I>hyp</I><SUB><FONT SIZE=2>1,1</FONT></SUB><TT>,</TT>...<TT>,</TT><I>hyp</I><SUB><FONT SIZE=2>1,<I>m</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB>
+ &nbsp;&nbsp;<TT>|-</TT><I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP></TD>
+<TD ALIGN=left NOWRAP><TT>|</TT> <I>hyp</I><SUB><FONT SIZE=2>2,1</FONT></SUB><TT>,</TT>...<TT>,</TT><I>hyp</I><SUB><FONT SIZE=2>2,<I>m</I></FONT><SUB><FONT SIZE=2>2</FONT></SUB></SUB>
+ &nbsp;&nbsp;<TT>|-</TT><I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;&nbsp;...</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP></TD>
+<TD ALIGN=left NOWRAP><TT>|</TT> <I>hyp</I><SUB><FONT SIZE=2><I>n</I>,1</FONT></SUB><TT>,</TT>...<TT>,</TT><I>hyp</I><SUB><FONT SIZE=2><I>n</I>,<I>m</I></FONT><SUB><FONT SIZE=2><I>n</I></FONT></SUB></SUB>
+ &nbsp;&nbsp;<TT>|-</TT><I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB><TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP></TD>
+<TD ALIGN=left NOWRAP><TT>|_</TT>&nbsp;&nbsp;&nbsp;&nbsp;<TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I>+1</FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>end</TT>
+</TD>
+</TR></TABLE>
+</BLOCKQUOTE>
+If each hypothesis pattern <I>hyp</I><SUB><FONT SIZE=2>1,<I>i</I></FONT></SUB>, with <I>i</I>=1,...,<I>m</I><SUB><FONT SIZE=2>1</FONT></SUB>
+is matched (non-linear first order unification) by an hypothesis of
+the goal and if <I><FONT COLOR=maroon>cpattern</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> is matched by the conclusion of the
+goal, then <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> is evaluated to <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> by substituting the
+pattern matching to the metavariables and the real hypothesis names
+bound to the possible hypothesis names occurring in the hypothesis
+patterns. If <I>v</I><SUB><FONT SIZE=2>1</FONT></SUB> is a tactic value, then it is applied to the
+goal. If this application fails, then another combination of
+hypotheses is tried with the same proof context pattern. If there is
+no other combination of hypotheses then the second proof context
+pattern is tried and so on. If the next to last proof context pattern
+fails then <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I>+1</FONT></SUB> is evaluated to <I>v</I><SUB><FONT SIZE=2><I>n</I>+1</FONT></SUB> and <I>v</I><SUB><FONT SIZE=2><I>n</I>+1</FONT></SUB>
+is applied.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>No matching clauses for match goal</TT><A NAME="@error107"></A><BR>
+<BR>
+No goal pattern can be used and, in particular, there is no <TT>_</TT> goal pattern.<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+It is important to know that each hypothesis of the goal can be
+matched by at most one hypothesis pattern. The order of matching is
+the following: hypothesis patterns are examined from the right to the
+left (i.e. <I>hyp</I><SUB><FONT SIZE=2><I>i</I>,<I>m</I></FONT><SUB><FONT SIZE=2><I>i</I></FONT></SUB></SUB> before <I>hyp</I><SUB><FONT SIZE=2><I>i</I>,1</FONT></SUB>). For each hypothesis
+pattern, the goal hypothesis are matched in order (fresher hypothesis
+first), but it possible to reverse this order (older first) with
+the <TT>match reverse goal with</TT> variant.<BR>
+<BR>
+
+<H4>Filling a term context</H4>
+<A NAME="@default613"></A>
+The following expression is not a tactic in the sense that it does not
+produce subgoals but generates a term to be used in tactic
+expressions:
+<BLOCKQUOTE>
+<TT>context</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>[</TT> <I><FONT COLOR=maroon>expr</FONT></I> <TT>]</TT>
+</BLOCKQUOTE>
+<I><FONT COLOR=maroon>ident</FONT></I> must denote a context variable bound by a <TT>context</TT>
+pattern of a <TT>match</TT> expression. This expression evaluates
+replaces the hole of the value of <I><FONT COLOR=maroon>ident</FONT></I> by the value of
+<I><FONT COLOR=maroon>expr</FONT></I>.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>not a context variable</TT><A NAME="@error108"></A><BR>
+<BR>
+
+<H4>Generating fresh hypothesis names</H4>
+<A NAME="@default614"></A>
+<A NAME="@default615"></A>
+Tactics sometimes have to generate new names for hypothesis. Letting
+the system decide a name with the <TT>intro</TT> tactic is not so good
+since it is very awkward to retrieve the name the system gave.<BR>
+<BR>
+As before, the following expression returns a term:
+<BLOCKQUOTE>
+<TT>fresh</TT> <I><FONT COLOR=maroon>string</FONT></I>
+</BLOCKQUOTE>
+It evaluates to an identifier unbound in the goal, which is obtained
+by padding <I><FONT COLOR=maroon>string</FONT></I> with a number if necessary. If no name is given,
+the prefix is <TT>H</TT>.<BR>
+<BR>
+
+<H4><TT>type of</TT> <I><FONT COLOR=maroon>term</FONT></I></H4>
+<A NAME="@default616"></A>
+<A NAME="@default617"></A>
+This tactic computes the type of <I><FONT COLOR=maroon>term</FONT></I>.<BR>
+<BR>
+
+<H4>Computing in a constr</H4>
+<A NAME="@default618"></A>
+<A NAME="@default619"></A>
+Evaluation of a term can be performed with:
+<BLOCKQUOTE>
+<TT>eval</TT> <I><FONT COLOR=maroon>redexpr</FONT></I> <TT>in</TT> <I><FONT COLOR=maroon>term</FONT></I>
+</BLOCKQUOTE>
+where <I><FONT COLOR=maroon>redexpr</FONT></I> is a reduction tactic among <TT>red</TT>, <TT>hnf</TT>, <TT>compute</TT>, <TT>simpl</TT>, <TT>cbv</TT>, <TT>lazy</TT>, <TT>unfold</TT>,
+<TT>fold</TT>, <TT>pattern</TT>.<BR>
+<BR>
+
+<H4>Accessing tactic decomposition</H4>
+<A NAME="@default620"></A><A NAME="@tactic134"></A>
+<A NAME="@default621"></A>
+Tactical ``<TT>info</TT> <I><FONT COLOR=maroon>expr</FONT></I>'' is not really a tactical. For
+elementary tactics, this is equivalent to <I><FONT COLOR=maroon>expr</FONT></I>. For complex tactic
+like <TT>auto</TT>, it displays the operations performed by the
+tactic.<BR>
+<BR>
+
+<H4>Proving a subgoal as a separate lemma</H4>
+<A NAME="@default622"></A><A NAME="@tactic135"></A>
+<A NAME="@default623"></A>
+From the outside ``<TT>abstract </TT><I><FONT COLOR=maroon>expr</FONT></I>'' is the same as
+<TT>solve </TT><I><FONT COLOR=maroon>expr</FONT></I>. Internally it saves an auxiliary lemma called 
+<I><FONT COLOR=maroon>ident</FONT></I><TT>_subproof</TT><I>n</I> where <I><FONT COLOR=maroon>ident</FONT></I> is the name of the
+current goal and <I>n</I> is chosen so that this is a fresh name.<BR>
+<BR>
+This tactical is useful with tactics such as <TT>omega</TT> or
+<TT>discriminate</TT> that generate huge proof terms. With that tool
+the user can avoid the explosion at time of the <TT>Save</TT> command
+without having to cut manually the proof in smaller lemmas.<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>abstract </TT><I><FONT COLOR=maroon>expr</FONT></I><TT> using </TT><I><FONT COLOR=maroon>ident</FONT></I>.<BR>
+Give explicitly the name of the auxiliary lemma.
+</OL>
+<BR>
+<B>Error message: </B><TT>Proof is not complete</TT><A NAME="@error109"></A><BR>
+<BR>
+<A NAME="toc59"></A>
+<H2><A NAME="htoc257">9.3</A>&nbsp;&nbsp;Tactic toplevel definitions</H2>
+<A NAME="@default624"></A><A NAME="@command170"></A>
+Basically, tactics toplevel definitions are made as follows:
+<BLOCKQUOTE>
+<TT>Ltac</TT> <I><FONT COLOR=maroon>ident</FONT></I> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <TT>:=</TT>
+<I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+This defines a new tactic that can be used in any tactic script or new
+tactic toplevel definition.<BR>
+<BR>
+<BR>
+<B>Remark: </B>The preceding definition can equivalently be written:
+<BLOCKQUOTE>
+<TT>Ltac</TT> <I><FONT COLOR=maroon>ident</FONT></I> <TT>:= fun</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+<TT>=&gt;</TT> <I><FONT COLOR=maroon>expr</FONT></I>
+</BLOCKQUOTE>
+Recursive and mutual recursive function definitions are also
+possible with the syntax:
+<BLOCKQUOTE>
+<TT>Ltac</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1,1</FONT></SUB> ...
+<I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>1,<I>m</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB>&nbsp;&nbsp;<TT>:=</TT> <I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>1</FONT></SUB><BR>
+<TT>with</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2,1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2>2,<I>m</I></FONT><SUB><FONT SIZE=2>2</FONT></SUB></SUB>&nbsp;&nbsp;<TT>:=</TT>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2>2</FONT></SUB><BR>
+...<BR>
+<TT>with</TT> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I>,1</FONT></SUB> ... <I><FONT COLOR=maroon>ident</FONT></I><SUB><FONT SIZE=2><I>n</I>,<I>m</I></FONT><SUB><FONT SIZE=2><I>n</I></FONT></SUB></SUB>&nbsp;&nbsp;<TT>:=</TT>
+<I><FONT COLOR=maroon>expr</FONT></I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+</BLOCKQUOTE>
+<HR>
+<A HREF="Reference-Manual010.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual012.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

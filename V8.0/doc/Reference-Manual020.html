@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+Omega: a solver of quantifier-free problems in
+Presburger Arithmetic
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual019.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual021.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc370">Chapter&nbsp;17</A>&nbsp;&nbsp;Omega: a solver of quantifier-free problems in
+Presburger Arithmetic</H1>
+<FONT SIZE=5><B>Pierre Crégut</B></FONT> <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+
+<A NAME="OmegaChapter"></A><BR>
+<BR>
+<A NAME="toc113"></A>
+<H2><A NAME="htoc371">17.1</A>&nbsp;&nbsp;Description of <TT>omega</TT></H2>
+<A NAME="@default711"></A><A NAME="@tactic141"></A>
+<A NAME="description"></A>
+<TT>omega</TT> solves a goal in Presburger arithmetic, i.e. a universally
+quantified formula made of equations and inequations. Equations may
+be specified either on the type <CODE>nat</CODE> of natural numbers or on
+the type <CODE>Z</CODE> of binary-encoded integer numbers. Formulas on
+<CODE>nat</CODE> are automatically injected into <CODE>Z</CODE>. The procedure
+may use any hypothesis of the current proof session to solve the goal.<BR>
+<BR>
+Multiplication is handled by <TT>omega</TT> but only goals where at
+least one of the two multiplicands of products is a constant are
+solvable. This is the restriction meaned by ``Presburger arithmetic''.<BR>
+<BR>
+If the tactic cannot solve the goal, it fails with an error message.
+In any case, the computation eventually stops.<BR>
+<BR>
+
+<H3><A NAME="htoc372">17.1.1</A>&nbsp;&nbsp;Arithmetical goals recognized by <TT>omega</TT></H3>
+<TT>omega</TT> applied only to quantifier-free formulas built from the
+connectors
+<BLOCKQUOTE>
+<CODE>/\, \/, ~, -&gt;</CODE>
+</BLOCKQUOTE>
+on atomic formulas. Atomic formulas are built from the predicates 
+<BLOCKQUOTE>
+<CODE>=, le, lt, gt, ge</CODE>
+</BLOCKQUOTE>
+on <CODE>nat</CODE> or from the predicates
+<BLOCKQUOTE>
+<CODE>=, &lt;, &lt;=, &gt;, &gt;=</CODE>
+</BLOCKQUOTE>
+on <CODE>Z</CODE>. In expressions of type <CODE>nat</CODE>, <TT>omega</TT> recognizes 
+<BLOCKQUOTE>
+<CODE>plus, minus, mult, pred, S, O</CODE>
+</BLOCKQUOTE>
+and in expressions of type <CODE>Z</CODE>, <TT>omega</TT> recognizes 
+<BLOCKQUOTE>
+<CODE>+, -, *, Zsucc</CODE>, and constants.
+</BLOCKQUOTE>
+All expressions of type <CODE>nat</CODE> or <CODE>Z</CODE> not built on these
+operators are considered abstractly as if they
+were arbitrary variables of type <CODE>nat</CODE> or <CODE>Z</CODE>.<BR>
+<BR>
+
+<H3><A NAME="htoc373">17.1.2</A>&nbsp;&nbsp;Messages from <TT>omega</TT></H3>
+<A NAME="errors"></A>
+When <TT>omega</TT> does not solve the goal, one of the following errors
+is generated:<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI><TT>omega can't solve this system</TT><A NAME="@error122"></A><BR>
+<BR>
+This may happen if your goal is not quantifier-free (if it is
+ universally quantified, try <TT>intros</TT> first; if it contains
+ existentials quantifiers too, <TT>omega</TT> is not strong enough to solve your
+ goal). This may happen also if your goal contains arithmetical
+ operators unknown from <TT>omega</TT>. Finally, your goal may be really
+ wrong!<BR>
+<BR>
+<LI><TT>omega: Not a quantifier-free goal</TT><A NAME="@error123"></A><BR>
+<BR>
+If your goal is universally quantified, you should first apply <TT>intro</TT> as many time as needed.<BR>
+<BR>
+<LI><TT>omega: Unrecognized predicate or connective: <I><FONT COLOR=maroon>ident</FONT></I></TT><A NAME="@error124"></A><BR>
+<BR>
+<LI><TT>omega: Unrecognized atomic proposition: <I><FONT COLOR=maroon>prop</FONT></I></TT><A NAME="@error125"></A><BR>
+<BR>
+<LI><TT>omega: Can't solve a goal with proposition variables</TT><A NAME="@error126"></A><BR>
+<BR>
+<LI><TT>omega: Unrecognized proposition</TT><A NAME="@error127"></A><BR>
+<BR>
+<LI><TT>omega: Can't solve a goal with non-linear products</TT><A NAME="@error128"></A><BR>
+<BR>
+<LI><TT>omega: Can't solve a goal with equality on <I><FONT COLOR=maroon>type</FONT></I></TT><A NAME="@error129"></A></OL>
+<A NAME="toc114"></A>
+<H2><A NAME="htoc374">17.2</A>&nbsp;&nbsp;Using <TT>omega</TT></H2>
+The <TT>omega</TT> tactic does not belong to the core system. It should be
+loaded by
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Require&nbsp;Import&nbsp;Omega.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Open&nbsp;Scope&nbsp;Z_scope.</TT><BR>
+</DIV>
+<BR>
+
+<BR>
+<B>Example 3: </B>
+<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;m&nbsp;n:Z,&nbsp;1&nbsp;+&nbsp;2&nbsp;*&nbsp;m&nbsp;&lt;&gt;&nbsp;2&nbsp;*&nbsp;n.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;m&nbsp;n&nbsp;:&nbsp;Z,&nbsp;1&nbsp;+&nbsp;2&nbsp;*&nbsp;m&nbsp;&lt;&gt;&nbsp;2&nbsp;*&nbsp;n</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros;&nbsp;omega.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+
+<BR>
+<B>Example 4: </B>
+<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;z:Z,&nbsp;z&nbsp;&gt;&nbsp;0&nbsp;-&gt;&nbsp;2&nbsp;*&nbsp;z&nbsp;+&nbsp;1&nbsp;&gt;&nbsp;z.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;z&nbsp;:&nbsp;Z,&nbsp;z&nbsp;&gt;&nbsp;0&nbsp;-&gt;&nbsp;2&nbsp;*&nbsp;z&nbsp;+&nbsp;1&nbsp;&gt;&nbsp;z</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intro;&nbsp;omega.</TT><BR>
+<TT><I>Proof&nbsp;completed.</I></TT><BR>
+</DIV>
+<BR>
+<A NAME="toc115"></A>
+<H2><A NAME="htoc375">17.3</A>&nbsp;&nbsp;Technical data</H2>
+<A NAME="technical"></A>
+
+<H3><A NAME="htoc376">17.3.1</A>&nbsp;&nbsp;Overview of the tactic</H3>
+<UL><LI>The goal is negated twice and the first negation is introduced as an
+ hypothesis.
+<LI>Hypothesis are decomposed in simple equations or inequations. Multiple
+ goals may result from this phase.
+<LI>Equations and inequations over <CODE>nat</CODE> are translated over
+ <CODE>Z</CODE>, multiple goals may result from the translation of
+ substraction.
+<LI>Equations and inequations are normalized.
+<LI>Goals are solved by the <I>OMEGA</I> decision procedure.
+<LI>The script of the solution is replayed.</UL>
+
+<H3><A NAME="htoc377">17.3.2</A>&nbsp;&nbsp;Overview of the <I>OMEGA</I> decision procedure</H3>
+The <I>OMEGA</I> decision procedure involved in the <TT>omega</TT> tactic uses
+a small subset of the decision procedure presented in
+<BLOCKQUOTE>
+ "The Omega Test: a fast and practical integer programming
+algorithm for dependence analysis", William Pugh, Communication of the
+ACM , 1992, p 102-114.
+</BLOCKQUOTE>
+Here is an overview, look at the original paper for more information.
+<UL><LI>Equations and inequations are normalized by division by the GCD of their
+ coefficients.
+<LI>Equations are eliminated, using the Banerjee test to get a coefficient 
+ equal to one.
+<LI>Note that each inequation defines a half space in the space of real value
+ of the variables.
+ <LI>Inequations are solved by projecting on the hyperspace
+ defined by cancelling one of the variable. They are partitioned
+ according to the sign of the coefficient of the eliminated
+ variable. Pairs of inequations from different classes define a
+ new edge in the projection.
+ <LI>Redundant inequations are eliminated or merged in new
+ equations that can be eliminated by the Banerjee test.
+<LI>The last two steps are iterated until a contradiction is reached
+ (success) or there is no more variable to eliminate (failure).</UL>
+It may happen that there is a real solution and no integer one. The last
+steps of the Omega procedure (dark shadow) are not implemented, so the 
+decision procedure is only partial.<BR>
+<BR>
+<A NAME="toc116"></A>
+<H2><A NAME="htoc378">17.4</A>&nbsp;&nbsp;Bugs</H2>
+<UL><LI>
+The simplification procedure is very dumb and this results in
+ many redundant cases to explore.<BR>
+<BR>
+<LI>Much too slow.<BR>
+<BR>
+<LI>Certainly other bugs! You can report them to
+<BLOCKQUOTE>
+ <TT>Pierre.Cregut@cnet.francetelecom.fr</TT>
+</BLOCKQUOTE></UL>
+<HR>
+<A HREF="Reference-Manual019.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual021.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

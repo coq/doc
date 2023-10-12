@@ -1,0 +1,514 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+<TITLE>
+The ring tactic
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual021.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual023.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H1><A NAME="htoc392">Chapter&nbsp;19</A>&nbsp;&nbsp;The <TT>ring</TT> tactic</H1>
+<FONT SIZE=5><B>Patrick Loiseleur and Samuel Boutin</B></FONT> <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+
+<A NAME="ring"></A>
+<A NAME="@default728"></A><A NAME="@tactic142"></A><BR>
+<BR>
+This chapter presents the <TT>ring</TT> tactic.<BR>
+<BR>
+<A NAME="toc121"></A>
+<H2><A NAME="htoc393">19.1</A>&nbsp;&nbsp;What does this tactic?</H2>
+<TT>ring</TT> does associative-commutative rewriting in ring and semi-ring
+structures. Assume you have two binary functions + and ×
+that are associative and commutative, with + distributive on
+×, and two constants 0 and 1 that are unities for + and
+×. A <I>polynomial</I> is an expression built on variables <I>V</I><SUB><FONT SIZE=2>0</FONT></SUB>, <I>V</I><SUB><FONT SIZE=2>1</FONT></SUB>,
+... and constants by application of + and ×.<BR>
+<BR>
+Let an <I>ordered product</I> be a product of variables <I>V</I><SUB><FONT SIZE=2><I>i</I></FONT><SUB><FONT SIZE=2>1</FONT></SUB></SUB> ×
+... × <I>V</I><SUB><FONT SIZE=2><I>i</I></FONT><SUB><FONT SIZE=2><I>n</I></FONT></SUB></SUB> verifying <I>i</I><SUB><FONT SIZE=2>1</FONT></SUB> &lt;= <I>i</I><SUB><FONT SIZE=2>2</FONT></SUB> &lt;= ... &lt;= <I>i</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>. Let a
+<I>monomial</I> be the product of a constant (possibly equal to 1, in
+which case we omit it) and an ordered product. We can order the
+monomials by the lexicographic order on products of variables. Let a
+<I>canonical sum</I> be an ordered sum of monomials that are all
+different, i.e. each monomial in the sum is strictly less than the
+following monomial according to the lexicographic order. It is an easy
+theorem to show that every polynomial is equivalent (modulo the ring
+properties) to exactly one canonical sum. This canonical sum is called
+the <I>normal form</I> of the polynomial. So what does <TT>ring</TT>? It
+normalizes polynomials over any ring or semi-ring structure. The basic
+use of <TT>ring</TT> is to simplify ring expressions, so that the user
+does not have to deal manually with the theorems of associativity and
+commutativity.<BR>
+<BR>
+<BR>
+<B>Examples:</B>
+<OL type=1><LI>
+In the ring of integers, the normal form of 
+<I>x</I> (3 + <I>yx</I> + 25(1 - <I>z</I>)) + <I>zx</I> is 28<I>x</I> + (-24)<I>xz</I> + <I>xxy</I>.
+<LI>For the classical propositional calculus (or the boolean rings)
+ the normal form is what logicians call <I>disjunctive normal
+ form</I>: every formula is equivalent to a disjunction of
+ conjunctions of atoms. (Here + is \/, × is
+ /\, variables are atoms and the only constants are T and F)
+</OL>
+<A NAME="toc122"></A>
+<H2><A NAME="htoc394">19.2</A>&nbsp;&nbsp;The variables map</H2>
+It is frequent to have an expression built with + and
+ ×, but rarely on variables only.
+Let us associate a number to each subterm of a ring
+expression in the <FONT COLOR=navy>Gallina</FONT> language. For example in the ring
+<TT>nat</TT>, consider the expression:
+<BLOCKQUOTE>
+<PRE>
+(plus (mult (plus (f (5)) x) x)
+      (mult (if b then (4) else (f (3))) (2)))
+</PRE></BLOCKQUOTE>
+As a ring expression, is has 3 subterms. Give each subterm a
+number in an arbitrary order:<BR>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=center NOWRAP>0</TD>
+<TD ALIGN=center NOWRAP>|-&gt;</TD>
+<TD ALIGN=left NOWRAP><CODE>if b then (4) else (f (3))</CODE></TD>
+</TR>
+<TR><TD ALIGN=center NOWRAP>1</TD>
+<TD ALIGN=center NOWRAP>|-&gt;</TD>
+<TD ALIGN=left NOWRAP><CODE>(f (5))</CODE></TD>
+</TR>
+<TR><TD ALIGN=center NOWRAP>2</TD>
+<TD ALIGN=center NOWRAP>|-&gt;</TD>
+<TD ALIGN=left NOWRAP><CODE>x</CODE></TD>
+</TR></TABLE><BR>
+Then normalize the ``abstract'' polynomial <BR>
+<DIV ALIGN=center>((<I>V</I><SUB><FONT SIZE=2>1</FONT></SUB> × <I>V</I><SUB><FONT SIZE=2>2</FONT></SUB>) + <I>V</I><SUB><FONT SIZE=2>2</FONT></SUB>) + (<I>V</I><SUB><FONT SIZE=2>0</FONT></SUB> × 2) </DIV><BR>
+In our example the normal form is:<BR>
+<DIV ALIGN=center>(2 × <I>V</I><SUB><FONT SIZE=2>0</FONT></SUB>) + (<I>V</I><SUB><FONT SIZE=2>1</FONT></SUB> × <I>V</I><SUB><FONT SIZE=2>2</FONT></SUB>) + (<I>V</I><SUB><FONT SIZE=2>2</FONT></SUB> × <I>V</I><SUB><FONT SIZE=2>2</FONT></SUB>)</DIV><BR>
+Then substitute the variables by their values in the variables map to
+get the concrete normal polynomial:
+<BLOCKQUOTE>
+<PRE>
+(plus (mult (2) (if b then (4) else (f (3)))) 
+      (plus (mult (f (5)) x) (mult x x))) 
+</PRE></BLOCKQUOTE>
+<A NAME="toc123"></A>
+<H2><A NAME="htoc395">19.3</A>&nbsp;&nbsp;Is it automatic?</H2>
+Yes, building the variables map and doing the substitution after
+normalizing is automatically done by the tactic. So you can just forget
+this paragraph and use the tactic according to your intuition.<BR>
+<BR>
+<A NAME="toc124"></A>
+<H2><A NAME="htoc396">19.4</A>&nbsp;&nbsp;Concrete usage in <FONT COLOR=navy>Coq</FONT></H2>
+Under a session launched by <TT>coqtop</TT> or <TT>coqtop -full</TT>,
+load the <TT>ring</TT> files with the command:
+<BLOCKQUOTE>
+<PRE>
+Require Ring.
+</PRE></BLOCKQUOTE>
+It does not work under <TT>coqtop -opt</TT> because the compiled ML
+objects used by the tactic are not linked in this binary image, and
+dynamic loading of native code is not possible in <FONT COLOR=navy>Objective Caml</FONT>.<BR>
+<BR>
+In order to use <TT>ring</TT> on naturals, load <TT>ArithRing</TT>
+instead; for binary integers, load the module <TT>ZArithRing</TT>.<BR>
+<BR>
+Then, to normalize the terms <I>term</I><SUB><FONT SIZE=2>1</FONT></SUB>, ..., <I>term</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB> in
+the current subgoal, use the tactic:
+<BLOCKQUOTE>
+<TT>ring</TT> <I>term</I><SUB><FONT SIZE=2>1</FONT></SUB> ... <I>term</I><SUB><FONT SIZE=2><I>n</I></FONT></SUB>
+</BLOCKQUOTE>
+<A NAME="@default729"></A><A NAME="@tactic143"></A>
+Then the tactic guesses the type of given terms, the ring theory to
+use, the variables map, and replace each term with its normal form.
+The variables map is common to all terms<BR>
+<BR>
+<BR>
+<B>Warning: </B><TT>ring <I>term</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT>; ring <I>term</I></TT><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB> is not equivalent to 
+<TT>ring <I>term</I></TT><SUB><TT><FONT SIZE=2>1</FONT></TT></SUB><TT> <I>term</I></TT><SUB><TT><FONT SIZE=2>2</FONT></TT></SUB>. In the latter case the variables map
+is shared between the two terms, and common subterm <I>t</I> of <I>term</I><SUB><FONT SIZE=2>1</FONT></SUB>
+and <I>term</I><SUB><FONT SIZE=2>2</FONT></SUB> will have the same associated variable number.<BR>
+<BR>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>All terms must have the same type</TT><A NAME="@error130"></A>
+<LI><TT>Don't know what to do with this goal</TT><A NAME="@error131"></A>
+<LI><TT>No Declared Ring Theory for </TT><I><FONT COLOR=maroon>term</FONT></I><TT>.</TT><A NAME="@error132"></A><BR>
+<BR>
+<TT>Use Add [Semi] Ring to declare it</TT><BR>
+<BR>
+That happens when all terms have the same type <I><FONT COLOR=maroon>term</FONT></I>, but there is
+ no declared ring theory for this set. See below.
+</OL>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>ring</TT><BR>
+<BR>
+That works if the current goal is an equality between two
+ polynomials. It will normalize both sides of the
+ equality, solve it if the normal forms are equal and in other cases
+ try to simplify the equality using <TT>congr_eqT</TT> and <TT>refl_equal</TT>
+ to reduce <I>x</I> + <I>y</I> = <I>x</I> + <I>z</I> to <I>y</I> = <I>z</I> and <I>x</I> * <I>z</I> = <I>x</I> * <I>y</I> to <I>y</I> = <I>z</I>.<BR>
+<BR>
+<BR>
+<B>Error message: </B><TT>This goal is not an equality</TT><A NAME="@error133"></A></OL>
+<A NAME="toc125"></A>
+<H2><A NAME="htoc397">19.5</A>&nbsp;&nbsp;Add a ring structure</H2>
+It can be done in the <FONT COLOR=navy>Coq</FONT>toplevel (No ML file to edit and to link
+with <FONT COLOR=navy>Coq</FONT>). First, <TT>ring</TT> can handle two kinds of structure:
+rings and semi-rings. Semi-rings are like rings without an opposite to
+addition. Their precise specification (in <FONT COLOR=navy>Gallina</FONT>) can be found in
+the file
+<BLOCKQUOTE>
+<PRE>
+contrib/ring/Ring_theory.v
+</PRE></BLOCKQUOTE>
+The typical example of ring is <TT>Z</TT>, the typical
+example of semi-ring is <TT>nat</TT>.<BR>
+<BR>
+The specification of a
+ring is divided in two parts: first the record of constants
+(+, ×, 1, 0, -) and then the theorems
+(associativity, commutativity, etc.).<BR>
+<BR>
+
+<DIV ALIGN=left>
+<PRE>
+Section Theory_of_semi_rings.
+
+Variable A : Type.
+Variable Aplus : A -&gt; A -&gt; A.
+Variable Amult : A -&gt; A -&gt; A.
+Variable Aone : A.
+Variable Azero : A.
+(* There is also a "weakly decidable" equality on A. That means 
+  that if (A_eq x y)=true then x=y but x=y can arise when 
+  (A_eq x y)=false. On an abstract ring the function [x,y:A]false
+  is a good choice. The proof of A_eq_prop is in this case easy. *)
+Variable Aeq : A -&gt; A -&gt; bool.
+
+Record Semi_Ring_Theory : Prop :=
+{ SR_plus_sym  : (n,m:A)[| n + m == m + n |];
+  SR_plus_assoc : (n,m,p:A)[| n + (m + p) == (n + m) + p |];
+
+  SR_mult_sym : (n,m:A)[| n*m == m*n |];
+  SR_mult_assoc : (n,m,p:A)[| n*(m*p) == (n*m)*p |];
+  SR_plus_zero_left :(n:A)[| 0 + n == n|];
+  SR_mult_one_left : (n:A)[| 1*n == n |];
+  SR_mult_zero_left : (n:A)[| 0*n == 0 |];
+  SR_distr_left   : (n,m,p:A) [| (n + m)*p == n*p + m*p |];
+  SR_plus_reg_left : (n,m,p:A)[| n + m == n + p |] -&gt; m==p;
+  SR_eq_prop : (x,y:A) (Is_true (Aeq x y)) -&gt; x==y
+}.
+</PRE></DIV>
+<BR>
+
+<DIV ALIGN=left>
+<PRE>
+Section Theory_of_rings.
+
+Variable A : Type.
+
+Variable Aplus : A -&gt; A -&gt; A.
+Variable Amult : A -&gt; A -&gt; A.
+Variable Aone : A.
+Variable Azero : A.
+Variable Aopp : A -&gt; A.
+Variable Aeq : A -&gt; A -&gt; bool.
+
+
+Record Ring_Theory : Prop :=
+{ Th_plus_sym  : (n,m:A)[| n + m == m + n |];
+  Th_plus_assoc : (n,m,p:A)[| n + (m + p) == (n + m) + p |];
+  Th_mult_sym : (n,m:A)[| n*m == m*n |];
+  Th_mult_assoc : (n,m,p:A)[| n*(m*p) == (n*m)*p |];
+  Th_plus_zero_left :(n:A)[| 0 + n == n|];
+  Th_mult_one_left : (n:A)[| 1*n == n |];
+  Th_opp_def : (n:A) [| n + (-n) == 0 |];
+  Th_distr_left   : (n,m,p:A) [| (n + m)*p == n*p + m*p |];
+  Th_eq_prop : (x,y:A) (Is_true (Aeq x y)) -&gt; x==y
+}.
+</PRE></DIV>
+<BR>
+To define a ring structure on A, you must provide an addition, a
+multiplication, an opposite function and two unities 0 and 1.<BR>
+<BR>
+You must then prove all theorems that make
+(A,Aplus,Amult,Aone,Azero,Aeq) 
+a ring structure, and pack them with the <CODE>Build_Ring_Theory</CODE> 
+constructor.<BR>
+<BR>
+Finally to register a ring the syntax is:<BR>
+<BR>
+<A NAME="@default730"></A><A NAME="@command227"></A>
+<BLOCKQUOTE>
+ <TT>Add Ring</TT> <I>A Aplus Amult Aone Azero Ainv Aeq T</I>
+ <TT>[</TT> <I>c1 ...cn</I> <TT>].</TT>
+</BLOCKQUOTE>
+where <I>A</I> is a term of type <TT>Set</TT>, 
+<I>Aplus</I> is a term of type <TT>A-&gt;A-&gt;A</TT>,
+<I>Amult</I> is a term of type <TT>A-&gt;A-&gt;A</TT>,
+<I>Aone</I> is a term of type <TT>A</TT>,
+<I>Azero</I> is a term of type <TT>A</TT>,
+<I>Ainv</I> is a term of type <TT>A-&gt;A</TT>,
+<I>Aeq</I> is a term of type <TT>A-&gt;bool</TT>,
+<I>T</I> is a term of type 
+<TT>(Ring_Theory </TT><I>A Aplus Amult Aone Azero Ainv
+ Aeq</I><TT>)</TT>.
+The arguments <I>c1 ...cn</I>, 
+are the names of constructors which define closed terms: a
+subterm will be considered as a constant if it is either one of the
+terms <I>c1 ...cn</I> or the application of one of these terms to
+closed terms. For <TT>nat</TT>, the given constructors are <TT>S</TT>
+and <TT>O</TT>, and the closed terms are <TT>O</TT>, <TT>(S O)</TT>,
+<TT>(S (S O))</TT>, ...<BR>
+<BR>
+<BR>
+<B>Variants: </B><OL type=1><LI>
+<TT>Add Semi Ring</TT> <I>A Aplus Amult Aone Azero Aeq T</I> 
+ <TT>[</TT> <I>c1 ... cn</I> <TT>].</TT><A NAME="@default731"></A><A NAME="@command228"></A><BR>
+<BR>
+There are two differences with the <TT>Add Ring</TT> command: there
+ is no inverse function and the term <I>T</I> must be of type
+ <TT>(Semi_Ring_Theory </TT><I>A Aplus Amult Aone Azero
+ Aeq</I><TT>)</TT>.<BR>
+<BR>
+<LI><TT>Add Abstract Ring</TT> <I>A Aplus Amult Aone Azero Ainv 
+ Aeq T</I><TT>.</TT><A NAME="@default732"></A><A NAME="@command229"></A><BR>
+<BR>
+This command should be used for when the operations of rings are not
+ computable; for example the real numbers of
+ <TT>theories/REALS/</TT>. Here 0+1 is not beta-reduced to 1 but
+ you still may want to <I>rewrite</I> it to 1 using the ring
+ axioms. The argument <TT>Aeq</TT> is not used; a good choice for
+ that function is <CODE>[x:A]false</CODE>.<BR>
+<BR>
+<LI><TT>Add Abstract Semi Ring</TT> <I>A Aplus Amult Aone Azero
+ Aeq T</I><TT>.</TT><A NAME="@default733"></A><A NAME="@command230"></A></OL>
+<BR>
+<B>Error messages: </B><OL type=1><LI>
+<TT>Not a valid (semi)ring theory</TT><A NAME="@error134"></A>.<BR>
+<BR>
+That happens when the typing condition does not hold.
+</OL>
+Currently, the hypothesis is made than no more than one ring structure
+may be declared for a given type in <TT>Set</TT> or <TT>Type</TT>.
+This allows automatic detection of the theory used to achieve the
+normalization. On popular demand, we can change that and allow several
+ring structures on the same set.<BR>
+<BR>
+The table of ring theories is compatible with the <FONT COLOR=navy>Coq</FONT> 
+sectioning mechanism. If you declare a ring inside a section, the
+declaration will be thrown away when closing the section.
+And when you load a compiled file, all the <TT>Add Ring</TT>
+commands of this file that are not inside a section will be loaded.<BR>
+<BR>
+The typical example of ring is <TT>Z</TT>, and the typical example of
+semi-ring is <TT>nat</TT>. Another ring structure is defined on the
+booleans. <BR>
+<BR>
+<BR>
+<B>Warning: </B>Only the ring of booleans is loaded by default with the
+<TT>Ring</TT> module. To load the ring structure for <TT>nat</TT>,
+load the module <TT>ArithRing</TT>, and for <TT>Z</TT>,
+load the module <TT>ZArithRing</TT>.<BR>
+<BR>
+<A NAME="toc126"></A>
+<H2><A NAME="htoc398">19.6</A>&nbsp;&nbsp;How does it work?</H2>
+The code of <TT>ring</TT> is a good example of tactic written using
+<I>reflection</I> (or <I>internalization</I>, it is synonymous).
+What is reflection? Basically, it is writing <FONT COLOR=navy>Coq</FONT> tactics in <FONT COLOR=navy>Coq</FONT>,
+rather than in <FONT COLOR=navy>Objective Caml</FONT>. From the philosophical point of view, it is
+using the ability of the Calculus of Constructions to speak and reason
+about itself. For the <TT>ring</TT> tactic we used <FONT COLOR=navy>Coq</FONT> as a
+programming language and also as a proof environment to build a tactic
+and to prove it correctness.<BR>
+<BR>
+The interested reader is strongly advised to have a look at the file
+<TT>Ring_normalize.v</TT>. Here a type for polynomials is defined: <BR>
+<BR>
+
+<DIV ALIGN=left>
+<PRE>
+Inductive Type polynomial := 
+  Pvar : idx -&gt; polynomial
+| Pconst : A -&gt; polynomial
+| Pplus : polynomial -&gt; polynomial -&gt; polynomial
+| Pmult : polynomial -&gt; polynomial -&gt; polynomial
+| Popp : polynomial -&gt; polynomial.
+</PRE></DIV>
+<BR>
+There is also a type to represent variables maps, and an
+interpretation function, that maps a variables map and a polynomial to an
+element of the concrete ring:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<PRE>
+Definition polynomial_simplify := [...]
+Definition interp : (varmap A) -&gt; (polynomial A) -&gt; A := [...]
+</PRE></DIV>
+<BR>
+A function to normalize polynomials is defined, and the big theorem is
+its correctness w.r.t interpretation, that is:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<PRE>
+Theorem polynomial_simplify_correct : forall (v:(varmap A))(p:polynomial)
+  (interp v (polynomial_simplify p))
+  =(interp v p).
+</PRE></DIV>
+<BR>
+(The actual code is slightly more complex: for efficiency,
+there is a special datatype to represent normalized polynomials,
+i.e. ``canonical sums''. But the idea is still the same).<BR>
+<BR>
+So now, what is the scheme for a normalization proof? Let <TT>p</TT>
+be the polynomial expression that the user wants to normalize. First a
+little piece of ML code guesses the type of <TT>p</TT>, the ring
+theory <TT>T</TT> to use, an abstract polynomial <TT>ap</TT> and a
+variables map <TT>v</TT> such that <TT>p</TT> is
+betadeltaiota-equivalent to <CODE>(interp v ap)</CODE>. Then we
+replace it by <CODE>(interp v (polynomial_simplify ap))</CODE>, using the
+main correctness theorem and we reduce it to a concrete expression
+<TT>p'</TT>, which is the concrete normal form of
+<TT>p</TT>. This is summarized in this diagram:
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=right NOWRAP><TT>p</TT></TD>
+<TD ALIGN=center NOWRAP>-&gt;<SUB><FONT SIZE=2>betadeltaiota</FONT></SUB></TD>
+<TD ALIGN=left NOWRAP><TT>(interp v ap)</TT></TD>
+</TR>
+<TR><TD ALIGN=right NOWRAP>&nbsp;</TD>
+<TD ALIGN=center NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>=<SUB><FONT SIZE=2>(<I>by</I> <I>the</I> <I>main</I> <I>correctness</I> <I>theorem</I>)</FONT></SUB></TD>
+</TR>
+<TR><TD ALIGN=right NOWRAP><TT>p'</TT></TD>
+<TD ALIGN=center NOWRAP>&lt;-<SUB><FONT SIZE=2>betadeltaiota</FONT></SUB></TD>
+<TD ALIGN=left NOWRAP><TT>(interp v (polynomial_simplify ap))</TT></TD>
+</TR></TABLE>
+</DIV>
+The user do not see the right part of the diagram. 
+From outside, the tactic behaves like a
+betadeltaiota simplification extended with AC rewriting rules.
+Basically, the proof is only the application of the main
+correctness theorem to well-chosen arguments.<BR>
+<BR>
+<A NAME="toc127"></A>
+<H2><A NAME="htoc399">19.7</A>&nbsp;&nbsp;History of <TT>ring</TT></H2>
+First Samuel Boutin designed the tactic <TT>ACDSimpl</TT>. 
+This tactic did lot of rewriting. But the proofs
+terms generated by rewriting were too big for <FONT COLOR=navy>Coq</FONT>'s type-checker.
+Let us see why:<BR>
+<BR>
+
+<DIV ALIGN=left>
+<TT>Coq&nbsp;&lt;&nbsp;Goal&nbsp;forall&nbsp;x&nbsp;y&nbsp;z:Z,&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;y&nbsp;*&nbsp;z&nbsp;=&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z&nbsp;*&nbsp;y.</TT><BR>
+<TT><I>1&nbsp;subgoal</I></TT><BR>
+<TT><I>&nbsp;&nbsp;</I></TT><BR>
+<TT><I>&nbsp;&nbsp;============================</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;forall&nbsp;x&nbsp;y&nbsp;z&nbsp;:&nbsp;Z,&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;y&nbsp;*&nbsp;z&nbsp;=&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z&nbsp;*&nbsp;y</I></TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;intros;&nbsp;rewrite&nbsp;(Zmult_comm&nbsp;y&nbsp;z);&nbsp;reflexivity.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Save&nbsp;toto.</TT><BR>
+<BR>
+<TT>Coq&nbsp;&lt;&nbsp;Print&nbsp;&nbsp;toto.</TT><BR>
+<TT><I>toto&nbsp;=&nbsp;</I></TT><BR>
+<TT><I>fun&nbsp;x&nbsp;y&nbsp;z&nbsp;:&nbsp;Z&nbsp;=&gt;</I></TT><BR>
+<TT><I>eq_ind_r&nbsp;(fun&nbsp;z0&nbsp;:&nbsp;Z&nbsp;=&gt;&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z0&nbsp;=&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z&nbsp;*&nbsp;y)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;(refl_equal&nbsp;(x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z&nbsp;*&nbsp;y))&nbsp;(Zmult_comm&nbsp;y&nbsp;z)</I></TT><BR>
+<TT><I>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;forall&nbsp;x&nbsp;y&nbsp;z&nbsp;:&nbsp;Z,&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;y&nbsp;*&nbsp;z&nbsp;=&nbsp;x&nbsp;+&nbsp;3&nbsp;+&nbsp;y&nbsp;+&nbsp;z&nbsp;*&nbsp;y</I></TT><BR>
+<TT><I>Argument&nbsp;scopes&nbsp;are&nbsp;[Z_scope&nbsp;Z_scope&nbsp;Z_scope]</I></TT><BR>
+</DIV>
+<BR>
+At each step of rewriting, the whole context is duplicated in the proof
+term. Then, a tactic that does hundreds of rewriting generates huge proof
+terms. Since <TT>ACDSimpl</TT> was too slow, Samuel Boutin rewrote it
+using reflection (see his article in TACS'97 [<A HREF="biblio.html#Bou97"><CITE>17</CITE></A>]). Later, the
+stuff was rewritten by Patrick
+Loiseleur: the new tactic does not any more require <TT>ACDSimpl</TT>
+to compile and it makes use of betadeltaiota-reduction 
+not only to replace the rewriting steps, but also to achieve the
+interleaving of computation and 
+reasoning (see <A HREF="#DiscussReflection">19.8</A>). He also wrote a
+few ML code for the <TT>Add Ring</TT> command, that allow to register
+new rings dynamically.<BR>
+<BR>
+Proofs terms generated by <TT>ring</TT> are quite small, they are
+linear in the number of + and × operations in the
+normalized terms. Type-checking those terms requires some time because it
+makes a large use of the conversion rule, but
+memory requirements are much smaller. <BR>
+<BR>
+<A NAME="toc128"></A>
+<H2><A NAME="htoc400">19.8</A>&nbsp;&nbsp;Discussion</H2>
+<A NAME="DiscussReflection"></A>
+Efficiency is not the only motivation to use reflection
+here. <TT>ring</TT> also deals with constants, it rewrites for example the
+expression 34 + 2*<I>x</I> -<I>x</I> + 12 to the expected result <I>x</I> + 46. For the
+tactic <TT>ACDSimpl</TT>, the only constants were 0 and 1. So the
+expression 34 + 2*(<I>x</I> - 1) + 12 is interpreted as 
+<I>V</I><SUB><FONT SIZE=2>0</FONT></SUB> + <I>V</I><SUB><FONT SIZE=2>1</FONT></SUB> × (<I>V</I><SUB><FONT SIZE=2>2</FONT></SUB> - 1) + <I>V</I><SUB><FONT SIZE=2>3</FONT></SUB>, 
+with the variables mapping 
+{<I>V</I><SUB><FONT SIZE=2>0</FONT></SUB> |-&gt; 34; <I>V</I><SUB><FONT SIZE=2>1</FONT></SUB> |-&gt; 2; <I>V</I><SUB><FONT SIZE=2>2</FONT></SUB> |-&gt; <I>x</I>; <I>V</I><SUB><FONT SIZE=2>3</FONT></SUB> |-&gt; 12 }. Then it is
+rewritten to 34 - <I>x</I> + 2*<I>x</I> + 12, very far from the expected
+result. Here rewriting is not sufficient: you have to do some kind of
+reduction (some kind of <I>computation</I>) to achieve the
+normalization.<BR>
+<BR>
+The tactic <TT>ring</TT> is not only faster than a classical one:
+using reflection, we get for free integration of computation and
+reasoning that would be very complex to implement in the classic fashion.<BR>
+<BR>
+Is it the ultimate way to write tactics? 
+The answer is: yes and no. The <TT>ring</TT> tactic
+uses intensively the conversion
+rule of p<FONT COLOR=navy>Cic</FONT>, that is replaces proof by computation the most as it is
+possible. It can be useful in all situations where a classical tactic
+generates huge proof terms. Symbolic Processing and Tautologies are
+in that case. But there are also tactics like <TT>Auto</TT> or
+<TT>Linear</TT>: that do many complex computations, using side-effects
+and backtracking, and generate
+ a small proof term. Clearly, it would be a non-sense to
+replace them by tactics using reflection.<BR>
+<BR>
+Another argument against the reflection is that <FONT COLOR=navy>Coq</FONT>, as a
+programming language, has many nice features, like dependent types, 
+but is very far from the
+speed and the expressive power of <FONT COLOR=navy>Objective Caml</FONT>. Wait a minute! With <FONT COLOR=navy>Coq</FONT>
+it is possible to extract ML code from p<FONT COLOR=navy>Cic</FONT> terms, right? So, why not
+to link the extracted code with <FONT COLOR=navy>Coq</FONT> to inherit the benefits of the
+reflection and the speed of ML tactics? That is called <I>total
+ reflection</I>, and is still an active research subject. With these
+technologies it will become possible to bootstrap the type-checker of
+p<FONT COLOR=navy>Cic</FONT>, but there is still some work to achieve that goal.<BR>
+<BR>
+Another brilliant idea from Benjamin Werner: reflection could be used
+to couple a external tool (a rewriting program or a model checker)
+with <FONT COLOR=navy>Coq</FONT>. We define (in <FONT COLOR=navy>Coq</FONT>) a type of terms, a type of
+<EM>traces</EM>, and prove a correction theorem that states that
+<EM>replaying traces</EM> is safe w.r.t some interpretation. Then we let 
+the external tool do every computation (using side-effects,
+backtracking, exception, or others features that are not available in
+pure lambda calculus) to produce the trace: now we replay the trace in
+Coq, and apply the correction lemma. So internalization seems to be
+the best way to import ... external proofs!<BR>
+<BR>
+<HR>
+<A HREF="Reference-Manual021.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual023.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

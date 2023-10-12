@@ -1,0 +1,479 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="Reference-Manual.css">
+<TITLE>Extraction of programs in Objective Caml and Haskell</TITLE>
+</HEAD>
+<BODY >
+<A HREF="Reference-Manual022.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual024.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+<HR>
+<H1 CLASS="chapter"><A NAME="htoc402">Chapter 18</A>  Extraction of programs in Objective Caml and Haskell</H1><P>
+<A NAME="Extraction"></A>
+<FONT SIZE=5><B>Jean-Christophe Filliâtre and Pierre Letouzey</B></FONT> <BR>
+<BR>
+
+<A NAME="@default776"></A></P><DIV CLASS="flushleft">
+<EM>The status of extraction is experimental.
+</EM></DIV><P>
+We present here the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> extraction commands, used to build certified
+and relatively efficient functional programs, extracting them from the
+proofs of their specifications. The functional languages available as
+output are currently <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN>, <SPAN STYLE="font-variant:small-caps">Haskell</SPAN> and <SPAN STYLE="font-variant:small-caps">Scheme</SPAN>.
+In the following, &#X201C;ML&#X201D; will be used (abusively) to refer to any of
+the three.</P><H5 CLASS="paragraph">Differences with old versions.</H5><P>
+The current extraction mechanism is new for version 7.0 of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>.
+In particular, the <I>F</I><SUB>&#X3C9;</SUB> toplevel used as an intermediate step between 
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> and ML has been withdrawn. It is also not possible 
+any more to import ML objects in this <I>F</I><SUB>&#X3C9;</SUB> toplevel.
+The current mechanism also differs from
+the one in previous versions of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>: there is no more
+an explicit toplevel for the language (formerly called <SPAN STYLE="font-variant:small-caps">Fml</SPAN>). </P><H2 CLASS="section"><A NAME="toc124"></A><A NAME="htoc403">18.1</A>  Generating ML code</H2><P>
+<A NAME="@default777"></A><A NAME="@command249"></A>
+<A NAME="@default778"></A><A NAME="@command250"></A>
+<A NAME="@default779"></A><A NAME="@command251"></A>
+<A NAME="@default780"></A><A NAME="@command252"></A></P><P>The next two commands are meant to be used for rapid preview of
+extraction. They both display extracted term(s) inside <SPAN STYLE="font-variant:small-caps">Coq</SPAN>.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extraction </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT>.</TT>  <P>Extracts one constant or module in the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> toplevel.</P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Recursive Extraction </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT>1</TT></SUB><TT> &#X2026; </TT><I><FONT COLOR=maroon>qualid</FONT></I><SUB><TT><I>n</I></TT></SUB><TT>.</TT>  <P>Recursive extraction of all the globals (or modules) <I><FONT COLOR=maroon>qualid</FONT></I><SUB>1</SUB> &#X2026;
+ <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>n</I></SUB> and all their dependencies in the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> toplevel.
+</P></DD></DL><P>All the following commands produce real ML files. User can choose to produce
+one monolithic file or one file per <SPAN STYLE="font-variant:small-caps">Coq</SPAN> library. </P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extraction "</TT><TT><EM>file</EM></TT><TT>"</TT> 
+<I><FONT COLOR=maroon>qualid</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>n</I></SUB>.  <P>Recursive extraction of all the globals (or modules) <I><FONT COLOR=maroon>qualid</FONT></I><SUB>1</SUB> &#X2026;
+ <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>n</I></SUB> and all their dependencies in one monolithic file <EM>file</EM>.
+Global and local identifiers are renamed according to the choosen ML
+language to fullfill its syntactic conventions, keeping original
+names as much as possible.</P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Extraction Library</TT> <I><FONT COLOR=maroon>ident</FONT></I>.  <P>Extraction of the whole <SPAN STYLE="font-variant:small-caps">Coq</SPAN> library <I><FONT COLOR=maroon>ident</FONT></I><TT>.v</TT> to an ML module
+<I><FONT COLOR=maroon>ident</FONT></I><TT>.ml</TT>. In case of name clash, identifiers are here renamed
+using prefixes <CODE>coq_</CODE> or <CODE>Coq_</CODE> to ensure a
+session-independent renaming.</P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Recursive Extraction Library</TT> <I><FONT COLOR=maroon>ident</FONT></I>.  <P>Extraction of the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> library <I><FONT COLOR=maroon>ident</FONT></I><TT>.v</TT> and all other modules 
+<I><FONT COLOR=maroon>ident</FONT></I><TT>.v</TT> depends on. 
+</P></DD></DL><P>The list of globals <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>i</I></SUB> does not need to be
+exhaustive: it is automatically completed into a complete and minimal
+environment. </P><H2 CLASS="section"><A NAME="toc125"></A><A NAME="htoc404">18.2</A>  Extraction options</H2><H3 CLASS="subsection"><A NAME="htoc405">18.2.1</A>  Setting the target language</H3><P>
+<A NAME="@default781"></A><A NAME="@command253"></A></P><P>The ability to fix target language is the first and more important
+of the extraction options. Default is Ocaml. Besides Haskell and
+Scheme, another language called Toplevel is provided. It is a pseudo-Ocaml,
+with no renaming on global names: so names are printed as in <SPAN STYLE="font-variant:small-caps">Coq</SPAN>.
+This third language is available only at the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> Toplevel.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extraction Language Ocaml</TT>.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Extraction Language Haskell</TT>.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Extraction Language Scheme</TT>.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Extraction Language Toplevel</TT>.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc406">18.2.2</A>  Inlining and optimizations</H3><P>Since Objective Caml is a strict language, the extracted
+code has to be optimized in order to be efficient (for instance, when
+using induction principles we do not want to compute all the recursive
+calls but only the needed ones). So the extraction mechanism provides
+an automatic optimization routine that will be
+called each time the user want to generate Ocaml programs. Essentially,
+it performs constants inlining and reductions. Therefore some
+constants may not appear in resulting monolithic Ocaml program (a warning is
+printed for each such constant). In the case of modular extraction, 
+even if some inlining is done, the inlined constant are nevertheless
+printed, to ensure session-independent programs. </P><P>Concerning Haskell, such optimizations are less useful because of
+lazyness. We still make some optimizations, for example in order to
+produce more readable code. </P><P>All these optimizations are controled by the following <SPAN STYLE="font-variant:small-caps">Coq</SPAN> options: </P><DL CLASS="description"><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default782"></A><A NAME="@command254"></A>
+<TT>Set Extraction Optimize.</TT></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default783"></A><A NAME="@command255"></A>
+<TT>Unset Extraction Optimize.</TT><P>Default is Set. This control all optimizations made on the ML terms 
+(mostly reduction of dummy beta/iota redexes, but also simplications on 
+Cases, etc). Put this option to Unset if you want a ML term as close as 
+possible to the Coq term.</P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default784"></A><A NAME="@command256"></A>
+<TT>Set Extraction AutoInline.</TT> </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default785"></A><A NAME="@command257"></A>
+<TT>Unset Extraction AutoInline.</TT> <P>Default is Set, so by default, the extraction mechanism feels free to 
+inline the bodies of some defined constants, according to some heuristics 
+like size of bodies, useness of some arguments, etc. Those heuristics are 
+not always perfect, you may want to disable this feature, do it by Unset. </P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default786"></A><A NAME="@command258"></A>
+<TT>Extraction Inline</TT> <I><FONT COLOR=maroon>qualid</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>n</I></SUB>. </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default787"></A><A NAME="@command259"></A>
+<TT>Extraction NoInline</TT> <I><FONT COLOR=maroon>qualid</FONT></I><SUB>1</SUB> &#X2026; <I><FONT COLOR=maroon>qualid</FONT></I><SUB><I>n</I></SUB>. <P>In addition to the automatic inline feature, you can now tell precisely to 
+inline some more constants by the <TT>Extraction Inline</TT> command. Conversely, 
+you can forbid the automatic inlining of some specific constants by
+the <TT>Extraction NoInline</TT> command.
+Those two commands enable a precise control of what is inlined and what is not. </P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default788"></A><A NAME="@command260"></A>
+<TT>Print Extraction Inline</TT>. <P>Prints the current state of the table recording the custom inlinings 
+declared by the two previous commands. </P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><A NAME="@default789"></A><A NAME="@command261"></A>
+<TT>Reset Extraction Inline</TT>. <P>Puts the table recording the custom inlinings back to empty. </P></DD></DL><H5 CLASS="paragraph">Inlining and printing of a constant declaration.</H5><P>A user can explicitely asks a constant to be extracted by two means: 
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+by mentioning it on the extraction command line
+</LI><LI CLASS="li-itemize">by extracting the whole <SPAN STYLE="font-variant:small-caps">Coq</SPAN> module of this constant.
+</LI></UL><P>
+In both cases, the declaration of this constant will be present in the
+produced file. 
+But this same constant may or may not be inlined in the following
+terms, depending on the automatic/custom inlining mechanism. </P><P>For the constants non-explicitely required but needed for dependancy
+reasons, there are two cases: 
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If an inlining decision is taken, wether automatically or not, 
+all occurences of this constant are replaced by its extracted body, and
+this constant is not declared in the generated file.
+</LI><LI CLASS="li-itemize">If no inlining decision is taken, the constant is normally
+declared in the produced file. 
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc407">18.2.3</A>  Realizing axioms</H3><P><A NAME="extraction:axioms"></A></P><P>Extraction will fail if it encounters an informative
+axiom not realized (see Section <A HREF="#extraction:axioms">18.2.3</A>). 
+A warning will be issued if it encounters an logical axiom, to remind 
+user that inconsistant logical axioms may lead to incorrect or 
+non-terminating extracted terms. </P><P>It is possible to assume some axioms while developing a proof. Since
+these axioms can be any kind of proposition or object or type, they may
+perfectly well have some computational content. But a program must be
+a closed term, and of course the system cannot guess the program which
+realizes an axiom. Therefore, it is possible to tell the system
+what ML term corresponds to a given axiom. </P><P><A NAME="@default790"></A><A NAME="@command262"></A>
+</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extract Constant </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> =&gt; </TT><I><FONT COLOR=maroon>string</FONT></I><TT>.</TT>  <P>Give an ML extraction for the given constant.
+The <I><FONT COLOR=maroon>string</FONT></I> may be an identifier or a quoted string.
+</P></DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><TT>Extract Inlined Constant </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> =&gt; </TT><I><FONT COLOR=maroon>string</FONT></I><TT>.</TT>  <P>Same as the previous one, except that the given ML terms will
+be inlined everywhere instead of being declared via a let.
+</P></DD></DL><P>Note that the <TT>Extract Inlined Constant</TT> command is sugar
+for an <TT>Extract Constant</TT> followed by a <TT>Extraction Inline</TT>. 
+Hence a <TT>Reset Extraction Inline</TT> will have an effect on the
+realized and inlined xaxiom. </P><P>Of course, it is the responsability of the user to ensure that the ML
+terms given to realize the axioms do have the expected types. In
+fact, the strings containing realizing code are just copied in the
+extracted files. The extraction recognize whether the realized axiom
+should become a ML type constant or a ML object declaration.</P><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom X:Set.</TT><BR>
+<TT><I>X is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom x:X.</TT><BR>
+<TT><I>x is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Constant X =</TT><TT>&gt;</TT><TT> "int".</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Constant x =</TT><TT>&gt;</TT><TT> "0".</TT><BR>
+</DIV><P>Notice that in the case of type scheme axiom (i.e. whose type is an
+arity, that is a sequence of product finished by a sort), then some type
+variables has to be given. The syntax is then: </P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extract Constant </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> </TT><I><FONT COLOR=maroon>string</FONT></I><SUB><TT>1</TT></SUB><TT> &#X2026;</TT><I><FONT COLOR=maroon>string</FONT></I><SUB><TT><I>n</I></TT></SUB><TT> =&gt; </TT><I><FONT COLOR=maroon>string</FONT></I><TT>.</TT>  </DD></DL><P>The number of type variable given is checked by the system. </P><P><BR>
+<B>Example: </B>
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Axiom Y : Set -</TT><TT>&gt;</TT><TT> Set -</TT><TT>&gt;</TT><TT> Set.</TT><BR>
+<TT><I>Y is assumed</I></TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Constant Y "&#X2019;a" "&#X2019;b" =</TT><TT>&gt;</TT><TT> " &#X2019;a*&#X2019;b ".</TT><BR>
+</DIV><P>Realizing an axiom via <TT>Extract Constant</TT> is only useful in the
+case of an informative axiom (of sort Type or Set). A logical axiom
+have no computational content and hence will not appears in extracted
+terms. But a warning is nonetheless issued if extraction encounters a
+logical axiom. This warning reminds user that inconsistant logical
+axioms may lead to incorrect or non-terminating extracted terms.</P><P>If an informative axiom has not been realized before an extraction, a
+warning is also issued and the definition of the axiom is filled with
+an exception labelled <TT>AXIOM TO BE REALIZED</TT>. The user must then
+search these exceptions inside the extracted file and replace them by
+real code.</P><P><A NAME="@default791"></A><A NAME="@command263"></A> </P><P>The system also provides a mechanism to specify ML terms for inductive
+types and constructors. For instance, the user may want to use the ML
+native boolean type instead of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> one. The syntax is the following:</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><TT>Extract Inductive </TT><I><FONT COLOR=maroon>qualid</FONT></I><TT> =&gt; </TT><I><FONT COLOR=maroon>string</FONT></I><TT> [ </TT><I><FONT COLOR=maroon>string</FONT></I><TT> &#X2026;</TT><I><FONT COLOR=maroon>string</FONT></I><TT> ].</TT>  <P>Give an ML extraction for the given inductive type. You must specify
+extractions for the type itself (first <I><FONT COLOR=maroon>string</FONT></I>) and all its
+constructors (between square brackets). The ML extraction must be an
+ML recursive datatype.
+</P></DD></DL><P><BR>
+<B>Example: </B>Typical examples are the following:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Inductive unit =</TT><TT>&gt;</TT><TT> "unit" [ "()" ].</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Inductive bool =</TT><TT>&gt;</TT><TT> "bool" [ "true" "false" ].</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extract Inductive sumbool =</TT><TT>&gt;</TT><TT> "bool" [ "true" "false" ].</TT><BR>
+</DIV><H2 CLASS="section"><A NAME="toc126"></A><A NAME="htoc408">18.3</A>  Differences between <SPAN STYLE="font-variant:small-caps">Coq</SPAN> and ML type systems</H2><P>Due to differences between <SPAN STYLE="font-variant:small-caps">Coq</SPAN> and ML type systems, 
+some extracted programs are not directly typable in ML. 
+We now solve this problem (at least in Ocaml) by adding 
+when needed some unsafe casting <TT>Obj.magic</TT>, which give
+a generic type <TT>&#X2019;a</TT> to any term.</P><P>For example, Here are two kinds of problem that can occur: </P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If some part of the program is <EM>very</EM> polymorphic, there
+may be no ML type for it. In that case the extraction to ML works
+all right but the generated code may be refused by the ML
+type-checker. A very well known example is the <EM>distr-pair</EM>
+function:
+<PRE CLASS="verbatim">Definition dp := 
+ fun (A B:Set)(x:A)(y:B)(f:forall C:Set, C-&gt;C) =&gt; (f A x, f B y).
+</PRE><P>In Ocaml, for instance, the direct extracted term would be:</P><PRE CLASS="verbatim">let dp x y f = Pair((f () x),(f () y))
+</PRE><P>and would have type:
+</P><PRE CLASS="verbatim">dp : 'a -&gt; 'a -&gt; (unit -&gt; 'a -&gt; 'b) -&gt; ('b,'b) prod
+</PRE><P>which is not its original type, but a restriction.</P><P>We now produce the following correct version:
+</P><PRE CLASS="verbatim">let dp x y f = Pair ((Obj.magic f () x), (Obj.magic f () y))
+</PRE></LI><LI CLASS="li-itemize">Some definitions of <SPAN STYLE="font-variant:small-caps">Coq</SPAN> may have no counterpart in ML. This
+happens when there is a quantification over types inside the type
+of a constructor; for example:
+<PRE CLASS="verbatim">Inductive anything : Set := dummy : forall A:Set, A -&gt; anything.
+</PRE><P>which corresponds to the definition of an ML dynamic type.
+In Ocaml, we must cast any argument of the constructor dummy.</P></LI></UL><P>Even with those unsafe castings, you should never get error like
+&#X201C;segmentation fault&#X201D;. In fact even if your program may seem
+ill-typed to the Ocaml type-checker, it can&#X2019;t go wrong: it comes 
+from a Coq well-typed terms, so for example inductives will always 
+have the correct number of arguments, etc. </P><P>More details about the correctness of the extracted programs can be 
+found in [<A HREF="biblio.html#Let02">86</A>].</P><P>We have to say, though, that in most &#X201C;realistic&#X201D; programs, these
+problems do not occur. For example all the programs of Coq library are
+accepted by Caml type-checker without any <TT>Obj.magic</TT> (see examples below).</P><H2 CLASS="section"><A NAME="toc127"></A><A NAME="htoc409">18.4</A>  Some examples</H2><P>We present here two examples of extractions, taken from the 
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> Standard Library. We choose <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN> as target language, 
+but all can be done in the other dialects with slight modifications.
+We then indicate where to find other examples and tests of Extraction.</P><H3 CLASS="subsection"><A NAME="htoc410">18.4.1</A>  A detailed example: Euclidean division</H3><P>The file <TT>Euclid</TT> contains the proof of Euclidean division
+(theorem <TT>eucl_dev</TT>). The natural numbers defined in the example
+files are unary integers defined by two constructors <I>O</I> and <I>S</I>:
+
+</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Inductive nat : Set :=</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | O : nat</TT><BR>
+<TT>Coq </TT><TT>&lt;</TT><TT>   | S : nat -</TT><TT>&gt;</TT><TT> nat.</TT><BR>
+</DIV><P>This module contains a theorem <TT>eucl_dev</TT>, and its extracted term
+is of type 
+</P><PRE CLASS="verbatim">forall b:nat, b &gt; 0 -&gt; forall a:nat, diveucl a b
+</PRE><P>where <TT>diveucl</TT> is a type for the pair of the quotient and the modulo.
+We can now extract this program to <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN>:</P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Euclid.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extraction Inline Wf_nat.gt_wf_rec Wf_nat.lt_wf_rec.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Recursive Extraction  eucl_dev.</TT><BR>
+<TT><I>type nat =</I></TT><BR>
+<TT><I>  | O</I></TT><BR>
+<TT><I>  | S of nat</I></TT><BR>
+<TT><I>type sumbool =</I></TT><BR>
+<TT><I>  | Left</I></TT><BR>
+<TT><I>  | Right</I></TT><BR>
+<TT><I>(** val minus : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat **)</I></TT><BR>
+<TT><I>let rec minus n m =</I></TT><BR>
+<TT><I>  match n with</I></TT><BR>
+<TT><I>    | O -</I></TT><TT><I>&gt;</I></TT><TT><I> O</I></TT><BR>
+<TT><I>    | S k -</I></TT><TT><I>&gt;</I></TT><TT><I> (match m with</I></TT><BR>
+<TT><I>                | O -</I></TT><TT><I>&gt;</I></TT><TT><I> S k</I></TT><BR>
+<TT><I>                | S l -</I></TT><TT><I>&gt;</I></TT><TT><I> minus k l)</I></TT><BR>
+<TT><I>(** val le_lt_dec : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> sumbool **)</I></TT><BR>
+<TT><I>let rec le_lt_dec n m =</I></TT><BR>
+<TT><I>  match n with</I></TT><BR>
+<TT><I>    | O -</I></TT><TT><I>&gt;</I></TT><TT><I> Left</I></TT><BR>
+<TT><I>    | S n0 -</I></TT><TT><I>&gt;</I></TT><TT><I> (match m with</I></TT><BR>
+<TT><I>                 | O -</I></TT><TT><I>&gt;</I></TT><TT><I> Right</I></TT><BR>
+<TT><I>                 | S m0 -</I></TT><TT><I>&gt;</I></TT><TT><I> le_lt_dec n0 m0)</I></TT><BR>
+<TT><I>(** val le_gt_dec : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> sumbool **)</I></TT><BR>
+<TT><I>let le_gt_dec n m =</I></TT><BR>
+<TT><I>  le_lt_dec n m</I></TT><BR>
+<TT><I>type diveucl =</I></TT><BR>
+<TT><I>  | Divex of nat * nat</I></TT><BR>
+<TT><I>(** val eucl_dev : nat -</I></TT><TT><I>&gt;</I></TT><TT><I> nat -</I></TT><TT><I>&gt;</I></TT><TT><I> diveucl **)</I></TT><BR>
+<TT><I>let rec eucl_dev b a =</I></TT><BR>
+<TT><I>  match le_gt_dec b a with</I></TT><BR>
+<TT><I>    | Left -</I></TT><TT><I>&gt;</I></TT><TT><I> let Divex (x, x0) = eucl_dev b (minus a b) in Divex ((S x), x0)</I></TT><BR>
+<TT><I>    | Right -</I></TT><TT><I>&gt;</I></TT><TT><I> Divex (O, a)</I></TT><BR>
+</DIV><P>The inlining of <TT>gt_wf_rec</TT> and <TT>lt_wf_rec</TT> is not
+mandatory. It only enhances readability of extracted code. 
+You can then copy-paste the output to a file <TT>euclid.ml</TT> or let 
+<SPAN STYLE="font-variant:small-caps">Coq</SPAN> do it for you with the following command: </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Extraction "euclid" eucl_dev.</TT><BR>
+<TT><I>The file euclid.ml has been created by extraction.</I></TT><BR>
+<TT><I>The file euclid.mli has been created by extraction.</I></TT><BR>
+</DIV><P>Let us play the resulting program:</P><PRE CLASS="verbatim"># #use "euclid.ml";;
+type sumbool = Left | Right
+type nat = O | S of nat
+type diveucl = Divex of nat * nat
+val minus : nat -&gt; nat -&gt; nat = &lt;fun&gt;
+val le_lt_dec : nat -&gt; nat -&gt; sumbool = &lt;fun&gt;
+val le_gt_dec : nat -&gt; nat -&gt; sumbool = &lt;fun&gt;
+val eucl_dev : nat -&gt; nat -&gt; diveucl = &lt;fun&gt;
+# eucl_dev (S (S O)) (S (S (S (S (S O)))));;
+- : diveucl = Divex (S (S O), S O)
+</PRE><P>It is easier to test on <SPAN STYLE="font-variant:small-caps">Objective Caml</SPAN> integers:
+</P><PRE CLASS="verbatim"># let rec i2n = function 0 -&gt; O | n -&gt; S (i2n (n-1));;
+val i2n : int -&gt; nat = &lt;fun&gt;
+# let rec n2i = function O -&gt; 0 | S p -&gt; 1+(n2i p);;
+val n2i : nat -&gt; int = &lt;fun&gt;
+# let div a b = 
+     let Divex (q,r) = eucl_dev (i2n b) (i2n a) in (n2i q, n2i r);;
+div : int -&gt; int -&gt; int * int = &lt;fun&gt;
+# div 173 15;;
+- : int * int = 11, 8
+</PRE><H3 CLASS="subsection"><A NAME="htoc411">18.4.2</A>  Another detailed example: Heapsort</H3><P>The file <TT>Heap.v</TT>
+contains the proof of an efficient list sorting algorithm described by
+Bjerner. Is is an adaptation of the well-known <EM>heapsort</EM>
+algorithm to functional languages. The main function is <TT>treesort</TT>, whose type is shown below: </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Require Import Heap.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Check treesort.</TT><BR>
+<TT><I>treesort</I></TT><BR>
+<TT><I>     : forall (A : Set) (leA eqA : relation A),</I></TT><BR>
+<TT><I>       (forall x y : A, {leA x y} + {leA y x}) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall eqA_dec : forall x y : A, {eqA x y} + {</I></TT><TT><I>~</I></TT><TT><I> eqA x y},</I></TT><BR>
+<TT><I>       (forall x y z : A, leA x y -</I></TT><TT><I>&gt;</I></TT><TT><I> leA y z -</I></TT><TT><I>&gt;</I></TT><TT><I> leA x z) -</I></TT><TT><I>&gt;</I></TT><BR>
+<TT><I>       forall l : list A,</I></TT><BR>
+<TT><I>       {m : list A | sort leA m &amp;  permutation eqA eqA_dec l m}</I></TT><BR>
+</DIV><P>Let&#X2019;s now extract this function: </P><DIV CLASS="flushleft">
+<TT>Coq </TT><TT>&lt;</TT><TT> Extraction Inline sort_rec is_heap_rec.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extraction NoInline list_to_heap.</TT><BR>
+<BR>
+<TT>Coq </TT><TT>&lt;</TT><TT> Extraction "heapsort" treesort.</TT><BR>
+<TT><I>The file heapsort.ml has been created by extraction.</I></TT><BR>
+<TT><I>The file heapsort.mli has been created by extraction.</I></TT><BR>
+</DIV><P>One more time, the <TT>Extraction Inline</TT> and <TT>NoInline</TT>
+directives are cosmetic. Without it, everything goes right, 
+but the output is less readable.
+Here is the produced file <TT>heapsort.ml</TT>: </P><PRE CLASS="verbatim">type nat =
+  | O
+  | S of nat
+
+type 'a sig2 =
+  'a
+  (* singleton inductive, whose constructor was exist2 *)
+  
+type sumbool =
+  | Left
+  | Right
+
+type 'a list =
+  | Nil
+  | Cons of 'a * 'a list
+
+type 'a multiset =
+  'a -&gt; nat
+  (* singleton inductive, whose constructor was Bag *)
+  
+type 'a merge_lem =
+  'a list
+  (* singleton inductive, whose constructor was merge_exist *)
+  
+(** val merge : ('a1 -&gt; 'a1 -&gt; sumbool) -&gt; ('a1 -&gt; 'a1 -&gt; sumbool) -&gt;
+                'a1 list -&gt; 'a1 list -&gt; 'a1 merge_lem **)
+
+let rec merge leA_dec eqA_dec l1 l2 =
+  match l1 with
+    | Nil -&gt; l2
+    | Cons (a, l) -&gt;
+        let rec f = function
+          | Nil -&gt; Cons (a, l)
+          | Cons (a0, l3) -&gt;
+              (match leA_dec a a0 with
+                 | Left -&gt; Cons (a,
+                     (merge leA_dec eqA_dec l (Cons (a0, l3))))
+                 | Right -&gt; Cons (a0, (f l3)))
+        in f l2
+
+type 'a tree =
+  | Tree_Leaf
+  | Tree_Node of 'a * 'a tree * 'a tree
+
+type 'a insert_spec =
+  'a tree
+  (* singleton inductive, whose constructor was insert_exist *)
+  
+(** val insert : ('a1 -&gt; 'a1 -&gt; sumbool) -&gt; ('a1 -&gt; 'a1 -&gt; sumbool) -&gt;
+                 'a1 tree -&gt; 'a1 -&gt; 'a1 insert_spec **)
+
+let rec insert leA_dec eqA_dec t a =
+  match t with
+    | Tree_Leaf -&gt; Tree_Node (a, Tree_Leaf, Tree_Leaf)
+    | Tree_Node (a0, t0, t1) -&gt;
+        let h3 = fun x -&gt; insert leA_dec eqA_dec t0 x in
+        (match leA_dec a0 a with
+           | Left -&gt; Tree_Node (a0, t1, (h3 a))
+           | Right -&gt; Tree_Node (a, t1, (h3 a0)))
+
+type 'a build_heap =
+  'a tree
+  (* singleton inductive, whose constructor was heap_exist *)
+  
+(** val list_to_heap : ('a1 -&gt; 'a1 -&gt; sumbool) -&gt; ('a1 -&gt; 'a1 -&gt;
+                       sumbool) -&gt; 'a1 list -&gt; 'a1 build_heap **)
+
+let rec list_to_heap leA_dec eqA_dec = function
+  | Nil -&gt; Tree_Leaf
+  | Cons (a, l0) -&gt;
+      insert leA_dec eqA_dec (list_to_heap leA_dec eqA_dec l0) a
+
+type 'a flat_spec =
+  'a list
+  (* singleton inductive, whose constructor was flat_exist *)
+  
+(** val heap_to_list : ('a1 -&gt; 'a1 -&gt; sumbool) -&gt; ('a1 -&gt; 'a1 -&gt;
+                       sumbool) -&gt; 'a1 tree -&gt; 'a1 flat_spec **)
+
+let rec heap_to_list leA_dec eqA_dec = function
+  | Tree_Leaf -&gt; Nil
+  | Tree_Node (a, t0, t1) -&gt; Cons (a,
+      (merge leA_dec eqA_dec (heap_to_list leA_dec eqA_dec t0)
+        (heap_to_list leA_dec eqA_dec t1)))
+
+(** val treesort : ('a1 -&gt; 'a1 -&gt; sumbool) -&gt; ('a1 -&gt; 'a1 -&gt; sumbool)
+                   -&gt; 'a1 list -&gt; 'a1 list sig2 **)
+
+let treesort leA_dec eqA_dec l =
+  heap_to_list leA_dec eqA_dec (list_to_heap leA_dec eqA_dec l)
+
+</PRE><P>Let&#X2019;s test it: 
+</P><PRE CLASS="verbatim"># #use "heapsort.ml";;
+type sumbool = Left | Right
+type nat = O | S of nat
+type 'a tree = Tree_Leaf | Tree_Node of 'a * 'a tree * 'a tree
+type 'a list = Nil | Cons of 'a * 'a list
+val merge : 
+  ('a -&gt; 'a -&gt; sumbool) -&gt; 'b -&gt; 'a list -&gt; 'a list -&gt; 'a list = &lt;fun&gt;
+val heap_to_list : 
+  ('a -&gt; 'a -&gt; sumbool) -&gt; 'b -&gt; 'a tree -&gt; 'a list = &lt;fun&gt;
+val insert : 
+  ('a -&gt; 'a -&gt; sumbool) -&gt; 'b -&gt; 'a tree -&gt; 'a -&gt; 'a tree = &lt;fun&gt;
+val list_to_heap : 
+  ('a -&gt; 'a -&gt; sumbool) -&gt; 'b -&gt; 'a list -&gt; 'a tree = &lt;fun&gt;
+val treesort : 
+  ('a -&gt; 'a -&gt; sumbool) -&gt; 'b -&gt; 'a list -&gt; 'a list = &lt;fun&gt;
+</PRE><P>One can remark that the argument of <TT>treesort</TT> corresponding to 
+<TT>eqAdec</TT> is never used in the informative part of the terms, 
+only in the logical parts. So the extracted <TT>treesort</TT> never use
+it, hence this <TT>&#X2019;b</TT> argument. We will use <TT>()</TT> for this
+argument. Only remains the <TT>leAdec</TT>
+argument (of type <TT>&#X2019;a -&gt; &#X2019;a -&gt; sumbool</TT>) to really provide.</P><PRE CLASS="verbatim"># let leAdec x y = if x &lt;= y then Left else Right;;
+val leAdec : 'a -&gt; 'a -&gt; sumbool = &lt;fun&gt;
+# let rec listn = function 0 -&gt; Nil
+                         | n -&gt; Cons(Random.int 10000,listn (n-1));;
+val listn : int -&gt; int list = &lt;fun&gt;
+# treesort leAdec () (listn 9);;
+- : int list = Cons (160, Cons (883, Cons (1874, Cons (3275, Cons 
+  (5392, Cons (7320, Cons (8512, Cons (9632, Cons (9876, Nil)))))))))
+</PRE><P>Some tests on longer lists (10000 elements) show that the program is
+quite efficient for Caml code.</P><H3 CLASS="subsection"><A NAME="htoc412">18.4.3</A>  The Standard Library</H3><P>As a test, we propose an automatic extraction of the 
+Standard Library of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>. In particular, we will find back the
+two previous examples, <TT>Euclid</TT> and <TT>Heapsort</TT>. 
+Go to directory <TT>contrib/extraction/test</TT> of the sources of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>,
+and run commands: 
+</P><PRE CLASS="verbatim">make tree; make
+</PRE><P>This will extract all Standard Library files and compile them. 
+It is done via many <TT>Extraction Module</TT>, with some customization
+(see subdirectory <TT>custom</TT>).</P><P>This test works also with Haskell. In the same directory, run:
+</P><PRE CLASS="verbatim">make tree; make -f Makefile.haskell
+</PRE><P>The haskell compiler currently used is <TT>hbc</TT>. Any other should
+also work, just adapt the <TT>Makefile.haskell</TT>. In particular <TT>ghc</TT> is known to work.</P><H3 CLASS="subsection"><A NAME="htoc413">18.4.4</A>  Extraction&#X2019;s horror museum</H3><P>Some pathological examples of extraction are grouped in the file
+</P><PRE CLASS="verbatim">contrib/extraction/test_extraction.v
+</PRE><P>of the sources of <SPAN STYLE="font-variant:small-caps">Coq</SPAN>.</P><H3 CLASS="subsection"><A NAME="htoc414">18.4.5</A>  Users&#X2019; Contributions</H3><P>Several of the <SPAN STYLE="font-variant:small-caps">Coq</SPAN> Users&#X2019; Contributions use extraction to produce 
+certified programs. In particular the following ones have an automatic 
+extraction test (just run <TT>make</TT> in those directories): </P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Bordeaux/Additions
+</LI><LI CLASS="li-itemize">Bordeaux/EXCEPTIONS
+</LI><LI CLASS="li-itemize">Bordeaux/SearchTrees
+</LI><LI CLASS="li-itemize">Dyade/BDDS
+</LI><LI CLASS="li-itemize">Lannion
+</LI><LI CLASS="li-itemize">Lyon/CIRCUITS
+</LI><LI CLASS="li-itemize">Lyon/FIRING-SQUAD
+</LI><LI CLASS="li-itemize">Marseille/CIRCUITS
+</LI><LI CLASS="li-itemize">Muenchen/Higman
+</LI><LI CLASS="li-itemize">Nancy/FOUnify
+</LI><LI CLASS="li-itemize">Rocq/ARITH/Chinese
+</LI><LI CLASS="li-itemize">Rocq/COC
+</LI><LI CLASS="li-itemize">Rocq/GRAPHS
+</LI><LI CLASS="li-itemize">Rocq/HIGMAN
+</LI><LI CLASS="li-itemize">Sophia-Antipolis/Stalmarck
+</LI><LI CLASS="li-itemize">Suresnes/BDD
+</LI></UL><P>Lannion, Rocq/HIGMAN and Lyon/CIRCUITS are a bit particular. They are 
+the only examples of developments where <TT>Obj.magic</TT> are needed.
+This is probably due to an heavy use of impredicativity.
+After compilation those two examples run nonetheless,
+thanks to the correction of the extraction [<A HREF="biblio.html#Let02">86</A>]. </P><HR>
+<A HREF="Reference-Manual022.html"><IMG SRC="previous_motif.gif" ALT="Previous"></A>
+<A HREF="toc.html"><IMG SRC="contents_motif.gif" ALT="Up"></A>
+<A HREF="Reference-Manual024.html"><IMG SRC="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>
