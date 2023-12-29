@@ -196,7 +196,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#non-termination-with-uip">Non Termination with UIP</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#lack-of-tactic-support">Lack of tactic support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debugging-sprop-issues">Debugging <span class="math notranslate nohighlight">\(\SProp\)</span> issues</a></li>
 </ul>
 </li>
 </ul>
@@ -1547,20 +1547,47 @@ Timeout!
 <p>The term <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">c</span></span> <span class="operator"><span class="pre">(</span></span><span class="name"><span class="pre">top</span></span> <span class="operator"><span class="pre">-&gt;</span></span> <span class="name"><span class="pre">top</span></span><span class="operator"><span class="pre">)</span></span> <span class="operator"><span class="pre">(</span></span><span class="keyword"><span class="pre">fun</span></span> <span class="name"><span class="pre">x</span></span> <span class="operator"><span class="pre">=&gt;</span></span> <span class="name"><span class="pre">x</span></span><span class="operator"><span class="pre">)</span></span> <span class="name"><span class="pre">c</span></span></code> infinitely reduces to itself.</p>
 </section>
 </section>
-<section id="lack-of-tactic-support">
-<h2>Lack of tactic support<a class="headerlink" href="#lack-of-tactic-support" title="Permalink to this headline">¶</a></h2>
-<p>Some tactics do not handle <span class="math notranslate nohighlight">\(\SProp\)</span> as they were not correctly ported. While in
-most of the cases they will just fail, in some cases this can result in sending
-ill-typed terms to the kernel, which will fail with anomalies at <code class="docutils literal notranslate"><span class="pre">Qed</span></code>.</p>
+<section id="debugging-sprop-issues">
+<h2>Debugging <span class="math notranslate nohighlight">\(\SProp\)</span> issues<a class="headerlink" href="#debugging-sprop-issues" title="Permalink to this headline">¶</a></h2>
+<p>Every binder in a term (such as <code class="docutils literal notranslate"><span class="pre">fun</span> <span class="pre">x</span></code> or <code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">x</span></code>) caches
+information called the <span class="term-defn"><span class="target" id="term-relevance-mark"></span>relevance mark</span> indicating whether its type is
+in <span class="math notranslate nohighlight">\(\SProp\)</span> or not. This is used to efficiently implement proof
+irrelevance.</p>
+<p>The user should usually not be concerned with relevance marks, so by
+default they are not displayed. However code outside the kernel may
+generate incorrect marks resulting in bugs. Typically this means a
+conversion will incorrectly fail as a variable was incorrectly marked
+proof relevant.</p>
 <dl class="coq warn">
 <dt class="sig sig-object coq" id="coq:warn.Bad-relevance">
 <em class="property"><span class="sigannot"><span class="pre">Warning</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">Bad</span></span></span> <span><span><span class="pre">relevance</span></span></span></span></span><a class="headerlink" href="#coq:warn.Bad-relevance" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a developer warning, which is treated as an error by default. It is
 emitted by the kernel when it is passed a term with incorrect relevance marks.
-This is always caused by a bug in Coq, which should thus be reported and
+This is always caused by a bug in Coq (or a plugin), which should thus be reported and
 fixed. In order to allow the user to work around such bugs, we leave the
 ability to unset the <code class="docutils literal notranslate"><span class="pre">bad-relevance</span></code> warning for the time being, so that the
 kernel will silently repair the proof term instead of failing.</p>
+</dd></dl>
+
+<dl class="coq flag">
+<dt class="sig sig-object coq" id="coq:flag.Printing-Relevance-Marks">
+<em class="property"><span class="sigannot"><span class="pre">Flag</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">Printing</span></span></span> <span><span><span class="pre">Relevance</span></span></span> <span><span><span class="pre">Marks</span></span></span></span></span><a class="headerlink" href="#coq:flag.Printing-Relevance-Marks" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference internal" href="../language/core/basic.html#term-flag"><span class="xref std std-term">flag</span></a> enables debug printing of relevance marks. It is off by default.
+Note that <a class="reference internal" href="../proof-engine/vernacular-commands.html#coq:flag.Printing-All" title="Printing All"><code class="xref coq coq-flag docutils literal notranslate"><span class="pre">Printing</span> <span class="pre">All</span></code></a> does not affect printing of relevance marks.</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Set</span><span> </span><span class="coqdoc-keyword">Printing</span><span> </span><span class="coqdoc-var">Relevance</span><span> </span><span class="coqdoc-var">Marks</span><span>.</span><span>
+</span></dt><dt><span></span><span>
+</span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-keyword">fun</span><span> </span><span class="coqdoc-var">x</span><span> : </span><span class="coqdoc-var">nat</span><span> =&gt; </span><span class="coqdoc-var">x</span><span>.</span><span>
+</span></dt><dd><span class="ansi-bold">fun</span><span> x : (* Relevant *) nat =&gt; x
+     : nat</span><span> -&gt;</span><span> nat
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-keyword">fun</span><span> (</span><span class="coqdoc-var">P</span><span>:</span><span class="coqdoc-var">SProp</span><span>) (</span><span class="coqdoc-var">p</span><span>:</span><span class="coqdoc-var">P</span><span>) =&gt; </span><span class="coqdoc-var">p</span><span>.</span><span>
+</span></dt><dd><span class="ansi-bold">fun</span><span> (P : (* Relevant *) </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>) (p : (* Irrelevant *) P) =&gt; p
+     : </span><span class="ansi-bold">forall</span><span> P : (* Relevant *) </span><span class="ansi-fg-yellow ansi-bold">SProp</span><span>, P</span><span> -&gt;</span><span> P
+</span></dd>
+</dl>
+</div>
 </dd></dl>
 
 </section>
