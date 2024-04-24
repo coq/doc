@@ -47,7 +47,7 @@
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Ltac2.Init.html#"><span class="id" title="library">Ltac2.Init</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <a class="idref" href="Ltac2.Ind.html#"><span class="id" title="library">Ltac2.Ind</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <a class="idref" href="Ltac2.Ind.html#"><span class="id" title="library">Ltac2.Ind</span></a> <a class="idref" href="Ltac2.Array.html#"><span class="id" title="library">Ltac2.Array</span></a>.<br/>
 
 <br/>
 <span class="id" title="keyword">Ltac</span>2 @ <span class="id" title="var">external</span> <span class="id" title="keyword">type</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="keyword">constr</span> := "coq-core.plugins.ltac2" "constr_type".<br/>
@@ -112,6 +112,15 @@ Retrieve the type of a binder.
 <div class="code">
 
 <br/>
+<span class="id" title="keyword">Ltac</span>2 @ <span class="id" title="var">external</span> <span class="id" title="var">relevance</span> : <span class="id" title="var">binder</span> -&gt; <span class="id" title="var">relevance</span> := "coq-core.plugins.ltac2" "constr_binder_relevance".<br/>
+</div>
+
+<div class="doc">
+Retrieve the relevance of a binder. 
+</div>
+<div class="code">
+
+<br/>
 <span class="id" title="keyword">End</span> <a class="idref" href="Ltac2.Constr.html#Binder"><span class="id" title="module">Binder</span></a>.<br/>
 
 <br/>
@@ -160,6 +169,13 @@ Low-level access to kernel terms. Use with care!
 
 <br/>
 <span class="id" title="keyword">Ltac</span>2 @ <span class="id" title="var">external</span> <span class="id" title="var">kind</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="var">kind</span> := "coq-core.plugins.ltac2" "constr_kind".<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span>2 <span class="id" title="keyword">rec</span> <span class="id" title="var">kind_nocast</span> <span class="id" title="var">c</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">kind</span> <span class="id" title="var">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Cast</span> <span class="id" title="var">c</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">kind_nocast</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">k</span> =&gt; <span class="id" title="var">k</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Ltac</span>2 @ <span class="id" title="var">external</span> <span class="id" title="var">make</span> : <span class="id" title="var">kind</span> -&gt; <span class="id" title="keyword">constr</span> := "coq-core.plugins.ltac2" "constr_make".<br/>
@@ -278,6 +294,169 @@ Checks equality of the inductive components of the
 
 <br/>
 <span class="id" title="keyword">End</span> <a class="idref" href="Ltac2.Constr.html#Unsafe.Case"><span class="id" title="module">Case</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Open recursion combinators 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Local Ltac</span>2 <span class="id" title="var">iter_invert</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="var">unit</span>) (<span class="id" title="var">ci</span> : <span class="id" title="var">case_invert</span>) : <span class="id" title="var">unit</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">ci</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">NoInvert</span> =&gt; ()<br/>
+&nbsp;&nbsp;| <span class="id" title="var">CaseInvert</span> <span class="id" title="var">indices</span> =&gt; <span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">indices</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">iter</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">c</span></span> iters <span class="inlinecode"><span class="id" title="var">f</span></span> on the immediate subterms of <span class="inlinecode"><span class="id" title="var">c</span></span>; it is
+   not recursive and the order with which subterms are processed is
+   not specified 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span>2 <span class="id" title="var">iter</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="var">unit</span>) (<span class="id" title="var">c</span> : <span class="id" title="keyword">constr</span>) : <span class="id" title="var">unit</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">kind</span> <span class="id" title="var">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Rel</span> <span class="id" title="var">_</span> | <span class="id" title="var">Meta</span> <span class="id" title="var">_</span> | <span class="id" title="var">Var</span> <span class="id" title="var">_</span> | <span class="id" title="keyword">Sort</span> <span class="id" title="var">_</span> | <span class="id" title="var">Constant</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Ind</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Constructor</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Uint63</span> <span class="id" title="var">_</span> | <span class="id" title="var">Float</span> <span class="id" title="var">_</span> =&gt; ()<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Cast</span> <span class="id" title="var">c</span> <span class="id" title="var">_</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">c</span>; <span class="id" title="var">f</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Prod</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Lambda</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">LetIn</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> <span class="id" title="var">t</span>; <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">App</span> <span class="id" title="var">c</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">c</span>; <span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Evar</span> <span class="id" title="var">_</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Case</span> <span class="id" title="var">_</span> <span class="id" title="var">x</span> <span class="id" title="var">iv</span> <span class="id" title="var">y</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span> (<span class="id" title="var">x</span>,<span class="id" title="var">_</span>) =&gt; <span class="id" title="var">f</span> <span class="id" title="var">x</span> <span class="id" title="keyword">end</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iter_invert</span> <span class="id" title="var">f</span> <span class="id" title="var">iv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> <span class="id" title="var">y</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Proj</span> <span class="id" title="var">_p</span> <span class="id" title="var">_</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="keyword">Fix</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>)) <span class="id" title="var">tl</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CoFix</span> <span class="id" title="var">_</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>)) <span class="id" title="var">tl</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Array</span> <span class="id" title="var">_u</span> <span class="id" title="var">t</span> <span class="id" title="var">def</span> <span class="id" title="var">ty</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> <span class="id" title="var">ty</span>; <span class="id" title="var">Array.iter</span> <span class="id" title="var">f</span> <span class="id" title="var">t</span>; <span class="id" title="var">f</span> <span class="id" title="var">def</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">iter_with_binders</span></span> <span class="inlinecode"><span class="id" title="var">g</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span> <span class="inlinecode"><span class="id" title="var">c</span></span> iters <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span> on the immediate
+   subterms of <span class="inlinecode"><span class="id" title="var">c</span></span>; it carries an extra data <span class="inlinecode"><span class="id" title="var">n</span></span> (typically a lift
+   index) which is processed by <span class="inlinecode"><span class="id" title="var">g</span></span> (which typically add 1 to <span class="inlinecode"><span class="id" title="var">n</span></span>) at
+   each binder traversal; it is not recursive and the order with which
+   subterms are processed is not specified 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span>2 <span class="id" title="var">iter_with_binders</span> (<span class="id" title="var">g</span> : '<span class="id" title="var">a</span> -&gt; <span class="id" title="var">binder</span> -&gt; '<span class="id" title="var">a</span>) (<span class="id" title="var">f</span> : '<span class="id" title="var">a</span> -&gt; <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="var">unit</span>) (<span class="id" title="var">n</span> : '<span class="id" title="var">a</span>) (<span class="id" title="var">c</span> : <span class="id" title="keyword">constr</span>) : <span class="id" title="var">unit</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">kind</span> <span class="id" title="var">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Rel</span> <span class="id" title="var">_</span> | <span class="id" title="var">Meta</span> <span class="id" title="var">_</span> | <span class="id" title="var">Var</span> <span class="id" title="var">_</span> | <span class="id" title="keyword">Sort</span> <span class="id" title="var">_</span> | <span class="id" title="var">Constant</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Ind</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Constructor</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Uint63</span> <span class="id" title="var">_</span> | <span class="id" title="var">Float</span> <span class="id" title="var">_</span> =&gt; ()<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Cast</span> <span class="id" title="var">c</span> <span class="id" title="var">_</span> <span class="id" title="var">t</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">c</span>; <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Prod</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> (<span class="id" title="var">g</span> <span class="id" title="var">n</span> <span class="id" title="var">b</span>) <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Lambda</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> (<span class="id" title="var">g</span> <span class="id" title="var">n</span> <span class="id" title="var">b</span>) <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">LetIn</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>); <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">t</span>; <span class="id" title="var">f</span> (<span class="id" title="var">g</span> <span class="id" title="var">n</span> <span class="id" title="var">b</span>) <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">App</span> <span class="id" title="var">c</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">c</span>; <span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Evar</span> <span class="id" title="var">_</span> <span class="id" title="var">l</span> =&gt; <span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Case</span> <span class="id" title="var">_</span> <span class="id" title="var">x</span> <span class="id" title="var">iv</span> <span class="id" title="var">y</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span> (<span class="id" title="var">x</span>,<span class="id" title="var">_</span>) =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">x</span> <span class="id" title="keyword">end</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iter_invert</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">iv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">y</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Proj</span> <span class="id" title="var">_p</span> <span class="id" title="var">_</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="keyword">Fix</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>)) <span class="id" title="var">tl</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">n</span> := <span class="id" title="var">Array.fold_left</span> <span class="id" title="var">g</span> <span class="id" title="var">n</span> <span class="id" title="var">tl</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CoFix</span> <span class="id" title="var">_</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">b</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">n</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>)) <span class="id" title="var">tl</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">n</span> := <span class="id" title="var">Array.fold_left</span> <span class="id" title="var">g</span> <span class="id" title="var">n</span> <span class="id" title="var">tl</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">bl</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Array</span> <span class="id" title="var">_u</span> <span class="id" title="var">t</span> <span class="id" title="var">def</span> <span class="id" title="var">ty</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">ty</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Array.iter</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) <span class="id" title="var">t</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> <span class="id" title="var">n</span> <span class="id" title="var">def</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Ltac</span>2 <span class="id" title="var">binder_map</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="keyword">constr</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">binder</span>) : <span class="id" title="var">binder</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">Binder.unsafe_make</span> (<span class="id" title="var">Binder.name</span> <span class="id" title="var">b</span>) (<span class="id" title="var">Binder.relevance</span> <span class="id" title="var">b</span>) (<span class="id" title="var">f</span> (<span class="id" title="var">Binder.type</span> <span class="id" title="var">b</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Local Ltac</span>2 <span class="id" title="var">map_invert</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="keyword">constr</span>) (<span class="id" title="var">iv</span> : <span class="id" title="var">case_invert</span>) : <span class="id" title="var">case_invert</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">iv</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">NoInvert</span> =&gt; <span class="id" title="var">NoInvert</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CaseInvert</span> <span class="id" title="var">indices</span> =&gt; <span class="id" title="var">CaseInvert</span> (<span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">indices</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">map</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">c</span></span> maps <span class="inlinecode"><span class="id" title="var">f</span></span> on the immediate subterms of <span class="inlinecode"><span class="id" title="var">c</span></span>; it is
+   not recursive and the order with which subterms are processed is
+   not specified 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span>2 <span class="id" title="var">map</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">constr</span> -&gt; <span class="id" title="keyword">constr</span>) (<span class="id" title="var">c</span> : <span class="id" title="keyword">constr</span>) : <span class="id" title="keyword">constr</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">kind</span> <span class="id" title="var">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Rel</span> <span class="id" title="var">_</span> | <span class="id" title="var">Meta</span> <span class="id" title="var">_</span> | <span class="id" title="var">Var</span> <span class="id" title="var">_</span> | <span class="id" title="keyword">Sort</span> <span class="id" title="var">_</span> | <span class="id" title="var">Constant</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Ind</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Constructor</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> | <span class="id" title="var">Uint63</span> <span class="id" title="var">_</span> | <span class="id" title="var">Float</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Cast</span> <span class="id" title="var">c</span> <span class="id" title="var">k</span> <span class="id" title="var">t</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">t</span> := <span class="id" title="var">f</span> <span class="id" title="var">t</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Cast</span> <span class="id" title="var">c</span> <span class="id" title="var">k</span> <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Prod</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">b</span> := <span class="id" title="var">binder_map</span> <span class="id" title="var">f</span> <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Prod</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Lambda</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">b</span> := <span class="id" title="var">binder_map</span> <span class="id" title="var">f</span> <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Lambda</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">LetIn</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> <span class="id" title="var">c</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">b</span> := <span class="id" title="var">binder_map</span> <span class="id" title="var">f</span> <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">t</span> := <span class="id" title="var">f</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">LetIn</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">App</span> <span class="id" title="var">c</span> <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">l</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">App</span> <span class="id" title="var">c</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Evar</span> <span class="id" title="var">e</span> <span class="id" title="var">l</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">l</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Evar</span> <span class="id" title="var">e</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Case</span> <span class="id" title="tactic">info</span> <span class="id" title="var">x</span> <span class="id" title="var">iv</span> <span class="id" title="var">y</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span> (<span class="id" title="var">x</span>,<span class="id" title="var">x'</span>) =&gt; (<span class="id" title="var">f</span> <span class="id" title="var">x</span>, <span class="id" title="var">x'</span>) <span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">iv</span> := <span class="id" title="var">map_invert</span> <span class="id" title="var">f</span> <span class="id" title="var">iv</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">y</span> := <span class="id" title="var">f</span> <span class="id" title="var">y</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">bl</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Case</span> <span class="id" title="tactic">info</span> <span class="id" title="var">x</span> <span class="id" title="var">iv</span> <span class="id" title="var">y</span> <span class="id" title="var">bl</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Proj</span> <span class="id" title="var">p</span> <span class="id" title="var">r</span> <span class="id" title="var">c</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">c</span> := <span class="id" title="var">f</span> <span class="id" title="var">c</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Proj</span> <span class="id" title="var">p</span> <span class="id" title="var">r</span> <span class="id" title="var">c</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="keyword">Fix</span> <span class="id" title="var">structs</span> <span class="id" title="var">which</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">tl</span> := <span class="id" title="var">Array.map</span> (<span class="id" title="var">binder_map</span> <span class="id" title="var">f</span>) <span class="id" title="var">tl</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">bl</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="keyword">Fix</span> <span class="id" title="var">structs</span> <span class="id" title="var">which</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">CoFix</span> <span class="id" title="var">which</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">tl</span> := <span class="id" title="var">Array.map</span> (<span class="id" title="var">binder_map</span> <span class="id" title="var">f</span>) <span class="id" title="var">tl</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">bl</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">bl</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">CoFix</span> <span class="id" title="var">which</span> <span class="id" title="var">tl</span> <span class="id" title="var">bl</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Array</span> <span class="id" title="var">u</span> <span class="id" title="var">t</span> <span class="id" title="var">def</span> <span class="id" title="var">ty</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ty</span> := <span class="id" title="var">f</span> <span class="id" title="var">ty</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">t</span> := <span class="id" title="var">Array.map</span> <span class="id" title="var">f</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <span class="id" title="var">def</span> := <span class="id" title="var">f</span> <span class="id" title="var">def</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">make</span> (<span class="id" title="var">Array</span> <span class="id" title="var">u</span> <span class="id" title="var">t</span> <span class="id" title="var">def</span> <span class="id" title="var">ty</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">End</span> <a class="idref" href="Ltac2.Constr.html#Unsafe"><span class="id" title="module">Unsafe</span></a>.<br/>
