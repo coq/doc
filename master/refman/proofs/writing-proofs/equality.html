@@ -1974,12 +1974,56 @@ in the notation <code class="docutils literal notranslate"><span class="notation
 <dt class="sig sig-object coq" id="coq:tacn.cbn">
 <em class="property"><span class="sigannot"><span class="pre">Tactic</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">cbn</span></span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="#grammar-token-reductions"><span class="hole"><span class="pre">reductions</span></span></a></span><span class="notation-sup"><span class="pre">?</span></span></span> <a class="reference internal" href="../../proof-engine/tactics.html#grammar-token-simple_occurrences"><span class="hole"><span class="pre">simple_occurrences</span></span></a></span></span><a class="headerlink" href="#coq:tacn.cbn" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> was intended to be a more principled, faster and more
-predictable replacement for <a class="reference internal" href="#coq:tacn.simpl" title="simpl"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">simpl</span></code></a>.</p>
-<p>The main difference between <a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> and <a class="reference internal" href="#coq:tacn.simpl" title="simpl"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">simpl</span></code></a> is that
-<a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> may unfold constants even when they cannot be reused in recursive calls:
-in the previous example, <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">succ</span></span> <span class="name"><span class="pre">t</span></span></code> is reduced to <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">S</span></span> <span class="name"><span class="pre">t</span></span></code>.</p>
+predictable replacement for <a class="reference internal" href="#coq:tacn.simpl" title="simpl"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">simpl</span></code></a>.
+The main difference is that <a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> may unfold constants even when they
+cannot be reused in recursive calls: in the previous example, <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">succ</span></span> <span class="name"><span class="pre">t</span></span></code> is
+reduced to <code class="code Coq docutils literal notranslate"><span class="name"><span class="pre">S</span></span> <span class="name"><span class="pre">t</span></span></code>. Modifiers such as <code class="docutils literal notranslate"><span class="pre">simpl</span> <span class="pre">never</span></code> are also not treated the same,
+see <a class="reference internal" href="../../language/extensions/arguments-command.html#args-effect-on-unfolding"><span class="std std-ref">Effects of Arguments on unfolding</span></a>.</p>
 <p>Setting <a class="reference internal" href="../../proof-engine/vernacular-commands.html#coq:opt.Debug" title="Debug"><code class="xref coq coq-opt docutils literal notranslate"><span class="pre">Debug</span></code></a> <code class="docutils literal notranslate"><span class="pre">&quot;RAKAM&quot;</span></code> makes <a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> print various debugging information.
 <code class="docutils literal notranslate"><span class="pre">RAKAM</span></code> is the Refolding Algebraic Krivine Abstract Machine.</p>
+<div class="admonition note">
+<p class="admonition-title">Example</p>
+<p>Here are typical examples comparing <a class="reference internal" href="#coq:tacn.cbn" title="cbn"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">cbn</span></code></a> and <a class="reference internal" href="#coq:tacn.simpl" title="simpl"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">simpl</span></code></a>:</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">add1</span><span> (</span><span class="coqdoc-var">n</span><span>:</span><span class="coqdoc-var">nat</span><span>) := </span><span class="coqdoc-var">n</span><span> + 1.</span><span>
+</span></dt><dd><span>add1 is defined
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-tactic">simpl</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">add1</span><span> 0.</span><span>
+</span></dt><dd><span>     = add1 0
+     : nat
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-var">cbn</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">add1</span><span> 0.</span><span>
+</span></dt><dd><span>     = 1
+     : nat
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">pred_add</span><span> </span><span class="coqdoc-var">n</span><span> </span><span class="coqdoc-var">m</span><span> := </span><span class="coqdoc-var">pred</span><span> (</span><span class="coqdoc-var">n</span><span> + </span><span class="coqdoc-var">m</span><span>).</span><span>
+</span></dt><dd><span>pred_add is defined
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-tactic">simpl</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">pred_add</span><span> 0 0.</span><span>
+</span></dt><dd><span>     = pred_add 0 0
+     : nat
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-var">cbn</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">pred_add</span><span> 0 0.</span><span>
+</span></dt><dd><span>     = 0
+     : nat
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Parameter</span><span> </span><span class="coqdoc-var">n</span><span> : </span><span class="coqdoc-var">nat</span><span>.</span><span>
+</span></dt><dd><span>n is declared
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-tactic">simpl</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">pred_add</span><span> 0 </span><span class="coqdoc-var">n</span><span>.</span><span>
+</span></dt><dd><span>     = pred_add 0 n
+     : nat
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Eval</span><span> </span><span class="coqdoc-var">cbn</span><span> </span><span class="coqdoc-tactic">in</span><span> </span><span class="coqdoc-var">pred_add</span><span> 0 </span><span class="coqdoc-var">n</span><span>.</span><span>
+</span></dt><dd><span>     = pred_add 0 n
+     : nat
+</span></dd>
+</dl>
+</div>
+</div>
 </dd></dl>
 
 <dl class="coq tacn">
@@ -2563,7 +2607,7 @@ the relevant threshold at around <span class="math notranslate nohighlight">\(n 
   True
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Time</span><span> </span><span class="coqdoc-tactic">assert</span><span> (</span><span class="coqdoc-var">id</span><span> (</span><span class="coqdoc-var">fact</span><span> 8) = </span><span class="coqdoc-var">fact</span><span> 8) </span><span class="coqdoc-tactic">by</span><span> </span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
-</span></dt><dd><span>Finished transaction in 0.235 secs (0.174u,0.043s) (successful)
+</span></dt><dd><span>Finished transaction in 0.228 secs (0.187u,0.018s) (successful)
 1 goal
   
   H : id (fact 8)</span><span> =</span><span> fact 8
@@ -2571,7 +2615,7 @@ the relevant threshold at around <span class="math notranslate nohighlight">\(n 
   True
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Time</span><span> </span><span class="coqdoc-tactic">assert</span><span> (</span><span class="coqdoc-var">id</span><span> (</span><span class="coqdoc-var">fact</span><span> 9) = </span><span class="coqdoc-var">fact</span><span> 9) </span><span class="coqdoc-tactic">by</span><span> </span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
-</span></dt><dd><span>Finished transaction in 1.593 secs (1.592u,0.s) (successful)
+</span></dt><dd><span>Finished transaction in 1.815 secs (1.813u,0.s) (successful)
 1 goal
   
   H : id (fact 8)</span><span> =</span><span> fact 8
@@ -2599,7 +2643,7 @@ merely a hint to unfold this constant last.</p>
 Timeout!
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Time</span><span> </span><span class="coqdoc-tactic">assert</span><span> (</span><span class="coqdoc-var">id</span><span> (</span><span class="coqdoc-var">fact</span><span> 100) = </span><span class="coqdoc-var">fact</span><span> 100) </span><span class="coqdoc-tactic">by</span><span> </span><span class="coqdoc-var">with_strategy</span><span> -1 [</span><span class="coqdoc-var">id</span><span>] </span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
-</span></dt><dd><span>Finished transaction in 0.001 secs (0.001u,0.s) (successful)
+</span></dt><dd><span>Finished transaction in 0.002 secs (0.002u,0.s) (successful)
 1 goal
   
   H : id (fact 100)</span><span> =</span><span> fact 100
@@ -2634,7 +2678,7 @@ tactic passed to <a class="reference internal" href="#coq:tacn.with_strategy" ti
   True
 </span></dd>
 <dt><span></span><span class="coqdoc-keyword">Time</span><span> </span><span class="coqdoc-tactic">assert</span><span> (</span><span class="coqdoc-var">id</span><span> (</span><span class="coqdoc-var">fact</span><span> 100) = </span><span class="coqdoc-var">fact</span><span> 100) </span><span class="coqdoc-tactic">by</span><span> </span><span class="coqdoc-var">with_strategy</span><span> -1 [</span><span class="coqdoc-var">id</span><span>] </span><span class="coqdoc-tactic">abstract</span><span> </span><span class="coqdoc-tactic">reflexivity</span><span>.</span><span>
-</span></dt><dd><span>Finished transaction in 0.004 secs (0.004u,0.s) (successful)
+</span></dt><dd><span>Finished transaction in 0.003 secs (0.003u,0.s) (successful)
 1 goal
   
   H : id (fact 100)</span><span> =</span><span> fact 100
