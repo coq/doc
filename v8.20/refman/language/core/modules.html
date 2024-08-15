@@ -149,6 +149,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="sections.html">Sections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sections.html#using-sections">Using sections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sections.html#summary-of-locality-attributes-in-a-section">Summary of locality attributes in a section</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sections.html#typing-rules-used-at-the-end-of-a-section">Typing rules used at the end of a section</a></li>
 </ul>
 </li>
@@ -158,9 +160,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#typing-modules">Typing Modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qualified-names">Qualified names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#controlling-the-scope-of-commands-with-locality-attributes">Controlling the scope of commands with locality attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#summary-of-locality-attributes-in-a-module">Summary of locality attributes in a module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#typing-modules">Typing Modules</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="primitive.html">Primitive objects</a><ul>
@@ -1927,6 +1930,283 @@ transparent constraint</p>
 component is <code class="docutils literal notranslate"><span class="pre">nat</span></code> as specified for <code class="docutils literal notranslate"><span class="pre">M1.T</span></code>.</p>
 </section>
 </section>
+<section id="qualified-names">
+<span id="id1"></span><h2>Qualified names<a class="headerlink" href="#qualified-names" title="Permalink to this headline">¶</a></h2>
+<p>Qualified names (<a class="reference internal" href="#grammar-token-qualid"><code class="xref std std-token docutils literal notranslate"><span class="pre">qualid</span></code></a>s) are hierarchical names that are used to
+identify items such as definitions, theorems and parameters that may be defined
+inside modules (see <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>).  In addition, they are used to identify
+compiled files.  Syntactically, they have this form:</p>
+<span class="prodn-table"><span class="prodn-column-group"><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span></span><span class="prodn-row-group"><span class="prodn-row"><span class="prodn-cell-nonterminal"><span class="prodn-target"><span class="target" id="grammar-token-qualid"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole">qualid</span></a></span></span><span class="prodn-cell-op"><code class="docutils literal notranslate"><span class="pre">::=</span></code></span><span class="prodn-cell-production"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole">ident</span></a> <span class="repeat-wrapper"><span class="repeat"><span><span>.</span></span><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">*</span></span></span></span><span class="prodn-cell-tag"><code class="docutils literal notranslate"></code></span></span></span></span><p><em>Fully qualified</em> or <em>absolute</em> qualified names uniquely identify files
+(as in the <code class="docutils literal notranslate"><span class="pre">Require</span></code> command) and items within files, such as a single
+<a class="reference internal" href="assumptions.html#coq:cmd.Variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a> definition.  It's usually possible to use a suffix of the fully
+qualified name (a <em>short name</em>) that uniquely identifies an item.</p>
+<p>The first part of a fully qualified name identifies a file, which may be followed
+by a second part that identifies a specific item within that file.  Qualified names
+that identify files don't have a second part.</p>
+<p>While qualified names always consist of a series of dot-separated <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code>s,
+<em>the following few paragraphs omit the dots for the sake of simplicity.</em></p>
+<p><strong>File part.</strong> Files are identified by <span class="term-defn"><span class="target" id="term-logical-path"></span>logical paths</span>,
+which are prefixes in the form <code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">logical</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">file</span></sub></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span></span></code>, such
+as <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Coq.Init.Logic</span></span></span></span></code>, in which:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">logical</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span></span></code>, the <span class="term-defn"><span class="target" id="term-logical-name"></span>logical name</span>, maps to one or more
+directories (or <span class="term-defn"><span class="target" id="term-physical-path"></span>physical paths</span>) in the user's file system.
+The logical name
+is used so that Coq scripts don't depend on where files are installed.
+For example, the directory associated with <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Coq</span></span></span></span></code> contains Coq's standard library.
+The logical name is generally a single <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">file</span></sub></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span></span></code> corresponds to the file system path of the file relative
+to the directory that contains it.  For example, <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Init.Logic</span></span></span></span></code>
+corresponds to the file system path <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Init/Logic.v</span></span></span></span></code> on Linux)</p></li>
+</ul>
+<p>When Coq is processing a script that hasn't been saved in a file, such as a new
+buffer in CoqIDE or anything in coqtop, definitions in the script are associated
+with the logical name <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Top</span></span></span></span></code> and there is no associated file system path.</p>
+<p><strong>Item part.</strong> Items are further qualified by a suffix in the form
+<code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">module</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span> <a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">base</span></sub></span></a></span></code> in which:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">module</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span></span></code> gives the names of the nested modules, if any,
+that syntactically contain the definition of the item.  (See <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">base</span></sub></span></a></span></code> is the base name used in the command defining
+the item.  For example, <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">eq</span></span></span></span></code> in the <a class="reference internal" href="inductive.html#coq:cmd.Inductive" title="Inductive"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Inductive</span></code></a> command defining it
+in <code class="docutils literal notranslate"><span class="pre">Coq.Init.Logic</span></code> is the base name for <code class="docutils literal notranslate"><span class="pre">Coq.Init.Logic.eq</span></code>, the standard library
+definition of <a class="reference internal" href="../../proofs/writing-proofs/equality.html#term-Leibniz-equality"><span class="xref std std-term">Leibniz equality</span></a>.</p></li>
+</ul>
+<p>If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> is the fully qualified name of an item, Coq
+always interprets <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> as a reference to that item.  If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> is also a
+partially qualified name for another item, then you must provide a more-qualified
+name to uniquely identify that other item.  For example, if there are two
+fully qualified items named <code class="docutils literal notranslate"><span class="pre">Foo.Bar</span></code> and <code class="docutils literal notranslate"><span class="pre">Coq.X.Foo.Bar</span></code>, then <code class="docutils literal notranslate"><span class="pre">Foo.Bar</span></code> refers
+to the first item and <code class="docutils literal notranslate"><span class="pre">X.Foo.Bar</span></code> is the shortest name for referring to the second item.</p>
+<p>Definitions with the <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> attribute are only accessible with
+their fully qualified name (see <a class="reference internal" href="definitions.html#gallina-definitions"><span class="std std-ref">Top-level definitions</span></a>).</p>
+<div class="admonition note">
+<p class="admonition-title">Example</p>
+<div class="coqtop literal-block docutils container">
+<span></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Check</span><span> 0.</span><span>
+</span></dt><dd><span>0
+     : nat
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">nat</span><span> := </span><span class="coqdoc-var">bool</span><span>.</span><span>
+</span></dt><dd><span>nat is defined
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Check</span><span> 0.</span><span>
+</span></dt><dd><span>0
+     : </span><span class="ansi-fg-light-magenta">Datatypes</span><span>.</span><span class="ansi-fg-light-green">nat</span><span>
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">Datatypes.nat</span><span>.</span><span>
+</span></dt><dd><span class="ansi-fg-light-magenta">Datatypes</span><span>.</span><span class="ansi-fg-light-green">nat</span><span>
+     : </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Locate</span><span> </span><span class="coqdoc-var">nat</span><span>.</span><span>
+</span></dt><dd><span>Constant Top.nat
+Inductive Coq.Init.Datatypes.nat
+  (shorter name to refer to it in current context is Datatypes.nat)
+</span></dd>
+</dl>
+</div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Commands <a class="reference internal" href="../../proof-engine/vernacular-commands.html#coq:cmd.Locate" title="Locate"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Locate</span></code></a>.</p>
+</div>
+<p><a class="reference internal" href="../../practical-tools/utilities.html#logical-paths-load-path"><span class="std std-ref">Logical paths and the load path</span></a> describes how <a class="reference internal" href="#term-logical-path"><span class="xref std std-term">logical paths</span></a>
+become associated with specific files.</p>
+</section>
+<section id="controlling-the-scope-of-commands-with-locality-attributes">
+<span id="controlling-locality-of-commands"></span><h2>Controlling the scope of commands with locality attributes<a class="headerlink" href="#controlling-the-scope-of-commands-with-locality-attributes" title="Permalink to this headline">¶</a></h2>
+<p>Many commands have effects that apply only within a specific scope,
+typically the section or the module in which the command was
+called. Locality <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attributes</span></a> can alter the scope of
+the effect. Below, we give the semantics of each locality attribute
+while noting a few exceptional commands for which <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> and
+<a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attributes are interpreted differently.</p>
+<dl class="coq attr">
+<dt class="sig sig-object coq" id="coq:attr.local">
+<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">local</span></span></span></span></span><a class="headerlink" href="#coq:attr.local" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> limits the effect of the command to the
+current scope (section or module).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Local</span></code> prefix is an alternative syntax for the <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a>
+attribute (see <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-legacy_attr"><span class="hole"><span class="pre">legacy_attr</span></span></a></span></code>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>For some commands, this is the only locality supported within
+sections (e.g., for <a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a>, <a class="reference internal" href="../../proof-engine/ltac.html#coq:cmd.Ltac" title="Ltac"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac</span></code></a> and
+<a class="reference internal" href="../../proofs/automatic-tactics/auto.html#creating-hints"><span class="std std-ref">Hint</span></a> commands).</p></li>
+<li><p>For some commands, this is the default locality within
+sections even though other locality attributes are supported
+as well (e.g., for the <a class="reference internal" href="../extensions/arguments-command.html#coq:cmd.Arguments" title="Arguments"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Arguments</span></code></a> command).</p></li>
+</ul>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Exception:</strong> when <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> is applied to
+<a class="reference internal" href="definitions.html#coq:cmd.Definition" title="Definition"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Definition</span></code></a>, <a class="reference internal" href="definitions.html#coq:cmd.Theorem" title="Theorem"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Theorem</span></code></a> or their variants, its
+semantics are different: it makes the defined objects available
+only through their fully qualified names rather than their
+unqualified names after an <a class="reference internal" href="#coq:cmd.Import" title="Import"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Import</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="coq attr">
+<dt class="sig sig-object coq" id="coq:attr.export">
+<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">export</span></span></span></span></span><a class="headerlink" href="#coq:attr.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> makes the effect of the command
+persist when the section is closed and applies the effect when the
+module containing the command is imported.</p>
+<p>Commands supporting this attribute include <a class="reference internal" href="basic.html#coq:cmd.Set" title="Set"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Set</span></code></a>, <a class="reference internal" href="basic.html#coq:cmd.Unset" title="Unset"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Unset</span></code></a>
+and the <a class="reference internal" href="../../proofs/automatic-tactics/auto.html#creating-hints"><span class="std std-ref">Hint</span></a> commands, although the latter
+don't support it within sections.</p>
+</dd></dl>
+
+<dl class="coq attr">
+<dt class="sig sig-object coq" id="coq:attr.global">
+<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">global</span></span></span></span></span><a class="headerlink" href="#coq:attr.global" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> makes the effect of the command
+persist even when the current section or module is closed.  Loading
+the file containing the command (possibly transitively) applies the
+effect of the command.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Global</span></code> prefix is an alternative syntax for the
+<a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attribute (see <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-legacy_attr"><span class="hole"><span class="pre">legacy_attr</span></span></a></span></code>).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Exception:</strong> for a few commands (like <a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a> and
+<a class="reference internal" href="../../proof-engine/ltac.html#coq:cmd.Ltac" title="Ltac"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac</span></code></a>), this attribute behaves like <a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>We strongly discourage using the <a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> locality
+attribute because the transitive nature of file loading gives
+the user little control. We recommend using the <a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a>
+locality attribute where it is supported.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="summary-of-locality-attributes-in-a-module">
+<span id="visibility-attributes-modules"></span><h2>Summary of locality attributes in a module<a class="headerlink" href="#summary-of-locality-attributes-in-a-module" title="Permalink to this headline">¶</a></h2>
+<p>This table sums up the effect of locality attributes on the scope of vernacular
+commands in a module, when outside the module where they were entered. In the
+following table:</p>
+<ul class="simple">
+<li><p>a cross (❌) marks an unsupported attribute (compilation error);</p></li>
+<li><p>“not available” means that the command has no effect outside the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a> it
+was entered;</p></li>
+<li><p>“when imported” means that the command has effect outside the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a> if, and
+only if, the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a> (or the command, via <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-filtered_import"><span class="hole"><span class="pre">filtered_import</span></span></a></span></code>) is imported
+(with <a class="reference internal" href="#coq:cmd.Import" title="Import"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Import</span></code></a> or <a class="reference internal" href="#coq:cmd.Export" title="Export"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Export</span></code></a>).</p></li>
+<li><p>“short name when imported” means that the command has effects outside the
+<a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>; if the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a> (or command, via <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-filtered_import"><span class="hole"><span class="pre">filtered_import</span></span></a></span></code>) is not
+imported, the associated identifiers must be qualified;</p></li>
+<li><p>“qualified name” means that the command has effects outside the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>, but
+the corresponding identifier may only be referred to with a qualified name;</p></li>
+<li><p>“always” means that the command always has effects outside the <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a> (even
+if it is not imported).</p></li>
+</ul>
+<p>A similar table for <a class="reference internal" href="sections.html#coq:cmd.Section" title="Section"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Section</span></code></a> can be found
+<a class="reference internal" href="sections.html#visibility-attributes-sections"><span class="std std-ref">here</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">Command</span></code></p></th>
+<th class="head"><p>no attribute</p></th>
+<th class="head"><p><a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a></p></th>
+<th class="head"><p><a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a></p></th>
+<th class="head"><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="definitions.html#coq:cmd.Definition" title="Definition"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Definition</span></code></a>, <a class="reference internal" href="definitions.html#coq:cmd.Lemma" title="Lemma"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Lemma</span></code></a>,</p>
+<p><a class="reference internal" href="assumptions.html#coq:cmd.Axiom" title="Axiom"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Axiom</span></code></a>, ...</p>
+</td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>qualified name</p></td>
+<td><p>❌</p></td>
+<td><p>short name</p>
+<p>when imported</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../proof-engine/ltac.html#coq:cmd.Ltac" title="Ltac"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>short name</p>
+<p>when imported</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../proof-engine/ltac2.html#coq:cmd.Ltac2" title="Ltac2"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac2</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>short name</p>
+<p>when imported</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation-(abbreviation)" title="Notation (abbreviation)"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span> <span class="pre">(abbreviation)</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>short name</p>
+<p>when imported</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>when imported</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Tactic-Notation" title="Tactic Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Tactic</span> <span class="pre">Notation</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>when imported</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../proof-engine/ltac2.html#coq:cmd.Ltac2-Notation" title="Ltac2 Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac2</span> <span class="pre">Notation</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>when imported</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../addendum/implicit-coercions.html#coq:cmd.Coercion" title="Coercion"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Coercion</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>❌</p></td>
+<td><p>when imported</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../extensions/canonical.html#coq:cmd.Canonical-Structure" title="Canonical Structure"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Canonical</span> <span class="pre">Structure</span></code></a></p></td>
+<td><p><a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a></p></td>
+<td><p>when imported</p></td>
+<td><p>❌</p></td>
+<td><p>when imported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Hints</span></code> (and <a class="reference internal" href="../../addendum/type-classes.html#coq:cmd.Instance" title="Instance"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Instance</span></code></a>)</p></td>
+<td><p><a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>when imported</p></td>
+<td><p>always</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="basic.html#coq:cmd.Set" title="Set"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Set</span></code></a> or <a class="reference internal" href="basic.html#coq:cmd.Unset" title="Unset"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Unset</span></code></a> a flag</p></td>
+<td><p><a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a></p></td>
+<td><p>not available</p></td>
+<td><p>when imported</p></td>
+<td><p>always</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="typing-modules">
 <h2>Typing Modules<a class="headerlink" href="#typing-modules" title="Permalink to this headline">¶</a></h2>
 <p>In order to introduce the typing system we first slightly extend the syntactic
@@ -2491,165 +2771,6 @@ E[] ⊢ p.c_i \triangleright_δ p'.c_i%
 }\]</div>
 </dd>
 </dl>
-</section>
-<section id="qualified-names">
-<span id="id1"></span><h2>Qualified names<a class="headerlink" href="#qualified-names" title="Permalink to this headline">¶</a></h2>
-<p>Qualified names (<a class="reference internal" href="#grammar-token-qualid"><code class="xref std std-token docutils literal notranslate"><span class="pre">qualid</span></code></a>s) are hierarchical names that are used to
-identify items such as definitions, theorems and parameters that may be defined
-inside modules (see <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>).  In addition, they are used to identify
-compiled files.  Syntactically, they have this form:</p>
-<span class="prodn-table"><span class="prodn-column-group"><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span><span class="prodn-column"></span></span><span class="prodn-row-group"><span class="prodn-row"><span class="prodn-cell-nonterminal"><span class="prodn-target"><span class="target" id="grammar-token-qualid"></span></span><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole">qualid</span></a></span></span><span class="prodn-cell-op"><code class="docutils literal notranslate"><span class="pre">::=</span></code></span><span class="prodn-cell-production"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole">ident</span></a> <span class="repeat-wrapper"><span class="repeat"><span><span>.</span></span><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole">ident</span></a></span><span class="notation-sup">*</span></span></span></span><span class="prodn-cell-tag"><code class="docutils literal notranslate"></code></span></span></span></span><p><em>Fully qualified</em> or <em>absolute</em> qualified names uniquely identify files
-(as in the <code class="docutils literal notranslate"><span class="pre">Require</span></code> command) and items within files, such as a single
-<a class="reference internal" href="assumptions.html#coq:cmd.Variable" title="Variable"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Variable</span></code></a> definition.  It's usually possible to use a suffix of the fully
-qualified name (a <em>short name</em>) that uniquely identifies an item.</p>
-<p>The first part of a fully qualified name identifies a file, which may be followed
-by a second part that identifies a specific item within that file.  Qualified names
-that identify files don't have a second part.</p>
-<p>While qualified names always consist of a series of dot-separated <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code>s,
-<em>the following few paragraphs omit the dots for the sake of simplicity.</em></p>
-<p><strong>File part.</strong> Files are identified by <span class="term-defn"><span class="target" id="term-logical-path"></span>logical paths</span>,
-which are prefixes in the form <code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">logical</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">file</span></sub></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span></span></code>, such
-as <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Coq.Init.Logic</span></span></span></span></code>, in which:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">logical</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span></span></code>, the <span class="term-defn"><span class="target" id="term-logical-name"></span>logical name</span>, maps to one or more
-directories (or <span class="term-defn"><span class="target" id="term-physical-path"></span>physical paths</span>) in the user's file system.
-The logical name
-is used so that Coq scripts don't depend on where files are installed.
-For example, the directory associated with <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Coq</span></span></span></span></code> contains Coq's standard library.
-The logical name is generally a single <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span></span></a></span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">file</span></sub></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span></span></code> corresponds to the file system path of the file relative
-to the directory that contains it.  For example, <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Init.Logic</span></span></span></span></code>
-corresponds to the file system path <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Init/Logic.v</span></span></span></span></code> on Linux)</p></li>
-</ul>
-<p>When Coq is processing a script that hasn't been saved in a file, such as a new
-buffer in CoqIDE or anything in coqtop, definitions in the script are associated
-with the logical name <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Top</span></span></span></span></code> and there is no associated file system path.</p>
-<p><strong>Item part.</strong> Items are further qualified by a suffix in the form
-<code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">module</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span> <a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">base</span></sub></span></a></span></code> in which:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="notation"><span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">module</span></sub></span></a></span><span class="notation-sup"><span class="pre">*</span></span></span></span></code> gives the names of the nested modules, if any,
-that syntactically contain the definition of the item.  (See <a class="reference internal" href="#coq:cmd.Module" title="Module"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Module</span></code></a>.)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-ident"><span class="hole"><span class="pre">ident</span><sub><span class="pre">base</span></sub></span></a></span></code> is the base name used in the command defining
-the item.  For example, <code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">eq</span></span></span></span></code> in the <a class="reference internal" href="inductive.html#coq:cmd.Inductive" title="Inductive"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Inductive</span></code></a> command defining it
-in <code class="docutils literal notranslate"><span class="pre">Coq.Init.Logic</span></code> is the base name for <code class="docutils literal notranslate"><span class="pre">Coq.Init.Logic.eq</span></code>, the standard library
-definition of <a class="reference internal" href="../../proofs/writing-proofs/equality.html#term-Leibniz-equality"><span class="xref std std-term">Leibniz equality</span></a>.</p></li>
-</ul>
-<p>If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> is the fully qualified name of an item, Coq
-always interprets <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> as a reference to that item.  If <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span></code> is also a
-partially qualified name for another item, then you must provide a more-qualified
-name to uniquely identify that other item.  For example, if there are two
-fully qualified items named <code class="docutils literal notranslate"><span class="pre">Foo.Bar</span></code> and <code class="docutils literal notranslate"><span class="pre">Coq.X.Foo.Bar</span></code>, then <code class="docutils literal notranslate"><span class="pre">Foo.Bar</span></code> refers
-to the first item and <code class="docutils literal notranslate"><span class="pre">X.Foo.Bar</span></code> is the shortest name for referring to the second item.</p>
-<p>Definitions with the <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> attribute are only accessible with
-their fully qualified name (see <a class="reference internal" href="definitions.html#gallina-definitions"><span class="std std-ref">Top-level definitions</span></a>).</p>
-<div class="admonition note">
-<p class="admonition-title">Example</p>
-<div class="coqtop literal-block docutils container">
-<span></span><dl>
-<dt><span></span><span class="coqdoc-keyword">Check</span><span> 0.</span><span>
-</span></dt><dd><span>0
-     : nat
-</span></dd>
-<dt><span></span><span>
-</span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">nat</span><span> := </span><span class="coqdoc-var">bool</span><span>.</span><span>
-</span></dt><dd><span>nat is defined
-</span></dd>
-<dt><span></span><span>
-</span><span class="coqdoc-keyword">Check</span><span> 0.</span><span>
-</span></dt><dd><span>0
-     : </span><span class="ansi-fg-light-magenta">Datatypes</span><span>.</span><span class="ansi-fg-light-green">nat</span><span>
-</span></dd>
-<dt><span></span><span>
-</span><span class="coqdoc-keyword">Check</span><span> </span><span class="coqdoc-var">Datatypes.nat</span><span>.</span><span>
-</span></dt><dd><span class="ansi-fg-light-magenta">Datatypes</span><span>.</span><span class="ansi-fg-light-green">nat</span><span>
-     : </span><span class="ansi-fg-yellow ansi-bold">Set</span><span>
-</span></dd>
-<dt><span></span><span>
-</span><span class="coqdoc-keyword">Locate</span><span> </span><span class="coqdoc-var">nat</span><span>.</span><span>
-</span></dt><dd><span>Constant Top.nat
-Inductive Coq.Init.Datatypes.nat
-  (shorter name to refer to it in current context is Datatypes.nat)
-</span></dd>
-</dl>
-</div>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>Commands <a class="reference internal" href="../../proof-engine/vernacular-commands.html#coq:cmd.Locate" title="Locate"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Locate</span></code></a>.</p>
-</div>
-<p><a class="reference internal" href="../../practical-tools/utilities.html#logical-paths-load-path"><span class="std std-ref">Logical paths and the load path</span></a> describes how <a class="reference internal" href="#term-logical-path"><span class="xref std std-term">logical paths</span></a>
-become associated with specific files.</p>
-</section>
-<section id="controlling-the-scope-of-commands-with-locality-attributes">
-<span id="controlling-locality-of-commands"></span><h2>Controlling the scope of commands with locality attributes<a class="headerlink" href="#controlling-the-scope-of-commands-with-locality-attributes" title="Permalink to this headline">¶</a></h2>
-<p>Many commands have effects that apply only within a specific scope,
-typically the section or the module in which the command was
-called. Locality <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attributes</span></a> can alter the scope of
-the effect. Below, we give the semantics of each locality attribute
-while noting a few exceptional commands for which <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> and
-<a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attributes are interpreted differently.</p>
-<dl class="coq attr">
-<dt class="sig sig-object coq" id="coq:attr.local">
-<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">local</span></span></span></span></span><a class="headerlink" href="#coq:attr.local" title="Permalink to this definition">¶</a></dt>
-<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> limits the effect of the command to the
-current scope (section or module).</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">Local</span></code> prefix is an alternative syntax for the <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a>
-attribute (see <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-legacy_attr"><span class="hole"><span class="pre">legacy_attr</span></span></a></span></code>).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>For some commands, this is the only locality supported within
-sections (e.g., for <a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a>, <a class="reference internal" href="../../proof-engine/ltac.html#coq:cmd.Ltac" title="Ltac"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac</span></code></a> and
-<a class="reference internal" href="../../proofs/automatic-tactics/auto.html#creating-hints"><span class="std std-ref">Hint</span></a> commands).</p></li>
-<li><p>For some commands, this is the default locality within
-sections even though other locality attributes are supported
-as well (e.g., for the <a class="reference internal" href="../extensions/arguments-command.html#coq:cmd.Arguments" title="Arguments"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Arguments</span></code></a> command).</p></li>
-</ul>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p><strong>Exception:</strong> when <a class="reference internal" href="#coq:attr.local" title="local"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">local</span></code></a> is applied to
-<a class="reference internal" href="definitions.html#coq:cmd.Definition" title="Definition"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Definition</span></code></a>, <a class="reference internal" href="definitions.html#coq:cmd.Theorem" title="Theorem"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Theorem</span></code></a> or their variants, its
-semantics are different: it makes the defined objects available
-only through their fully qualified names rather than their
-unqualified names after an <a class="reference internal" href="#coq:cmd.Import" title="Import"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Import</span></code></a>.</p>
-</div>
-</dd></dl>
-
-<dl class="coq attr">
-<dt class="sig sig-object coq" id="coq:attr.export">
-<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">export</span></span></span></span></span><a class="headerlink" href="#coq:attr.export" title="Permalink to this definition">¶</a></dt>
-<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> makes the effect of the command
-persist when the section is closed and applies the effect when the
-module containing the command is imported.</p>
-<p>Commands supporting this attribute include <a class="reference internal" href="basic.html#coq:cmd.Set" title="Set"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Set</span></code></a>, <a class="reference internal" href="basic.html#coq:cmd.Unset" title="Unset"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Unset</span></code></a>
-and the <a class="reference internal" href="../../proofs/automatic-tactics/auto.html#creating-hints"><span class="std std-ref">Hint</span></a> commands, although the latter
-don't support it within sections.</p>
-</dd></dl>
-
-<dl class="coq attr">
-<dt class="sig sig-object coq" id="coq:attr.global">
-<em class="property"><span class="sigannot"><span class="pre">Attribute</span></span></em> <span class="sig-name descname"><span class="notation"><span><span><span class="pre">global</span></span></span></span></span><a class="headerlink" href="#coq:attr.global" title="Permalink to this definition">¶</a></dt>
-<dd><p>This <a class="reference internal" href="basic.html#term-attribute"><span class="xref std std-term">attribute</span></a> makes the effect of the command
-persist even when the current section or module is closed.  Loading
-the file containing the command (possibly transitively) applies the
-effect of the command.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">Global</span></code> prefix is an alternative syntax for the
-<a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> attribute (see <code class="docutils literal notranslate"><span class="notation"><a class="reference internal" href="basic.html#grammar-token-legacy_attr"><span class="hole"><span class="pre">legacy_attr</span></span></a></span></code>).</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p><strong>Exception:</strong> for a few commands (like <a class="reference internal" href="../../user-extensions/syntax-extensions.html#coq:cmd.Notation" title="Notation"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Notation</span></code></a> and
-<a class="reference internal" href="../../proof-engine/ltac.html#coq:cmd.Ltac" title="Ltac"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Ltac</span></code></a>), this attribute behaves like <a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a>.</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>We strongly discourage using the <a class="reference internal" href="#coq:attr.global" title="global"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">global</span></code></a> locality
-attribute because the transitive nature of file loading gives
-the user little control. We recommend using the <a class="reference internal" href="#coq:attr.export" title="export"><code class="xref coq coq-attr docutils literal notranslate"><span class="pre">export</span></code></a>
-locality attribute where it is supported.</p>
-</div>
-</dd></dl>
-
 </section>
 </section>
 
