@@ -649,7 +649,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#rewriting-under-binders">Rewriting under binders</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#subrelations">Subrelations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#constant-unfolding">Constant unfolding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#constant-unfolding-during-rewriting">Constant unfolding during rewriting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#constant-unfolding-during-proper-instance-search">Constant unfolding during <code class="docutils literal notranslate"><span class="pre">Proper</span></code>-instance search</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#strategies-for-rewriting">Strategies for rewriting</a><ul>
@@ -2085,14 +2086,98 @@ rewriting constraints arising from a rewrite using <code class="docutils literal
 <p>Subrelations are implemented in <code class="docutils literal notranslate"><span class="pre">Classes.Morphisms</span></code> and are a prime
 example of a mostly user-space extension of the algorithm.</p>
 </section>
-<section id="constant-unfolding">
-<h3>Constant unfolding<a class="headerlink" href="#constant-unfolding" title="Permalink to this headline">¶</a></h3>
-<p>The resolution tactic is based on typeclasses and hence regards user-defined
-<a class="reference internal" href="../language/core/definitions.html#term-constant"><span class="xref std std-term">constants</span></a> as transparent by default. This may slow down the
-resolution due to a lot of unifications (all the declared <code class="docutils literal notranslate"><span class="pre">Proper</span></code>
-instances are tried at each node of the search tree). To speed it up,
-declare your constant as rigid for proof search using the command
-<a class="reference internal" href="type-classes.html#coq:cmd.Typeclasses-Opaque" title="Typeclasses Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Typeclasses</span> <span class="pre">Opaque</span></code></a>.</p>
+<section id="constant-unfolding-during-rewriting">
+<h3>Constant unfolding during rewriting<a class="headerlink" href="#constant-unfolding-during-rewriting" title="Permalink to this headline">¶</a></h3>
+<p>By default, <a class="reference internal" href="#coq:tacn.setoid_rewrite" title="setoid_rewrite"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">setoid_rewrite</span></code></a> and <a class="reference internal" href="#coq:tacn.rewrite_strat" title="rewrite_strat"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">rewrite_strat</span></code></a> unfold global
+definitions during rewrite rule matching, but do not unfold local
+definitions. Unfolding definitions may slow down matching, whereas keeping
+definitions opaque may cause matches to be missed.  This behavior is
+configurable using transparency hints in the hint database <code class="docutils literal notranslate"><span class="pre">rewrite</span></code>:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Hint</span></span></span> <span class="alternative"><span class="alternative-block"><span><span><span class="pre">Variables</span></span></span></span><span class="alternative-separator"><span class="pre">​</span></span><span class="alternative-block"><span><span><span class="pre">Constants</span></span></span></span></span> <span class="alternative"><span class="alternative-block"><span><span><span class="pre">Opaque</span></span></span></span><span class="alternative-separator"><span class="pre">​</span></span><span class="alternative-block"><span><span><span class="pre">Transparent</span></span></span></span></span> <span><span><span class="pre">:</span></span></span> <span><span><span class="pre">rewrite.</span></span></span></span></code></p>
+<p><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Hint</span></span></span> <span class="alternative"><span class="alternative-block"><span><span><span class="pre">Opaque</span></span></span></span><span class="alternative-separator"><span class="pre">​</span></span><span class="alternative-block"><span><span><span class="pre">Transparent</span></span></span></span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span> <span><span><span class="pre">:</span></span></span> <span><span><span class="pre">rewrite.</span></span></span></span></code></p>
+</div></blockquote>
+<p>The effect of these commands on rewriting is similar to that of <a class="reference internal" href="../proofs/automatic-tactics/auto.html#coq:cmd.Hint-Transparent" title="Hint Transparent"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Hint</span>
+<span class="pre">Transparent</span></code></a> and <a class="reference internal" href="../proofs/automatic-tactics/auto.html#coq:cmd.Hint-Variables" title="Hint Variables"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Hint</span> <span class="pre">Variables</span></code></a> on unification used by <a class="reference internal" href="../proofs/automatic-tactics/auto.html#coq:tacn.eauto" title="eauto"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">eauto</span></code></a> and
+related tactics. Note that the transparency information from database <code class="docutils literal notranslate"><span class="pre">rewrite</span></code>
+is used even when rewriting with individual lemmas.</p>
+<div class="admonition note">
+<p class="admonition-title">Example</p>
+<div class="coqtop literal-block docutils container">
+<span class="coqtop-reset"></span><dl>
+<dt><span></span><span class="coqdoc-keyword">Require</span><span> </span><span class="coqdoc-var">Setoid</span><span>.</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> := 2*</span><span class="coqdoc-var">x</span><span> + </span><span class="coqdoc-var">y</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>f is defined
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Definition</span><span> </span><span class="coqdoc-var">g</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> := 2*</span><span class="coqdoc-var">x</span><span> + </span><span class="coqdoc-var">y</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>g is defined
+</span></dd>
+<dt><span></span><span>
+</span><span class="coqdoc-keyword">Goal</span><span> </span><span class="coqdoc-keyword">forall</span><span>
+  (</span><span class="coqdoc-var">double_f</span><span> : </span><span class="coqdoc-keyword">forall</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span>, 2*</span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">x</span><span> </span><span class="coqdoc-var">y</span><span> = </span><span class="coqdoc-var">f</span><span> (2*</span><span class="coqdoc-var">x</span><span>) </span><span class="coqdoc-var">y</span><span> + </span><span class="coqdoc-var">y</span><span>),</span><span>
+  2 * </span><span class="coqdoc-var">g</span><span> 1 8 = 20.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>1 goal
+  
+  ============================
+  (</span><span class="ansi-bold">forall</span><span> x y : nat, 2</span><span> *</span><span> f x y</span><span> =</span><span> f (2</span><span> *</span><span> x) y</span><span> +</span><span> y)</span><span> -&gt;</span><span> 2</span><span> *</span><span> g 1 8</span><span> =</span><span> 20
+</span></dd>
+<dt><span></span><span class="coqdoc-keyword">Proof</span><span>.</span><span>
+</span></dt></dl>
+<span></span><dl>
+<dt><span></span><span class="coqdoc-tactic">intros</span><span>. </span><span class="coqdoc-comment">(* By default, this rewrite succeeds by unifying f with g. *)</span></dt><dd><span>1 goal
+  
+  double_f : </span><span class="ansi-bold">forall</span><span> x y : nat, 2</span><span> *</span><span> f x y</span><span> =</span><span> f (2</span><span> *</span><span> x) y</span><span> +</span><span> y
+  ============================
+  2</span><span> *</span><span> g 1 8</span><span> =</span><span> 20
+</span></dd>
+<dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span></span><span class="coqdoc-tactic">set</span><span> (</span><span class="coqdoc-var">x</span><span> := </span><span class="coqdoc-var">g</span><span> </span><span class="coqdoc-var">_</span><span>). </span><span class="coqdoc-comment">(* Hide left-hand side behind local definition. *)</span></dt><dd><span>1 goal
+  
+  double_f : </span><span class="ansi-bold">forall</span><span> x y : nat, 2</span><span> *</span><span> f x y</span><span> =</span><span> f (2</span><span> *</span><span> x) y</span><span> +</span><span> y
+  x := g 1 : nat</span><span> -&gt;</span><span> nat
+  ============================
+  2</span><span> *</span><span> x 8</span><span> =</span><span> 20
+</span></dd>
+<dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Hint</span><span> </span><span class="coqdoc-keyword">Variables</span><span> </span><span class="coqdoc-keyword">Transparent</span><span> : </span><span class="coqdoc-tactic">rewrite</span><span>. </span><span class="coqdoc-comment">(* Now rewriting unfolds x. *)</span></dt><dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Hint</span><span> </span><span class="coqdoc-var">Constants</span><span> </span><span class="coqdoc-keyword">Opaque</span><span> : </span><span class="coqdoc-tactic">rewrite</span><span>. </span><span class="coqdoc-comment">(* Disallow unfolding f and g. *)</span></dt><dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span></span><span class="coqdoc-tactic">subst</span><span> </span><span class="coqdoc-var">x</span><span>. </span><span class="coqdoc-comment">(* With x substituted, f and g are still distinct. *)</span></dt><dd><span>1 goal
+  
+  double_f : </span><span class="ansi-bold">forall</span><span> x y : nat, 2</span><span> *</span><span> f x y</span><span> =</span><span> f (2</span><span> *</span><span> x) y</span><span> +</span><span> y
+  ============================
+  2</span><span> *</span><span> g 1 8</span><span> =</span><span> 20
+</span></dd>
+<dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_fails</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span></span><span class="coqdoc-keyword">Hint Transparent</span><span> </span><span class="coqdoc-var">f</span><span> </span><span class="coqdoc-var">g</span><span> : </span><span class="coqdoc-tactic">rewrite</span><span>. </span><span class="coqdoc-comment">(* Allow unfolding f and g only. *)</span></dt><dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-tactic">setoid_rewrite</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt><dt><span>  </span><span class="coqdoc-var">assert_succeeds</span><span> (</span><span class="coqdoc-var">rewrite_strat</span><span> </span><span class="coqdoc-var">bottomup</span><span> </span><span class="coqdoc-var">double_f</span><span>).</span><span>
+</span></dt></dl>
+<span></span><dl>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-tactic">exact</span><span> </span><span class="coqdoc-var">eq_refl</span><span>.</span><span>
+</span></dt><dd class="coqtop-hidden"><span>No more goals.
+</span></dd>
+<dt class="coqtop-hidden"><span></span><span class="coqdoc-keyword">Qed</span><span>.</span><span>
+</span></dt></dl>
+</div>
+</div>
+</section>
+<section id="constant-unfolding-during-proper-instance-search">
+<h3>Constant unfolding during <code class="docutils literal notranslate"><span class="pre">Proper</span></code>-instance search<a class="headerlink" href="#constant-unfolding-during-proper-instance-search" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Proper</span></code> instances are resolved using typeclass search. By default, all
+constants are treated as transparent. This may slow down the resolution because
+<a class="reference internal" href="type-classes.html#coq:tacn.typeclasses-eauto" title="typeclasses eauto"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">typeclasses</span> <span class="pre">eauto</span></code></a> will do a lot of unifications (all the declared
+<code class="docutils literal notranslate"><span class="pre">Proper</span></code> instances are tried at each node of the proof search tree).  To
+speed up the search, declare your non-abbreviation definitions as opaque in the
+hint database <code class="docutils literal notranslate"><span class="pre">typeclass_instances</span></code>.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="notation"><span><span><span class="pre">Hint</span></span></span> <span class="alternative"><span class="alternative-block"><span><span><span class="pre">Opaque</span></span></span></span><span class="alternative-separator"><span class="pre">​</span></span><span class="alternative-block"><span><span><span class="pre">Transparent</span></span></span></span></span> <span class="repeat-wrapper"><span class="repeat"><a class="reference internal" href="../language/core/modules.html#grammar-token-qualid"><span class="hole"><span class="pre">qualid</span></span></a></span><span class="notation-sup"><span class="pre">+</span></span></span> <span><span><span class="pre">:</span></span></span> <span><span><span class="pre">typeclass</span></span></span><span><span><span class="pre">_</span></span></span><span><span><span class="pre">instances.</span></span></span></span></code></p>
+</div></blockquote>
+<p>For more information, see <a class="reference internal" href="type-classes.html#coq:cmd.Typeclasses-Opaque" title="Typeclasses Opaque"><code class="xref coq coq-cmd docutils literal notranslate"><span class="pre">Typeclasses</span> <span class="pre">Opaque</span></code></a> and <a class="reference internal" href="type-classes.html#coq:tacn.typeclasses-eauto" title="typeclasses eauto"><code class="xref coq coq-tacn docutils literal notranslate"><span class="pre">typeclasses</span>
+<span class="pre">eauto</span></code></a>.</p>
 </section>
 </section>
 <section id="strategies-for-rewriting">
